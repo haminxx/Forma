@@ -1,0 +1,73 @@
+{
+  "$schema": "https://schema.tauri.app/config/2.0.0",
+  "productName": "Lexis",
+  "version": "0.1.0",
+  "identifier": "com.lexis.app",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "beforeBuildCommand": "pnpm build",
+    "devUrl": "http://localhost:1420",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "overlay",
+        "title": "Lexis",
+        "url": "index.html",
+        "width": 1920,
+        "height": 1080,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "resizable": false,
+        "focus": false,
+        "visible": false,
+        "shadow": false,
+        "fullscreen": false,
+        "maximized": false,
+        "acceptFirstMouse": false
+      },
+      {
+        "label": "settings",
+        "title": "Lexis — Settings",
+        "url": "index.html#/settings",
+        "width": 860,
+        "height": 640,
+        "decorations": true,
+        "transparent": false,
+        "alwaysOnTop": false,
+        "resizable": true,
+        "visible": false,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": null
+    },
+    "trayIcon": {
+      "id": "lexis-tray",
+      "iconPath": "icons/icon.png",
+      "iconAsTemplate": true,
+      "menuOnLeftClick": false,
+      "tooltip": "Lexis"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "resources": ["packs/*.json", "models/*"],
+    "category": "DeveloperTool",
+    "shortDescription": "Prompt vocabulary assistant",
+    "longDescription": "Lexis silently watches your AI prompts and suggests the precise UI terminology with a live component preview."
+  },
+  "plugins": {}
+}

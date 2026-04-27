@@ -1,0 +1,2 @@
+ONNX models (MiniLM, POS) are downloaded/generated at build time.
+See scripts/compute-embeddings.py for provenance.

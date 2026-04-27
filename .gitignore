@@ -1,0 +1,40 @@
+# Node
+node_modules/
+dist/
+.vite/
+.turbo/
+
+# Vercel
+.vercel/
+
+# Rust / Tauri
+src-tauri/target/
+src-tauri/gen/schemas/
+src-tauri/WixTools/
+
+# Env / secrets
+.env
+.env.local
+*.pem
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ML artifacts (generated, large)
+src-tauri/models/*.onnx
+src-tauri/models/*.bin
+!src-tauri/models/.gitkeep
+
+# Local DB / logs
+*.db
+*.db-journal
+*.log
+logs/
+
+# OS junk
+desktop.ini

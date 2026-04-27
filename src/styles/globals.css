@@ -1,0 +1,364 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent !important;
+  color: theme("colors.lexis.text");
+  font-family: theme("fontFamily.sans");
+  overflow: hidden;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* The overlay root paints onto a transparent Tauri window. `pointer-events:
+   none` on the wrapper means the OS passes clicks straight through to the
+   underlying app. Individual UI elements opt BACK IN by wrapping themselves
+   in a `.lexis-ui` container. */
+.lexis-overlay-root {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.lexis-ui {
+  pointer-events: auto;
+}
+
+/* Glass tokens — kept as CSS vars so Tailwind utilities can reference them
+   and we can theme them at runtime. */
+:root {
+  --lexis-bg: rgba(20, 20, 30, 0.72);
+  --lexis-border: rgba(255, 255, 255, 0.08);
+  --lexis-accent: rgba(120, 180, 255, 0.85);
+  --lexis-shadow: 0 8px 32px rgba(0, 0, 0, 0.35),
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.06);
+}
+
+.glass-card {
+  background: var(--lexis-bg);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  backdrop-filter: blur(24px) saturate(1.4);
+  border: 1px solid var(--lexis-border);
+  border-radius: 16px;
+  box-shadow: var(--lexis-shadow);
+}
+
+.glass-pill {
+  background: var(--lexis-bg);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  backdrop-filter: blur(16px) saturate(1.3);
+  border: 1px solid var(--lexis-border);
+  border-radius: 999px;
+  box-shadow: var(--lexis-shadow);
+}
+
+/* Scrollbar hiding for the overlay (prevents the webview rendering phantom
+   scrollbars over the transparent canvas). */
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* ============================================================
+   Web / Vercel demo mode (body.lexis-demo)
+   The Tauri build never adds this class; everything below only
+   activates when the page is opened in a regular browser.
+   ============================================================ */
+
+body.lexis-demo,
+body.lexis-demo #root {
+  overflow: auto;
+  user-select: text;
+  -webkit-user-select: text;
+  background: radial-gradient(
+      1200px 600px at 20% -10%,
+      rgba(120, 180, 255, 0.18),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 500px at 100% 10%,
+      rgba(180, 120, 255, 0.14),
+      transparent 60%
+    ),
+    #08080d !important;
+  min-height: 100%;
+}
+
+body.lexis-demo .lexis-overlay-root {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+}
+
+.lexis-demo-backdrop {
+  position: relative;
+  min-height: 100vh;
+  color: #e8e8ec;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.lexis-demo-content {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 28px 24px 96px;
+}
+
+.lexis-demo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 56px;
+}
+
+.lexis-demo-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+}
+
+.lexis-demo-logo {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #78b4ff 0%, #b478ff 100%);
+  box-shadow: 0 4px 16px rgba(120, 180, 255, 0.45);
+}
+
+.lexis-demo-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lexis-demo-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #e8e8ec;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.lexis-demo-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.lexis-demo-nav-btn--ghost {
+  background: transparent;
+}
+
+.lexis-demo-hero {
+  margin-bottom: 40px;
+}
+
+.lexis-demo-eyebrow {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: rgba(180, 120, 255, 0.85);
+  margin: 0 0 12px;
+  font-weight: 600;
+}
+
+.lexis-demo-title {
+  font-size: 44px;
+  line-height: 1.05;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  margin: 0 0 16px;
+}
+
+.lexis-demo-title-accent {
+  background: linear-gradient(135deg, #78b4ff 0%, #b478ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.lexis-demo-lede {
+  max-width: 640px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: rgba(232, 232, 236, 0.72);
+  margin: 0;
+}
+
+.lexis-demo-stage {
+  margin-bottom: 32px;
+}
+
+.lexis-demo-stage-frame {
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 15, 22, 0.72);
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+}
+
+.lexis-demo-stage-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lexis-demo-stage-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+}
+.lexis-demo-stage-dot[data-color="red"] {
+  background: #ff5f57;
+}
+.lexis-demo-stage-dot[data-color="amber"] {
+  background: #febc2e;
+}
+.lexis-demo-stage-dot[data-color="green"] {
+  background: #28c840;
+}
+
+.lexis-demo-stage-tab {
+  margin-left: 12px;
+  font-size: 12px;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  color: rgba(232, 232, 236, 0.6);
+}
+
+.lexis-demo-stage-body {
+  padding: 28px 28px 36px;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.lexis-demo-bubble {
+  align-self: flex-start;
+  max-width: 80%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(232, 232, 236, 0.85);
+}
+.lexis-demo-bubble mark {
+  background: rgba(120, 180, 255, 0.18);
+  color: #cfe2ff;
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+
+.lexis-demo-composer {
+  position: relative;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 14px;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  color: rgba(232, 232, 236, 0.92);
+}
+
+.lexis-demo-composer-text {
+  white-space: pre;
+}
+
+.lexis-demo-caret {
+  display: inline-block;
+  width: 1.5px;
+  height: 16px;
+  background: rgba(120, 180, 255, 0.85);
+  animation: lexis-caret 1s steps(2, end) infinite;
+}
+
+@keyframes lexis-caret {
+  50% {
+    opacity: 0;
+  }
+}
+
+.lexis-demo-hint {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(232, 232, 236, 0.45);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+
+.lexis-demo-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+  margin-bottom: 40px;
+}
+
+.lexis-demo-info-card {
+  padding: 18px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.lexis-demo-info-card h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(232, 232, 236, 0.92);
+}
+.lexis-demo-info-card p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(232, 232, 236, 0.65);
+}
+.lexis-demo-info-card code,
+.lexis-demo-info-card kbd {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 11.5px;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.lexis-demo-footer {
+  font-size: 12px;
+  color: rgba(232, 232, 236, 0.4);
+  text-align: center;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+
+@media (max-width: 640px) {
+  .lexis-demo-title {
+    font-size: 32px;
+  }
+  .lexis-demo-content {
+    padding: 20px 16px 80px;
+  }
+  .lexis-demo-stage-body {
+    padding: 20px;
+  }
+}
