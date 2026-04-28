@@ -1,0 +1,22 @@
+<div style="width:240px;height:64px;overflow:hidden;position:relative;background:#1a1917;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
+    <div style="width:120px;height:6px;background:#c8b89a;border-radius:2px;animation:h1 3s ease-in-out infinite;"></div>
+    <div style="width:80px;height:3px;background:#c8b89a;border-radius:2px;opacity:0.6;animation:h2 3s ease-in-out infinite;"></div>
+    <div style="width:50px;height:12px;background:#2a2825;border:1px solid #c8b89a;border-radius:3px;animation:btn 3s ease-in-out infinite;"></div>
+  </div>
+  <style>
+  @keyframes h1 {
+    0%,5%   { opacity:0; transform:translateY(6px); }
+    20%,70% { opacity:1; transform:translateY(0); }
+    85%,100%{ opacity:0; transform:translateY(6px); }
+  }
+  @keyframes h2 {
+    0%,15%  { opacity:0; transform:translateY(6px); }
+    30%,70% { opacity:0.6; transform:translateY(0); }
+    85%,100%{ opacity:0; transform:translateY(6px); }
+  }
+  @keyframes btn {
+    0%,25%  { opacity:0; transform:translateY(6px); }
+    40%,70% { opacity:1; transform:translateY(0); }
+    85%,100%{ opacity:0; transform:translateY(6px); }
+  }
+  </style>

@@ -1,0 +1,16 @@
+<div style="width:240px;height:64px;overflow:hidden;position:relative;background:#1a1917;">
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:140px;height:36px;background:rgba(200,184,154,0.12);border:1px solid rgba(200,184,154,0.3);border-radius:8px;animation:popover 2.5s ease-in-out infinite;">
+      <div style="position:absolute;top:8px;left:12px;right:12px;height:3px;background:rgba(200,184,154,0.6);border-radius:2px;"></div>
+      <div style="position:absolute;top:18px;left:12px;right:28px;height:2px;background:rgba(200,184,154,0.3);border-radius:2px;"></div>
+      <div style="position:absolute;top:26px;left:12px;right:20px;height:2px;background:rgba(200,184,154,0.3);border-radius:2px;"></div>
+    </div>
+  </div>
+  <style>
+  @keyframes popover {
+    0%   { opacity:0; transform:translate(-50%,-46%); }
+    20%  { opacity:1; transform:translate(-50%,-50%); }
+    70%  { opacity:1; transform:translate(-50%,-50%); }
+    90%  { opacity:0; transform:translate(-50%,-54%); }
+    100% { opacity:0; transform:translate(-50%,-46%); }
+  }
+  </style>

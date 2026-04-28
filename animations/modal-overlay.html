@@ -1,0 +1,20 @@
+<div style="width:240px;height:64px;overflow:hidden;position:relative;background:#1a1917;">
+    <div style="position:absolute;inset:0;background:rgba(0,0,0,0.6);animation:scrim 3s ease-in-out infinite;"></div>
+    <div style="position:absolute;top:50%;left:50%;width:140px;height:40px;background:#2a2825;border:1px solid #c8b89a;border-radius:6px;animation:modal 3s ease-in-out infinite;">
+      <div style="position:absolute;top:8px;left:12px;right:12px;height:3px;background:#c8b89a;border-radius:2px;opacity:0.9;"></div>
+      <div style="position:absolute;top:18px;left:12px;right:24px;height:2px;background:#c8b89a;border-radius:2px;opacity:0.4;"></div>
+      <div style="position:absolute;top:26px;left:12px;right:32px;height:2px;background:#c8b89a;border-radius:2px;opacity:0.4;"></div>
+    </div>
+  </div>
+  <style>
+  @keyframes scrim {
+    0%,10% { opacity:0; }
+    25%,75% { opacity:1; }
+    90%,100% { opacity:0; }
+  }
+  @keyframes modal {
+    0%,10% { opacity:0; transform:translate(-50%,-50%) scale(0.85); }
+    25%,75% { opacity:1; transform:translate(-50%,-50%) scale(1); }
+    90%,100% { opacity:0; transform:translate(-50%,-50%) scale(0.85); }
+  }
+  </style>

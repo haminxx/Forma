@@ -1,0 +1,29 @@
+<div style="width:240px;height:64px;overflow:hidden;position:relative;background:#1a1917;display:flex;align-items:center;justify-content:center;gap:10px;">
+    <div style="font-family:sans-serif;font-size:9px;color:#c8b89a;opacity:0.5;letter-spacing:0.05em;animation:offlabel 3s ease-in-out infinite;">Off</div>
+    <div style="width:40px;height:20px;border-radius:10px;border:1px solid #c8b89a;position:relative;animation:track 3s ease-in-out infinite;box-sizing:border-box;">
+      <div style="position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#f0ece4;animation:circle 3s ease-in-out infinite;"></div>
+    </div>
+    <div style="font-family:sans-serif;font-size:9px;color:#c8b89a;opacity:0.5;letter-spacing:0.05em;animation:onlabel 3s ease-in-out infinite;">On</div>
+  </div>
+  <style>
+  @keyframes track {
+    0%,15%  { background:#2a2825; }
+    30%,70% { background:#c8b89a; }
+    85%,100%{ background:#2a2825; }
+  }
+  @keyframes circle {
+    0%,15%  { transform:translateX(0px); }
+    30%,70% { transform:translateX(20px); }
+    85%,100%{ transform:translateX(0px); }
+  }
+  @keyframes offlabel {
+    0%,15%  { opacity:0.8; }
+    30%,70% { opacity:0.3; }
+    85%,100%{ opacity:0.8; }
+  }
+  @keyframes onlabel {
+    0%,15%  { opacity:0.3; }
+    30%,70% { opacity:0.9; }
+    85%,100%{ opacity:0.3; }
+  }
+  </style>

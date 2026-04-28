@@ -1,0 +1,26 @@
+<div style="width:240px;height:64px;overflow:hidden;position:relative;background:#1a1917;">
+    <div style="position:absolute;top:0;left:0;right:0;height:20px;border-bottom:1px solid #2a2825;display:flex;align-items:flex-end;">
+      <div style="flex:1;text-align:center;font-size:9px;font-family:sans-serif;color:#c8b89a;opacity:0.5;padding-bottom:4px;letter-spacing:0.05em;">Home</div>
+      <div style="flex:1;text-align:center;font-size:9px;font-family:sans-serif;color:#c8b89a;opacity:0.5;padding-bottom:4px;letter-spacing:0.05em;">About</div>
+      <div style="flex:1;text-align:center;font-size:9px;font-family:sans-serif;color:#c8b89a;opacity:0.5;padding-bottom:4px;letter-spacing:0.05em;">Work</div>
+    </div>
+    <div style="position:absolute;top:16px;height:2px;width:80px;background:#c8b89a;border-radius:1px;animation:indicator 3s ease-in-out infinite;"></div>
+    <div style="position:absolute;top:28px;left:12px;right:12px;height:4px;background:#2a2825;border-radius:2px;animation:content 3s ease-in-out infinite;"></div>
+    <div style="position:absolute;top:38px;left:12px;right:40px;height:4px;background:#2a2825;border-radius:2px;opacity:0.6;animation:content 3s ease-in-out infinite;"></div>
+    <div style="position:absolute;top:48px;left:12px;right:24px;height:4px;background:#2a2825;border-radius:2px;opacity:0.4;animation:content 3s ease-in-out infinite;"></div>
+  </div>
+  <style>
+  @keyframes indicator {
+    0%,25%  { transform:translateX(0px); }
+    40%,58% { transform:translateX(80px); }
+    73%,91% { transform:translateX(160px); }
+    100%    { transform:translateX(0px); }
+  }
+  @keyframes content {
+    0%,30%  { opacity:1; }
+    35%,60% { opacity:0.3; }
+    65%,90% { opacity:0.6; }
+    95%,100%{ opacity:1; }
+  }
+  </style>
+  

@@ -1,0 +1,31 @@
+<div style="width:240px;height:64px;overflow:hidden;position:relative;background:#1a1917;">
+    <div style="position:absolute;top:0;left:8px;width:62px;animation:col1 3s ease-in-out infinite;">
+      <div style="height:28px;background:#2a2825;border-radius:2px;margin-bottom:3px;border:0.5px solid #c8b89a;opacity:0.8;"></div>
+      <div style="height:18px;background:#2a2825;border-radius:2px;border:0.5px solid #c8b89a;opacity:0.8;"></div>
+    </div>
+    <div style="position:absolute;top:0;left:81px;width:62px;animation:col2 3s ease-in-out infinite;">
+      <div style="height:18px;background:#2a2825;border-radius:2px;margin-bottom:3px;border:0.5px solid #c8b89a;opacity:0.8;"></div>
+      <div style="height:28px;background:#2a2825;border-radius:2px;border:0.5px solid #c8b89a;opacity:0.8;"></div>
+    </div>
+    <div style="position:absolute;top:0;left:154px;width:62px;animation:col3 3s ease-in-out infinite;">
+      <div style="height:22px;background:#2a2825;border-radius:2px;margin-bottom:3px;border:0.5px solid #c8b89a;opacity:0.8;"></div>
+      <div style="height:24px;background:#2a2825;border-radius:2px;border:0.5px solid #c8b89a;opacity:0.8;"></div>
+    </div>
+  </div>
+  <style>
+  @keyframes col1 {
+    0%,10%  { opacity:0; transform:translateY(-8px); }
+    25%,75% { opacity:1; transform:translateY(0); }
+    90%,100%{ opacity:0; transform:translateY(-8px); }
+  }
+  @keyframes col2 {
+    0%,20%  { opacity:0; transform:translateY(-8px); }
+    35%,75% { opacity:1; transform:translateY(0); }
+    90%,100%{ opacity:0; transform:translateY(-8px); }
+  }
+  @keyframes col3 {
+    0%,30%  { opacity:0; transform:translateY(-8px); }
+    45%,75% { opacity:1; transform:translateY(0); }
+    90%,100%{ opacity:0; transform:translateY(-8px); }
+  }
+  </style>
