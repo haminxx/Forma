@@ -1,0 +1,24 @@
+<div style="width:240px;height:64px;overflow:hidden;position:relative;background:#1a1917;display:flex;align-items:center;justify-content:center;">
+    <div style="position:relative;width:28px;height:18px;">
+      <div style="position:absolute;top:0;left:0;width:28px;height:2px;background:#c8b89a;border-radius:1px;transform-origin:center;animation:top 3s ease-in-out infinite;"></div>
+      <div style="position:absolute;top:8px;left:0;width:28px;height:2px;background:#c8b89a;border-radius:1px;animation:mid 3s ease-in-out infinite;"></div>
+      <div style="position:absolute;top:16px;left:0;width:28px;height:2px;background:#c8b89a;border-radius:1px;transform-origin:center;animation:bot 3s ease-in-out infinite;"></div>
+    </div>
+  </div>
+  <style>
+  @keyframes top {
+    0%,15%  { transform:translateY(0) rotate(0deg); }
+    35%,65% { transform:translateY(8px) rotate(45deg); }
+    85%,100%{ transform:translateY(0) rotate(0deg); }
+  }
+  @keyframes mid {
+    0%,15%  { opacity:1; transform:scaleX(1); }
+    30%,70% { opacity:0; transform:scaleX(0); }
+    85%,100%{ opacity:1; transform:scaleX(1); }
+  }
+  @keyframes bot {
+    0%,15%  { transform:translateY(0) rotate(0deg); }
+    35%,65% { transform:translateY(-8px) rotate(-45deg); }
+    85%,100%{ transform:translateY(0) rotate(0deg); }
+  }
+  </style>

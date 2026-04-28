@@ -1,0 +1,38 @@
+<div style="width:240px;height:64px;overflow:hidden;position:relative;background:#1a1917;display:flex;">
+    <div style="width:80px;height:64px;background:#2a2825;border-right:0.5px solid #c8b89a;flex-shrink:0;">
+      <div style="height:16px;display:flex;align-items:center;padding:0 8px;border-left:2px solid transparent;animation:row1 3s ease-in-out infinite;">
+        <div style="width:40px;height:2px;background:#c8b89a;border-radius:1px;opacity:0.5;"></div>
+      </div>
+      <div style="height:16px;display:flex;align-items:center;padding:0 8px;border-left:2px solid transparent;animation:row2 3s ease-in-out infinite;">
+        <div style="width:34px;height:2px;background:#c8b89a;border-radius:1px;opacity:0.5;"></div>
+      </div>
+      <div style="height:16px;display:flex;align-items:center;padding:0 8px;border-left:2px solid transparent;animation:row3 3s ease-in-out infinite;">
+        <div style="width:38px;height:2px;background:#c8b89a;border-radius:1px;opacity:0.5;"></div>
+      </div>
+      <div style="height:16px;display:flex;align-items:center;padding:0 8px;">
+        <div style="width:30px;height:2px;background:#c8b89a;border-radius:1px;opacity:0.3;"></div>
+      </div>
+    </div>
+    <div style="flex:1;padding:8px 10px;display:flex;flex-direction:column;gap:5px;">
+      <div style="height:4px;background:#2a2825;border-radius:2px;opacity:0.5;"></div>
+      <div style="height:4px;background:#2a2825;border-radius:2px;opacity:0.3;width:80%;"></div>
+      <div style="height:4px;background:#2a2825;border-radius:2px;opacity:0.4;width:90%;"></div>
+      <div style="height:4px;background:#2a2825;border-radius:2px;opacity:0.3;width:70%;"></div>
+    </div>
+  </div>
+  <style>
+  @keyframes row1 {
+    0%,28%  { background:rgba(200,184,154,0.15); border-left-color:#c8b89a; }
+    33%,100%{ background:transparent; border-left-color:transparent; }
+  }
+  @keyframes row2 {
+    0%,28%  { background:transparent; border-left-color:transparent; }
+    33%,61% { background:rgba(200,184,154,0.15); border-left-color:#c8b89a; }
+    66%,100%{ background:transparent; border-left-color:transparent; }
+  }
+  @keyframes row3 {
+    0%,61%  { background:transparent; border-left-color:transparent; }
+    66%,94% { background:rgba(200,184,154,0.15); border-left-color:#c8b89a; }
+    99%,100%{ background:transparent; border-left-color:transparent; }
+  }
+  </style>

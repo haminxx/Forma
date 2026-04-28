@@ -1,0 +1,47 @@
+<div style="width:240px;height:64px;overflow:hidden;position:relative;background:#1a1917;display:flex;align-items:center;justify-content:center;">
+    <div style="display:flex;align-items:center;gap:0;">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+        <div style="width:14px;height:14px;border-radius:50%;border:1.5px solid #c8b89a;animation:c1 3s ease-in-out infinite;"></div>
+        <div style="font-family:sans-serif;font-size:7px;color:#c8b89a;opacity:0.6;letter-spacing:0.03em;">Step 1</div>
+      </div>
+      <div style="width:50px;height:2px;background:#2a2825;position:relative;margin-bottom:11px;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;height:100%;background:#c8b89a;animation:l1 3s ease-in-out infinite;"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+        <div style="width:14px;height:14px;border-radius:50%;border:1.5px solid #c8b89a;animation:c2 3s ease-in-out infinite;"></div>
+        <div style="font-family:sans-serif;font-size:7px;color:#c8b89a;opacity:0.6;letter-spacing:0.03em;">Step 2</div>
+      </div>
+      <div style="width:50px;height:2px;background:#2a2825;position:relative;margin-bottom:11px;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;height:100%;background:#c8b89a;animation:l2 3s ease-in-out infinite;"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+        <div style="width:14px;height:14px;border-radius:50%;border:1.5px solid #c8b89a;animation:c3 3s ease-in-out infinite;"></div>
+        <div style="font-family:sans-serif;font-size:7px;color:#c8b89a;opacity:0.6;letter-spacing:0.03em;">Step 3</div>
+      </div>
+    </div>
+  </div>
+  <style>
+  @keyframes c1 {
+    0%,30%  { background:#c8b89a; }
+    40%,100%{ background:#2a2825; }
+  }
+  @keyframes c2 {
+    0%,30%  { background:#2a2825; }
+    40%,65% { background:#c8b89a; }
+    75%,100%{ background:#2a2825; }
+  }
+  @keyframes c3 {
+    0%,65%  { background:#2a2825; }
+    75%,95% { background:#c8b89a; }
+    100%    { background:#2a2825; }
+  }
+  @keyframes l1 {
+    0%,30%  { width:100%; }
+    40%,100%{ width:0%; }
+  }
+  @keyframes l2 {
+    0%,65%  { width:0%; }
+    75%,95% { width:100%; }
+    100%    { width:0%; }
+  }
+  </style>
