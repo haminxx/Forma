@@ -2,7 +2,7 @@ fastapi
 uvicorn
 crewai
 crewai-tools
-langchain-openai
+litellm
 python-multipart
 requests
 python-dotenv

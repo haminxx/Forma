@@ -8,7 +8,7 @@ AMD_ENDPOINT = os.getenv("AMD_ENDPOINT", "http://129.212.178.153:8000/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "meta-llama/Meta-Llama-3.1-8B-Instruct")
 
 llm = LLM(
-    model=f"openai/{MODEL_NAME}",
+    model=f"hosted_vllm/{MODEL_NAME}",
     base_url=AMD_ENDPOINT,
     api_key="not-needed",
     temperature=0.1,
