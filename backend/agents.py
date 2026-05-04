@@ -1,17 +1,16 @@
 import os
 from dotenv import load_dotenv
-from crewai import Agent, Task, Crew, Process
-from langchain_openai import ChatOpenAI
+from crewai import Agent, Task, Crew, Process, LLM
 
 load_dotenv()
 
 AMD_ENDPOINT = os.getenv("AMD_ENDPOINT", "http://129.212.178.153:8000/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "meta-llama/Meta-Llama-3.1-8B-Instruct")
 
-llm = ChatOpenAI(
+llm = LLM(
+    model=f"openai/{MODEL_NAME}",
     base_url=AMD_ENDPOINT,
     api_key="not-needed",
-    model=MODEL_NAME,
     temperature=0.1,
     max_tokens=400,
 )
@@ -69,4 +68,3 @@ Return only valid JSON. No preamble. No explanation. No markdown."""
     except Exception as e:
         print(f"Error in translate_phrase: {e}")
         return "ERROR"
-
