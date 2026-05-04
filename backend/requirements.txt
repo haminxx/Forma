@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+crewai
+crewai-tools
+langchain-openai
+python-multipart
+requests
+python-dotenv
