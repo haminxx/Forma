@@ -1,4 +1,4 @@
-# Lexis
+# Forma
 
 > *"You know what you want. Lexis knows what to call it."*
 
