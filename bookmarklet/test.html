@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Forma Bookmarklet Test</title>
+<style>
+  body { 
+    font-family: system-ui, sans-serif; 
+    background: #0a0a09; 
+    color: #f0ece4; 
+    padding: 40px; 
+    max-width: 800px; 
+    margin: 0 auto;
+  }
+  h1 { font-size: 24px; margin-bottom: 8px; color: #c8b89a; }
+  p { color: #6b6560; font-size: 14px; margin-bottom: 24px; }
+  textarea { 
+    width: 100%; 
+    height: 200px; 
+    padding: 16px; 
+    background: #1a1917; 
+    border: 1px solid #2a2825; 
+    border-radius: 8px; 
+    color: #f0ece4; 
+    font-size: 16px; 
+    font-family: system-ui, sans-serif; 
+    line-height: 1.6;
+    resize: vertical;
+  }
+  textarea:focus { outline: none; border-color: #c8b89a; }
+  .examples { 
+    margin-top: 24px; 
+    padding: 16px; 
+    background: #1a1917; 
+    border-radius: 8px; 
+    border: 1px solid #2a2825;
+  }
+  .examples h3 { font-size: 14px; color: #c8b89a; margin-bottom: 12px; }
+  .examples ul { margin-left: 20px; color: #6b6560; font-size: 13px; line-height: 1.8; }
+  .button { 
+    margin-top: 24px; 
+    padding: 12px 24px; 
+    background: #c8b89a; 
+    color: #0a0a09; 
+    border: none; 
+    border-radius: 6px; 
+    font-size: 14px; 
+    font-weight: 600; 
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<h1>Forma Bookmarklet Test Environment</h1>
+<p>Type in the textarea below. The Forma bookmarklet will detect vague UI phrases and underline them in amber.</p>
+
+<textarea placeholder="Try typing: Build me a menu that slides out from the right with cards in a Pinterest style grid"></textarea>
+
+<div class="examples">
+<h3>Try these test phrases:</h3>
+<ul>
+  <li>menu that slides out from the right</li>
+  <li>floating blurry popup</li>
+  <li>cards in a pinterest style grid</li>
+  <li>sticky top bar with breadcrumbs</li>
+  <li>loading placeholder with shimmer effect</li>
+</ul>
+</div>
+
+<button class="button" onclick="loadBookmarklet()">Load Forma Bookmarklet</button>
+
+<script>
+function loadBookmarklet() {
+  const script = document.createElement('script');
+  script.src = 'forma.js?t=' + Date.now();
+  document.body.appendChild(script);
+}
+</script>
+</body>
+</html>
