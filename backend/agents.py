@@ -11,7 +11,7 @@ llm = LLM(
     model=f"hosted_vllm/{MODEL_NAME}",
     base_url=AMD_ENDPOINT,
     api_key="not-needed",
-    temperature=0.1,
+    temperature=0,
     max_tokens=400,
 )
 
