@@ -1,0 +1,314 @@
+import { type ReactNode, useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+
+/**
+ * LoopingWords — vertically scrolling list of UI component names. Adapted
+ * from the user's GSAP reference using framer-motion (already in the
+ * bundle) so we don't pull GSAP in for ~25 KB extra gzip.
+ *
+ * Behaviour:
+ *   - Auto-advances one word every WORD_INTERVAL_MS.
+ *   - Hovering the container pauses the loop and pops a preview card
+ *     showing a tiny live demo of whichever component is currently
+ *     centred. Mouse leave resumes the loop and dismisses the card.
+ *   - The list is rendered doubled so that the wrap-around (last → first)
+ *     keeps animating downstream into the second copy, then we snap the
+ *     index back to 0 with a zero-duration step to avoid a visible rewind.
+ */
+
+const ROW_HEIGHT = 56;
+const WORD_INTERVAL_MS = 2400;
+
+const COMPONENT_WORDS = [
+  "Button",
+  "Card",
+  "Modal",
+  "Drawer",
+  "Tabs",
+  "Accordion",
+  "Popover",
+  "Tooltip",
+  "Toast",
+  "Avatar",
+] as const;
+type ComponentWord = (typeof COMPONENT_WORDS)[number];
+
+export function LoopingWords() {
+  const N = COMPONENT_WORDS.length;
+  const [paused, setPaused] = useState(false);
+  const [index, setIndex] = useState(0);
+  const [isSnapping, setIsSnapping] = useState(false);
+  const tickRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (paused || isSnapping) return;
+    tickRef.current = setTimeout(() => {
+      if (index < N) {
+        setIndex((i) => i + 1);
+      } else {
+        // Reached the duplicate's first word — snap back to true 0
+        // with a zero-duration transition.
+        setIsSnapping(true);
+        setTimeout(() => {
+          setIndex(0);
+          setIsSnapping(false);
+        }, 30);
+      }
+    }, WORD_INTERVAL_MS);
+    return () => {
+      if (tickRef.current) clearTimeout(tickRef.current);
+    };
+  }, [paused, isSnapping, index, N]);
+
+  const doubled = [...COMPONENT_WORDS, ...COMPONENT_WORDS];
+  const currentWord = COMPONENT_WORDS[index % N] ?? COMPONENT_WORDS[0];
+
+  return (
+    <div
+      className="relative"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.32em] text-white/40">
+        UI vocabulary
+      </p>
+
+      <div
+        className="relative overflow-hidden"
+        style={{ height: ROW_HEIGHT }}
+        aria-live="off"
+      >
+        <motion.ul
+          className="m-0 list-none p-0"
+          animate={{ y: -index * ROW_HEIGHT }}
+          transition={
+            isSnapping
+              ? { duration: 0 }
+              : { type: "spring", stiffness: 90, damping: 20, mass: 0.9 }
+          }
+        >
+          {doubled.map((word, i) => (
+            <li
+              key={i}
+              className="flex items-center"
+              style={{ height: ROW_HEIGHT }}
+            >
+              <span className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                {word}
+              </span>
+            </li>
+          ))}
+        </motion.ul>
+
+        {/* Top + bottom fades so words ease in / out of the visible row. */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-3 bg-gradient-to-b from-[#191a1f] to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-3 bg-gradient-to-t from-[#191a1f] to-transparent" />
+
+        {/* Selector edge corners — borrowed in spirit from the reference. */}
+        <div className="pointer-events-none absolute inset-y-1 left-0 w-1 border-l border-[#d4b87a]/60" />
+        <div className="pointer-events-none absolute inset-y-1 right-0 w-1 border-r border-[#d4b87a]/60" />
+      </div>
+
+      <AnimatePresence>
+        {paused && (
+          <motion.div
+            key={currentWord}
+            initial={{ opacity: 0, x: 12, scale: 0.96 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 12, scale: 0.96 }}
+            transition={{ type: "spring", stiffness: 220, damping: 24 }}
+            className="absolute right-full top-1/2 z-20 mr-6 -translate-y-1/2"
+          >
+            <WordPreviewCard word={currentWord} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function WordPreviewCard({ word }: { word: ComponentWord }) {
+  return (
+    <div className="w-64 rounded-xl border border-white/10 bg-[#1a1a1f]/95 p-5 shadow-[0_18px_50px_-24px_rgba(0,0,0,0.7)] backdrop-blur-md">
+      <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-white/40">
+        Component
+      </p>
+      <h3 className="mt-1 text-lg font-semibold tracking-tight text-white">
+        {word}
+      </h3>
+      <div className="mt-4 flex h-24 items-center justify-center rounded-lg border border-white/5 bg-white/[0.02] p-4">
+        <ComponentDemo word={word} />
+      </div>
+    </div>
+  );
+}
+
+function ComponentDemo({ word }: { word: ComponentWord }): ReactNode {
+  switch (word) {
+    case "Button":
+      return (
+        <motion.button
+          initial={{ scale: 0.92, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.25 }}
+          className="rounded-md bg-white px-4 py-1.5 text-sm font-medium text-black"
+        >
+          Click me
+        </motion.button>
+      );
+    case "Card":
+      return (
+        <motion.div
+          initial={{ y: 6, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.25 }}
+          className="w-36 rounded-md border border-white/10 bg-white/[0.04] p-2.5"
+        >
+          <div className="h-1 w-12 rounded-full bg-white/30" />
+          <div className="mt-1.5 h-1 w-20 rounded-full bg-white/15" />
+          <div className="mt-1 h-1 w-16 rounded-full bg-white/15" />
+        </motion.div>
+      );
+    case "Modal":
+      return (
+        <motion.div
+          initial={{ scale: 0.85, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.25 }}
+          className="relative w-40 rounded-md border border-white/15 bg-[#1a1a1f] p-2.5 shadow-lg"
+        >
+          <div className="flex items-center justify-between">
+            <div className="h-1.5 w-14 rounded-full bg-white/40" />
+            <div className="h-3 w-3 rounded-sm border border-white/20" />
+          </div>
+          <div className="mt-2 h-1 w-24 rounded-full bg-white/15" />
+          <div className="mt-1 h-1 w-20 rounded-full bg-white/15" />
+        </motion.div>
+      );
+    case "Drawer":
+      return (
+        <div className="relative h-16 w-40 overflow-hidden rounded-md border border-white/10 bg-white/[0.02]">
+          <motion.div
+            initial={{ x: 60 }}
+            animate={{ x: 0 }}
+            transition={{ type: "spring", stiffness: 200, damping: 22 }}
+            className="absolute right-0 top-0 h-full w-20 bg-white/[0.08]"
+          >
+            <div className="m-2 h-1 w-12 rounded-full bg-white/30" />
+            <div className="mx-2 mt-1 h-1 w-10 rounded-full bg-white/15" />
+          </motion.div>
+        </div>
+      );
+    case "Tabs":
+      return (
+        <div className="flex gap-1.5">
+          {["One", "Two", "Three"].map((t, i) => (
+            <motion.span
+              key={t}
+              initial={{ y: -4, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.2, delay: i * 0.05 }}
+              className={
+                i === 0
+                  ? "rounded-md bg-white px-2.5 py-1 text-xs font-medium text-black"
+                  : "rounded-md border border-white/15 px-2.5 py-1 text-xs text-white/60"
+              }
+            >
+              {t}
+            </motion.span>
+          ))}
+        </div>
+      );
+    case "Accordion":
+      return (
+        <div className="w-40 rounded-md border border-white/10">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
+            className="flex items-center justify-between border-b border-white/10 px-2.5 py-2"
+          >
+            <div className="h-1 w-16 rounded-full bg-white/40" />
+            <span className="text-[10px] text-white/40">−</span>
+          </motion.div>
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 28, opacity: 1 }}
+            transition={{ duration: 0.25 }}
+            className="overflow-hidden px-2.5 py-2"
+          >
+            <div className="h-1 w-20 rounded-full bg-white/15" />
+            <div className="mt-1 h-1 w-12 rounded-full bg-white/10" />
+          </motion.div>
+          <div className="flex items-center justify-between px-2.5 py-2">
+            <div className="h-1 w-12 rounded-full bg-white/40" />
+            <span className="text-[10px] text-white/40">+</span>
+          </div>
+        </div>
+      );
+    case "Popover":
+      return (
+        <motion.div
+          initial={{ y: 6, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.25 }}
+          className="relative w-32 rounded-md border border-white/15 bg-[#1a1a1f] px-3 py-2 shadow-lg"
+        >
+          <div className="h-1 w-14 rounded-full bg-white/40" />
+          <div className="mt-1 h-1 w-20 rounded-full bg-white/15" />
+          <div
+            aria-hidden="true"
+            className="absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 border-b border-r border-white/15 bg-[#1a1a1f]"
+          />
+        </motion.div>
+      );
+    case "Tooltip":
+      return (
+        <motion.div
+          initial={{ y: 4, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.2 }}
+          className="relative rounded bg-white px-2 py-1 text-xs font-medium text-black"
+        >
+          Save changes
+          <div
+            aria-hidden="true"
+            className="absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 bg-white"
+          />
+        </motion.div>
+      );
+    case "Toast":
+      return (
+        <motion.div
+          initial={{ x: 40, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 220, damping: 22 }}
+          className="flex w-44 items-center gap-2 rounded-md border border-white/10 bg-[#1a1a1f] p-2"
+        >
+          <div className="h-2 w-2 rounded-full bg-emerald-400" />
+          <div className="flex-1">
+            <div className="h-1 w-20 rounded-full bg-white/40" />
+            <div className="mt-1 h-1 w-14 rounded-full bg-white/15" />
+          </div>
+        </motion.div>
+      );
+    case "Avatar":
+      return (
+        <div className="flex -space-x-2">
+          {["A", "B", "C"].map((ch, i) => (
+            <motion.div
+              key={ch}
+              initial={{ scale: 0.7, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.2, delay: i * 0.05 }}
+              className="grid h-8 w-8 place-items-center rounded-full border-2 border-[#1a1a1f] bg-white/15 text-xs font-semibold text-white"
+            >
+              {ch}
+            </motion.div>
+          ))}
+        </div>
+      );
+    default:
+      return <span className="text-xs text-white/40">Demo</span>;
+  }
+}

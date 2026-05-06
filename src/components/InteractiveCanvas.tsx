@@ -59,6 +59,16 @@ export function InteractiveCanvas({
 
     const ratio = window.devicePixelRatio || 1;
 
+    // Viewport-driven dot size: bigger screens grow the radius (and the
+    // "neighbourhood" each dot reacts to the cursor across) so the field
+    // doesn't feel sparse on a 1440p+ monitor or tiny on mobile.
+    let effectiveMultiplier = dotSizeMultiplier;
+    const computeMultiplier = () => {
+      const vw = window.innerWidth;
+      // 768 vw → +0, 1280 → +128, 1920 → +288, 2560 → +448
+      effectiveMultiplier = dotSizeMultiplier + Math.max(0, (vw - 768) / 4);
+    };
+
     const handleResize = () => {
       const parent = canvas.parentElement;
       const w = parent?.clientWidth ?? window.innerWidth;
@@ -68,6 +78,7 @@ export function InteractiveCanvas({
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      computeMultiplier();
       createDots();
     };
 
@@ -116,7 +127,7 @@ export function InteractiveCanvas({
 
     const getVector = (dot: Dot) => {
       const d = getDistance(dot, mouseRef.current);
-      let size = (dotSizeMultiplier - d) / 20;
+      let size = (effectiveMultiplier - d) / 20;
       if (size < 1) size = 1;
       dot.size = size;
       dot.angle = getAngle(dot, mouseRef.current);
