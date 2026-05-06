@@ -12,7 +12,7 @@ llm = LLM(
     base_url=AMD_ENDPOINT,
     api_key="not-needed",
     temperature=0,
-    max_tokens=400,
+    max_tokens=1500,
 )
 
 translation_agent = Agent(
