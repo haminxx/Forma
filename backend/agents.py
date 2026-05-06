@@ -137,12 +137,29 @@ Example response format:
 ]
 
 Important rules:
-1. Only flag phrases that describe UI components vaguely
-2. Skip technical terms users already know (e.g., "button", "form")
-3. The phrase field must be an exact substring of the input text
-4. start and end indices must be accurate
-5. Return [] if no vague phrases found
-6. Do NOT wrap in markdown. Do NOT add explanation text.
+1. Only flag phrases that EXPLICITLY describe a visual UI component or layout pattern
+2. Do NOT flag general greetings, names, casual text, or non-UI content
+3. Do NOT flag short phrases under 8 characters
+4. Do NOT flag phrases that are just nouns without descriptive context
+5. The user must be DESCRIBING a UI component, not just mentioning a word
+6. If the input is "Hello world", "test", "hi", or general non-UI text → return []
+7. If the input has no clear UI description → return []
+8. Skip technical terms users already know (e.g., "button", "form")
+9. The phrase field must be an EXACT substring of the input text
+10. start and end indices must be accurate
+11. Return [] if no vague phrases found
+12. Do NOT wrap in markdown. Do NOT add explanation text.
+
+Examples of inputs that should return []:
+- "Hello world" → []
+- "test" → []
+- "I want to build something" → []
+- "Make a website" → []
+
+Examples of inputs that should detect phrases:
+- "menu that slides out from the right" → detect "menu that slides out from the right"
+- "I want a sticky top bar" → detect "sticky top bar"
+- "floating blurry popup" → detect "floating blurry popup"
 
 Return only the JSON array."""
 
