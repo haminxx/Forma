@@ -1,5 +1,28 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------------------
+ * Forma — warm-black + gold theme tokens
+ * Matches the FORMA SUGGESTS popover screenshot:
+ *   - very dark warm base (#0d0c0a / #16140f)
+ *   - tan/gold accent (#c8b89a) used for emphasis and the breaking underline
+ *   - cream foreground for primary text
+ * ------------------------------------------------------------------------ */
+@theme {
+  --color-forma-bg: #0d0c0a;
+  --color-forma-surface: #16140f;
+  --color-forma-card: #1d1a14;
+  --color-forma-card-2: #221e17;
+  --color-forma-border: #2a261d;
+  --color-forma-border-strong: #3a3528;
+  --color-forma-gold: #c8b89a;
+  --color-forma-gold-strong: #d4b87a;
+  --color-forma-gold-bright: #e8d8b6;
+  --color-forma-fg: #f5f1e8;
+  --color-forma-muted: #8a8478;
+  --color-forma-faint: #5c574e;
+  --color-forma-status: #6ee08a;
+}
+
 html,
 body,
 #root {
@@ -8,6 +31,189 @@ body,
 
 body {
   margin: 0;
+  background: var(--color-forma-bg);
+  color: var(--color-forma-fg);
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Inter",
+    "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---------------------------------------------------------------------------
+ * Demo animations (scroll/in-view triggered, then loop forever)
+ * ------------------------------------------------------------------------ */
+
+/* Caret blink for the typing animation */
+@keyframes forma-caret-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* "Breaking" underline — draws from left to right with a slight stutter
+   so it feels like Forma is detecting/ticking through the phrase. */
+@keyframes forma-underline-draw {
+  0% {
+    background-size: 0% 100%;
+  }
+  35% {
+    background-size: 38% 100%;
+  }
+  /* tiny pause — the "break" — before completing */
+  45% {
+    background-size: 38% 100%;
+  }
+  100% {
+    background-size: 100% 100%;
+  }
+}
+
+@keyframes forma-popover-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+@keyframes forma-popover-out {
+  from {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, 6px) scale(0.98);
+  }
+}
+
+/* Mini preview animation inside the suggests card —
+   the same hero-section concept (bars + button), looped. */
+@keyframes forma-preview-bar1 {
+  0%,
+  5% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  20%,
+  70% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  85%,
+  100% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@keyframes forma-preview-bar2 {
+  0%,
+  15% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  30%,
+  70% {
+    opacity: 0.6;
+    transform: translateY(0);
+  }
+  85%,
+  100% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@keyframes forma-preview-panel {
+  0%,
+  25% {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  40%,
+  75% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  90%,
+  100% {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+}
+
+@keyframes forma-status-dot {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Composable utility classes used by the demo
+ * ------------------------------------------------------------------------ */
+
+.forma-caret {
+  display: inline-block;
+  width: 1.5px;
+  height: 1.05em;
+  margin-left: 1px;
+  vertical-align: -2px;
+  background: var(--color-forma-gold-bright);
+  animation: forma-caret-blink 1s steps(1, end) infinite;
+}
+
+/* Dashed gold "breaking" underline that draws under a span.
+   Use a linear-gradient bg as the underline so we can animate width. */
+.forma-underline {
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--color-forma-gold-strong) 0 6px,
+    transparent 6px 10px
+  );
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 0% 2px;
+  padding-bottom: 4px;
+  animation: forma-underline-draw 0.85s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.forma-underline--solid {
+  background-size: 100% 2px;
+}
+
+.forma-popover-in {
+  animation: forma-popover-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.forma-popover-out {
+  animation: forma-popover-out 0.22s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+.forma-status-dot {
+  animation: forma-status-dot 1.6s ease-in-out infinite;
+}
+
+/* Reduce motion support */
+@media (prefers-reduced-motion: reduce) {
+  .forma-caret,
+  .forma-underline,
+  .forma-popover-in,
+  .forma-popover-out,
+  .forma-status-dot {
+    animation: none;
+  }
+  .forma-underline {
+    background-size: 100% 2px;
+  }
 }
