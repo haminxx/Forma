@@ -16,7 +16,7 @@ function initForma() {
   //   "keyword" = fast keyword matching (current, proven)
   //   "ai"      = AMD-powered sentence analysis (Day 4+)
   // ============================================================
-  const DETECTION_MODE = "keyword";  // "keyword" or "ai"
+  const DETECTION_MODE = "ai";  // "keyword" or "ai"
   
   const RAILWAY_URL = 'https://forma-production-c800.up.railway.app/translate';
   const ANALYZE_URL = 'https://forma-production-c800.up.railway.app/analyze';
@@ -242,6 +242,141 @@ function initForma() {
     return matches;
   }
 
+  // ============================================================
+  // AI MODE — Sentence-level detection via /analyze endpoint
+  // ============================================================
+  
+  // Cache for AI mode responses keyed by full text
+  const aiResponseCache = new Map();
+  
+  // Last analyzed text and timestamp for debouncing
+  let lastAnalyzedText = '';
+  let analyzeInFlight = false;
+  let lastAIResponse = []; // most recent phrases array from AMD
+  
+  function detectPhrasesAI(text) {
+    // Synchronous return of cached results
+    // The actual AMD call happens in fetchAIPhrases (async)
+    if (!text) {
+      lastAIResponse = [];
+      return [];
+    }
+    
+    if (aiResponseCache.has(text)) {
+      lastAIResponse = aiResponseCache.get(text);
+      return lastAIResponse;
+    }
+    
+    // Return last known response while waiting for new one
+    return lastAIResponse;
+  }
+  
+  function fetchAIPhrases(text, onComplete) {
+    if (!text || text.length < 3) {
+      lastAIResponse = [];
+      onComplete([]);
+      return;
+    }
+    
+    // Avoid duplicate calls for same text
+    if (text === lastAnalyzedText && aiResponseCache.has(text)) {
+      onComplete(aiResponseCache.get(text));
+      return;
+    }
+    
+    if (analyzeInFlight) {
+      console.log('[Forma AI] Already in-flight, skipping');
+      return;
+    }
+    
+    analyzeInFlight = true;
+    lastAnalyzedText = text;
+    console.log('[Forma AI] Calling /analyze for:', text.substring(0, 60) + '...');
+
+    showAIIndicator();
+
+    fetch(ANALYZE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: text })
+    })
+    .then(res => res.json())
+    .then(data => {
+      analyzeInFlight = false;
+      hideAIIndicator();
+      console.log('[Forma AI] Response:', data);
+
+      if (!data || !Array.isArray(data.phrases)) {
+        console.warn('[Forma AI] Invalid response format');
+        return;
+      }
+      
+      // Cache the result
+      aiResponseCache.set(text, data.phrases);
+      lastAIResponse = data.phrases;
+      
+      // Trigger callback to re-render overlay
+      onComplete(data.phrases);
+    })
+    .catch(err => {
+      analyzeInFlight = false;
+      hideAIIndicator();
+      console.error('[Forma AI] Error:', err);
+    });
+  }
+
+  let aiIndicator = null;
+
+  function showAIIndicator() {
+    if (!targetTextarea) return;
+    if (aiIndicator) {
+      aiIndicator.style.display = 'flex';
+      return;
+    }
+    aiIndicator = document.createElement('div');
+    aiIndicator.id = 'forma-ai-indicator';
+    Object.assign(aiIndicator.style, {
+      position: 'absolute',
+      zIndex: '9998',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '6px',
+      padding: '6px 10px',
+      background: '#1c1a17',
+      border: '0.5px solid rgba(200,184,154,0.3)',
+      borderRadius: '8px',
+      fontSize: '11px',
+      color: '#c8b89a',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      letterSpacing: '0.05em',
+      pointerEvents: 'none',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+    });
+    aiIndicator.innerHTML = '<div style="width:6px;height:6px;border-radius:50%;background:#4ade80;animation:forma-pulse 1.5s ease-in-out infinite;"></div>Forma AI analyzing...';
+    document.body.appendChild(aiIndicator);
+    positionAIIndicator();
+  }
+
+  function positionAIIndicator() {
+    if (!aiIndicator || !targetTextarea) return;
+    const rect = targetTextarea.getBoundingClientRect();
+    aiIndicator.style.top = (rect.bottom + window.scrollY + 8) + 'px';
+    aiIndicator.style.left = (rect.left + window.scrollX) + 'px';
+  }
+
+  function hideAIIndicator() {
+    if (aiIndicator) aiIndicator.style.display = 'none';
+  }
+
+  // Debounce timer for AI mode
+  let aiDebounceTimer = null;
+  function scheduleAIAnalysis(text, onComplete) {
+    if (aiDebounceTimer) clearTimeout(aiDebounceTimer);
+    aiDebounceTimer = setTimeout(() => {
+      fetchAIPhrases(text, onComplete);
+    }, 800);
+  }
+
   let overlay = null;
   let targetTextarea = null;
 
@@ -275,18 +410,47 @@ function initForma() {
 
   function renderOverlay(textarea) {
     const text = textarea.value;
-    const matches = detectPhrases(text);
+
+    // Branch detection based on mode
+    let matches;
+    if (DETECTION_MODE === "ai") {
+      matches = detectPhrasesAI(text);
+      // Schedule async AMD call to update phrases (with debounce)
+      scheduleAIAnalysis(text, (newPhrases) => {
+        // Re-render overlay when new phrases arrive
+        renderOverlayWithPhrases(textarea, newPhrases);
+      });
+    } else {
+      matches = detectPhrases(text);
+    }
+
+    renderOverlayWithPhrases(textarea, matches);
+  }
+
+  function renderOverlayWithPhrases(textarea, matches) {
+    if (!overlay) return;
+    const text = textarea.value;
+
     if (matches.length === 0) {
       overlay.innerHTML = '';
       return;
     }
+
     let html = '';
     let cursor = 0;
     for (const match of matches) {
+      // For AI mode, the match object has more fields (term, definition, etc.)
+      // We only use phrase, start, end for rendering; rest is in dataset
       html += escapeHtml(text.substring(cursor, match.start));
+
+      // Encode the full match data for AI mode (so hover doesn't need another API call)
+      const dataAttr = (DETECTION_MODE === "ai" && match.term)
+        ? ' data-ai-cached="true"'
+        : '';
+
       html += '<span class="forma-underline" data-phrase="' +
-              escapeAttr(match.phrase) + '" data-start="' + match.start + 
-              '" data-end="' + match.end + '" style="' +
+              escapeAttr(match.phrase) + '" data-start="' + match.start +
+              '" data-end="' + match.end + '"' + dataAttr + ' style="' +
               'border-bottom: 1.5px dotted #c8b89a; ' +
               'pointer-events: auto; cursor: pointer; color: transparent;' +
               '">' + escapeHtml(match.phrase) + '</span>';
@@ -295,10 +459,28 @@ function initForma() {
     html += escapeHtml(text.substring(cursor));
     overlay.innerHTML = html;
     overlay.scrollTop = textarea.scrollTop;
+
+    // Attach hover handlers
     overlay.querySelectorAll('.forma-underline').forEach(span => {
       span.addEventListener('mouseenter', handleHover);
       span.addEventListener('mouseleave', handleHoverEnd);
     });
+
+    // For AI mode: pre-populate phraseCache with the full data from AMD
+    if (DETECTION_MODE === "ai") {
+      for (const match of matches) {
+        if (match.term && match.phrase) {
+          // Store in phraseCache so handleHover finds it instantly
+          phraseCache.set(match.phrase, {
+            term: match.term,
+            definition: match.definition,
+            category: match.category,
+            alternatives: match.alternatives || [],
+            latency: 0  // AI mode latency is at the analyze call, not per-hover
+          });
+        }
+      }
+    }
   }
 
   function escapeHtml(str) {
