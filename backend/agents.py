@@ -178,51 +178,76 @@ THE 60 CANONICAL TERMS:
 
 ABSOLUTE RULES:
 A. The "term" field MUST be EXACTLY one of the 60 canonical terms above. Case must match.
-B. Every term in "alternatives" MUST be a different canonical term from the list (case must match).
-C. NEVER invent new terms. Examples of FORBIDDEN terms: "Calendar Control", "Image Upload Field", "Drag Target", "Date Selection Field", "Birthday Picker", "Photo Upload Input", "Rating System", "Product Reviews", "User Feedback", "Customer Reviews", "User Testimonials", "File Drop Area", "Dropdown List".
-D. NEVER use category labels as terms (e.g., do not use "Product Reviews", "User Feedback", "Customer Support").
-E. If a vague phrase does not clearly map to any of the 60 canonical terms, SKIP that phrase entirely. Do not include it in the response.
-F. If you cannot find 3 different canonical alternatives, return fewer alternatives (1 or 2 is acceptable).
-G. Alternatives must be DIFFERENT canonical components from the main term. Pick semantically related ones (e.g., for "Modal Overlay", alternatives could be "Confirmation Dialog", "Bottom Sheet", "Glassmorphic Popover").
+B. The "alternatives" array MUST contain exactly 3 objects, each with a "term" field that is a DIFFERENT canonical term from the list above (case must match).
+C. NEVER invent new terms. NEVER leave alternative terms empty. NEVER use non-canonical text.
+D. Forbidden terms include: "Calendar Control", "Image Upload Field", "Drag Target", "Date Selection Field", "Birthday Picker", "Photo Upload Input", "Rating System", "Product Reviews", "User Feedback", "Customer Reviews", "User Testimonials", "File Drop Area", "Dropdown List", "Empty Space".
+E. NEVER use category labels as terms.
+F. If a vague phrase does not clearly map to any of the 60 canonical terms, SKIP that phrase entirely.
+G. Alternatives must always be 3 different canonical components from the main term. Pick semantically related ones from the canonical list.
 H. Phrase descriptions like "where users can upload photos" or "for product reviews" are NOT components — skip these.
 
-MAPPING EXAMPLES (correct behavior):
-- "date range picker" → term: "Date Picker"
-- "calendar dropdown" → term: "Date Picker"
-- "calendar control" → term: "Date Picker"
-- "image uploader" → term: "File Upload"
-- "drop zone" → term: "File Upload"
-- "drag and drop area" → term: "File Upload"
-- "5 star rating" → term: "Rating Stars"
-- "review stars" → term: "Rating Stars"
-- "right-side menu" → term: "Off-Canvas Drawer"
-- "blurry popup" → term: "Glassmorphic Popover"
-- "color swatch" → term: "Color Picker"
-- "volume slider" → term: "Range Slider"
-- "sign in form" → term: "Login Form"
-- "profile picture" → term: "Avatar"
-- "empty page placeholder" → term: "Empty State"
-- "filter chip" → term: "Chip Tag"
-- "horizontal divider" → term: "Separator"
-- "preferences panel" → term: "Settings Panel"
-- "cookie consent" → term: "Cookie Banner"
-- "discussion thread" → term: "Comment Thread"
-- "metric display" → term: "Stats Counter"
-- "user testimonial card" → term: "Testimonial Card"
-- "pricing tier" → term: "Pricing Card"
-- "news feed" → term: "Activity Feed"
-- "multi column dropdown" → term: "Mega Menu"
-- "ctrl k menu" → term: "Command Palette"
-- "notifications panel" → term: "Notification Center"
-- "user dropdown" → term: "Profile Dropdown"
-- "verification code input" → term: "OTP Input"
-- "multi tag input" → term: "Tag Input"
-- "phone number field" → term: "Phone Input"
-- "search autocomplete" → term: "Search Suggestions"
-- "floating label" → term: "Floating Label Input"
-- "toggle group" → term: "Switch Group"
-- "product tour" → term: "Onboarding Tour"
-- "password meter" → term: "Password Strength"
+CANONICAL ALTERNATIVE MAPPINGS (use these as guidance for selecting 3 alternatives):
+
+For "Date Picker" → alternatives: "Dropdown Menu", "Form Input Field", "Confirmation Dialog"
+For "File Upload" → alternatives: "Form Input Field", "Image Carousel", "Search Bar"
+For "Rating Stars" → alternatives: "Toggle Switch", "Progress Bar", "Form Input Field"
+For "Color Picker" → alternatives: "Dropdown Menu", "Settings Panel", "Toggle Switch"
+For "Range Slider" → alternatives: "Progress Bar", "Toggle Switch", "Form Input Field"
+For "Form Input Field" → alternatives: "Search Bar", "Floating Label Input", "Phone Input"
+For "Login Form" → alternatives: "Form Input Field", "OTP Input", "Modal Overlay"
+For "Avatar" → alternatives: "Profile Dropdown", "Notification Badge", "Hero Section"
+For "Empty State" → alternatives: "Skeleton Loader", "Loading Spinner", "Hero Section"
+For "Chip Tag" → alternatives: "Tag Input", "Toggle Switch", "Notification Badge"
+For "Separator" → alternatives: "Tab Panel", "Footer Section", "Banner"
+For "Settings Panel" → alternatives: "Switch Group", "Profile Dropdown", "Toggle Switch"
+For "Cookie Banner" → alternatives: "Banner", "Toast Notification", "Modal Overlay"
+For "Comment Thread" → alternatives: "Activity Feed", "Card Grid", "Avatar"
+For "Stats Counter" → alternatives: "Progress Bar", "Data Table", "Card Grid"
+For "Testimonial Card" → alternatives: "Card Grid", "Hero Section", "Avatar"
+For "Pricing Card" → alternatives: "Card Grid", "Confirmation Dialog", "Hero Section"
+For "Activity Feed" → alternatives: "Comment Thread", "Notification Center", "Data Table"
+For "Mega Menu" → alternatives: "Dropdown Menu", "Sticky Navbar", "Sidebar Navigation"
+For "Command Palette" → alternatives: "Search Bar", "Dropdown Menu", "Modal Overlay"
+For "Notification Center" → alternatives: "Toast Notification", "Notification Badge", "Activity Feed"
+For "Profile Dropdown" → alternatives: "Dropdown Menu", "Avatar", "Settings Panel"
+For "OTP Input" → alternatives: "Form Input Field", "Phone Input", "Login Form"
+For "Tag Input" → alternatives: "Chip Tag", "Search Bar", "Form Input Field"
+For "Phone Input" → alternatives: "Form Input Field", "OTP Input", "Floating Label Input"
+For "Search Suggestions" → alternatives: "Search Bar", "Dropdown Menu", "Command Palette"
+For "Floating Label Input" → alternatives: "Form Input Field", "Search Bar", "Phone Input"
+For "Switch Group" → alternatives: "Toggle Switch", "Settings Panel", "Tab Panel"
+For "Onboarding Tour" → alternatives: "Tooltip", "Step Progress Indicator", "Modal Overlay"
+For "Password Strength" → alternatives: "Progress Bar", "Form Input Field", "Login Form"
+For "Off-Canvas Drawer" → alternatives: "Sidebar Navigation", "Bottom Sheet", "Modal Overlay"
+For "Glassmorphic Popover" → alternatives: "Modal Overlay", "Tooltip", "Confirmation Dialog"
+For "Masonry Grid" → alternatives: "Card Grid", "Image Carousel", "Data Table"
+For "Sticky Navbar" → alternatives: "Hero Section", "Sidebar Navigation", "Banner"
+For "Modal Overlay" → alternatives: "Confirmation Dialog", "Bottom Sheet", "Glassmorphic Popover"
+For "Skeleton Loader" → alternatives: "Loading Spinner", "Progress Bar", "Empty State"
+For "Tab Panel" → alternatives: "Accordion", "Sidebar Navigation", "Switch Group"
+For "Accordion" → alternatives: "Tab Panel", "Dropdown Menu", "Settings Panel"
+For "Toast Notification" → alternatives: "Banner", "Notification Center", "Confirmation Dialog"
+For "Breadcrumb Navigation" → alternatives: "Step Progress Indicator", "Pagination Control", "Tab Panel"
+For "Tooltip" → alternatives: "Glassmorphic Popover", "Toast Notification", "Onboarding Tour"
+For "Dropdown Menu" → alternatives: "Mega Menu", "Profile Dropdown", "Search Suggestions"
+For "Progress Bar" → alternatives: "Step Progress Indicator", "Skeleton Loader", "Loading Spinner"
+For "Bottom Sheet" → alternatives: "Off-Canvas Drawer", "Modal Overlay", "Confirmation Dialog"
+For "Confirmation Dialog" → alternatives: "Modal Overlay", "Toast Notification", "Bottom Sheet"
+For "Search Bar" → alternatives: "Search Suggestions", "Form Input Field", "Command Palette"
+For "Toggle Switch" → alternatives: "Switch Group", "Settings Panel", "Toggle Switch"
+For "Loading Spinner" → alternatives: "Skeleton Loader", "Progress Bar", "Empty State"
+For "Floating Action Button" → alternatives: "Hamburger Menu", "Notification Badge", "Command Palette"
+For "Hero Section" → alternatives: "Banner", "Sticky Navbar", "Card Grid"
+For "Card Grid" → alternatives: "Masonry Grid", "Data Table", "Image Carousel"
+For "Pagination Control" → alternatives: "Step Progress Indicator", "Breadcrumb Navigation", "Tab Panel"
+For "Image Carousel" → alternatives: "Masonry Grid", "Card Grid", "Hero Section"
+For "Hamburger Menu" → alternatives: "Off-Canvas Drawer", "Floating Action Button", "Sidebar Navigation"
+For "Data Table" → alternatives: "Card Grid", "Activity Feed", "Stats Counter"
+For "Banner" → alternatives: "Toast Notification", "Cookie Banner", "Hero Section"
+For "Sidebar Navigation" → alternatives: "Off-Canvas Drawer", "Sticky Navbar", "Tab Panel"
+For "Footer Section" → alternatives: "Sticky Navbar", "Banner", "Hero Section"
+For "Step Progress Indicator" → alternatives: "Progress Bar", "Pagination Control", "Breadcrumb Navigation"
+For "Notification Badge" → alternatives: "Toast Notification", "Notification Center", "Avatar"
 
 Return ONLY a raw JSON array with NO other text. The array must contain 
 ALL detected phrases. If nothing is vague, return an empty array [].
