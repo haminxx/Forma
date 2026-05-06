@@ -107,14 +107,122 @@ For each vague UI description you find, return:
 - category: one of [Navigation, Layout, Overlay, Content, Action]
 - alternatives: array of exactly 3 objects, each with "term" and "description" strings
 
-The professional term must be ONE of these canonical UI components:
-Off-Canvas Drawer, Glassmorphic Popover, Masonry Grid, Sticky Navbar, 
-Modal Overlay, Skeleton Loader, Tab Panel, Accordion, Toast Notification, 
-Breadcrumb Navigation, Tooltip, Dropdown Menu, Progress Bar, Bottom Sheet, 
-Confirmation Dialog, Search Bar, Toggle Switch, Loading Spinner, 
-Floating Action Button, Hero Section, Card Grid, Pagination Control, 
-Image Carousel, Hamburger Menu, Data Table, Banner, Sidebar Navigation, 
-Footer Section, Step Progress Indicator, Notification Badge
+CRITICAL CONSTRAINT — CANONICAL TERMS ONLY:
+
+You MUST select terms ONLY from this exact canonical list of 60
+components. Both the "term" field AND every term in the "alternatives"
+array MUST be one of these 60 terms. Use them EXACTLY as written
+(case-sensitive, including hyphens).
+
+THE 60 CANONICAL TERMS:
+1. Off-Canvas Drawer
+2. Glassmorphic Popover
+3. Masonry Grid
+4. Sticky Navbar
+5. Modal Overlay
+6. Skeleton Loader
+7. Tab Panel
+8. Accordion
+9. Toast Notification
+10. Breadcrumb Navigation
+11. Tooltip
+12. Dropdown Menu
+13. Progress Bar
+14. Bottom Sheet
+15. Confirmation Dialog
+16. Search Bar
+17. Toggle Switch
+18. Loading Spinner
+19. Floating Action Button
+20. Hero Section
+21. Card Grid
+22. Pagination Control
+23. Image Carousel
+24. Hamburger Menu
+25. Data Table
+26. Banner
+27. Sidebar Navigation
+28. Footer Section
+29. Step Progress Indicator
+30. Notification Badge
+31. Date Picker
+32. File Upload
+33. Rating Stars
+34. Color Picker
+35. Range Slider
+36. Form Input Field
+37. Login Form
+38. Avatar
+39. Empty State
+40. Chip Tag
+41. Separator
+42. Settings Panel
+43. Cookie Banner
+44. Comment Thread
+45. Stats Counter
+46. Testimonial Card
+47. Pricing Card
+48. Activity Feed
+49. Mega Menu
+50. Command Palette
+51. Notification Center
+52. Profile Dropdown
+53. OTP Input
+54. Tag Input
+55. Phone Input
+56. Search Suggestions
+57. Floating Label Input
+58. Switch Group
+59. Onboarding Tour
+60. Password Strength
+
+ABSOLUTE RULES:
+A. The "term" field MUST be EXACTLY one of the 60 canonical terms above. Case must match.
+B. Every term in "alternatives" MUST be a different canonical term from the list (case must match).
+C. NEVER invent new terms. Examples of FORBIDDEN terms: "Calendar Control", "Image Upload Field", "Drag Target", "Date Selection Field", "Birthday Picker", "Photo Upload Input", "Rating System", "Product Reviews", "User Feedback", "Customer Reviews", "User Testimonials", "File Drop Area", "Dropdown List".
+D. NEVER use category labels as terms (e.g., do not use "Product Reviews", "User Feedback", "Customer Support").
+E. If a vague phrase does not clearly map to any of the 60 canonical terms, SKIP that phrase entirely. Do not include it in the response.
+F. If you cannot find 3 different canonical alternatives, return fewer alternatives (1 or 2 is acceptable).
+G. Alternatives must be DIFFERENT canonical components from the main term. Pick semantically related ones (e.g., for "Modal Overlay", alternatives could be "Confirmation Dialog", "Bottom Sheet", "Glassmorphic Popover").
+H. Phrase descriptions like "where users can upload photos" or "for product reviews" are NOT components — skip these.
+
+MAPPING EXAMPLES (correct behavior):
+- "date range picker" → term: "Date Picker"
+- "calendar dropdown" → term: "Date Picker"
+- "calendar control" → term: "Date Picker"
+- "image uploader" → term: "File Upload"
+- "drop zone" → term: "File Upload"
+- "drag and drop area" → term: "File Upload"
+- "5 star rating" → term: "Rating Stars"
+- "review stars" → term: "Rating Stars"
+- "right-side menu" → term: "Off-Canvas Drawer"
+- "blurry popup" → term: "Glassmorphic Popover"
+- "color swatch" → term: "Color Picker"
+- "volume slider" → term: "Range Slider"
+- "sign in form" → term: "Login Form"
+- "profile picture" → term: "Avatar"
+- "empty page placeholder" → term: "Empty State"
+- "filter chip" → term: "Chip Tag"
+- "horizontal divider" → term: "Separator"
+- "preferences panel" → term: "Settings Panel"
+- "cookie consent" → term: "Cookie Banner"
+- "discussion thread" → term: "Comment Thread"
+- "metric display" → term: "Stats Counter"
+- "user testimonial card" → term: "Testimonial Card"
+- "pricing tier" → term: "Pricing Card"
+- "news feed" → term: "Activity Feed"
+- "multi column dropdown" → term: "Mega Menu"
+- "ctrl k menu" → term: "Command Palette"
+- "notifications panel" → term: "Notification Center"
+- "user dropdown" → term: "Profile Dropdown"
+- "verification code input" → term: "OTP Input"
+- "multi tag input" → term: "Tag Input"
+- "phone number field" → term: "Phone Input"
+- "search autocomplete" → term: "Search Suggestions"
+- "floating label" → term: "Floating Label Input"
+- "toggle group" → term: "Switch Group"
+- "product tour" → term: "Onboarding Tour"
+- "password meter" → term: "Password Strength"
 
 Return ONLY a raw JSON array with NO other text. The array must contain 
 ALL detected phrases. If nothing is vague, return an empty array [].

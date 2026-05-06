@@ -180,23 +180,58 @@ def parse_analyze_response(raw_response, original_text):
         # Get the exact phrase from original text (preserves case)
         actual_phrase = original_text[actual_start:actual_end]
         
+        # ============================================================
+        # Canonical term enforcement
+        # AMD must return one of these 33 exact terms
+        # ============================================================
+        CANONICAL_TERMS = {
+            "Off-Canvas Drawer", "Glassmorphic Popover", "Masonry Grid",
+            "Sticky Navbar", "Modal Overlay", "Skeleton Loader",
+            "Tab Panel", "Accordion", "Toast Notification",
+            "Breadcrumb Navigation", "Tooltip", "Dropdown Menu",
+            "Progress Bar", "Bottom Sheet", "Confirmation Dialog",
+            "Search Bar", "Toggle Switch", "Loading Spinner",
+            "Floating Action Button", "Hero Section", "Card Grid",
+            "Pagination Control", "Image Carousel", "Hamburger Menu",
+            "Data Table", "Banner", "Sidebar Navigation",
+            "Footer Section", "Step Progress Indicator", "Notification Badge",
+            "Date Picker", "File Upload", "Rating Stars",
+            "Color Picker", "Range Slider", "Form Input Field",
+            "Login Form", "Avatar", "Empty State",
+            "Chip Tag", "Separator", "Settings Panel",
+            "Cookie Banner", "Comment Thread", "Stats Counter",
+            "Testimonial Card", "Pricing Card", "Activity Feed",
+            "Mega Menu", "Command Palette", "Notification Center",
+            "Profile Dropdown", "OTP Input", "Tag Input",
+            "Phone Input", "Search Suggestions", "Floating Label Input",
+            "Switch Group", "Onboarding Tour", "Password Strength"
+        }
+        
+        # Reject if main term is not canonical
+        if term not in CANONICAL_TERMS:
+            print(f"[parse_analyze] Non-canonical term rejected: {term}")
+            continue
+        
         # Validate category
         valid_categories = ["Navigation", "Layout", "Overlay", "Content", "Action"]
         if category not in valid_categories:
             category = "Content"
         
-        # Validate alternatives
+        # Validate alternatives — must also be canonical terms
         valid_alts = []
         if isinstance(alternatives, list):
             for alt in alternatives[:3]:  # Max 3
                 if isinstance(alt, dict):
                     alt_term = alt.get('term', '').strip()
                     alt_desc = alt.get('description', '').strip()
-                    if alt_term:
+                    # Only accept canonical terms as alternatives
+                    if alt_term and alt_term in CANONICAL_TERMS and alt_term != term:
                         valid_alts.append({
                             "term": alt_term,
                             "description": alt_desc
                         })
+                    elif alt_term:
+                        print(f"[parse_analyze] Non-canonical alt rejected: {alt_term}")
         
         # Pad with empty alternatives if fewer than 3
         while len(valid_alts) < 3:
