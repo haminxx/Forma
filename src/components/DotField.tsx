@@ -37,7 +37,7 @@ export function DotField() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d", { alpha: false });
+    const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) return;
 
     const reduceMotion =
@@ -103,8 +103,9 @@ export function DotField() {
     const draw = (tMs: number) => {
       const tSec = tMs / 1000;
 
-      ctx.fillStyle = "#191a1f";
-      ctx.fillRect(0, 0, widthCss, heightCss);
+      // Transparent canvas so any background layer (e.g. dithering shader)
+      // can show through behind the dots.
+      ctx.clearRect(0, 0, widthCss, heightCss);
 
       const breathTwoPi = BREATH_HZ * 2 * Math.PI;
 
@@ -165,7 +166,7 @@ export function DotField() {
     <canvas
       ref={canvasRef}
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-0"
+      className="pointer-events-none fixed inset-0 z-[1]"
     />
   );
 }
