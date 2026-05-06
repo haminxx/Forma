@@ -1,0 +1,12 @@
+/* shadcn/ui Theme — extracted from https://stitch.withgoogle.com */
+/* Paste into your globals.css */
+
+@layer base {
+  :root {
+    --background: 230 11% 11%;
+    --foreground: 0 0% 0%;
+    --muted: 230 11% 11%;
+    --muted-foreground: 0 0% 0%;
+    --border: 230 11% 11%;
+  }
+}

@@ -1,0 +1,33 @@
+:root {
+  /* Colors — Primary */
+
+  /* Colors — Neutrals */
+  --color-neutral-50: #000000;
+  --color-neutral-100: #ffffff;
+  --color-neutral-200: #191a1f;
+
+  /* Colors — Backgrounds */
+  --color-bg: #191a1f;
+
+  /* Colors — Text */
+  --color-text: #000000;
+  --color-text-1: #ffffff;
+
+  /* Typography — Families */
+  --font-body: 'Times New Roman', sans-serif;
+  --font-body: 'Google Sans', sans-serif;
+
+  /* Typography — Scale */
+  --font-size-13: 13px;
+
+  /* Original Site Variables */
+  /* — other — */
+  --ogb-height: 48px;
+  --ogb-z-index: 100;
+  /* — semantic — */
+  success: [object Object];
+  warning: [object Object];
+  error: [object Object];
+  info: [object Object];
+
+}
