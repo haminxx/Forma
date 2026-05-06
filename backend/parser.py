@@ -122,6 +122,26 @@ def parse_analyze_response(raw_response, original_text):
         print(f"[parse_analyze] Response is not an array")
         return []
     
+    # ============================================================
+    # Pre-filter: reject obvious non-UI inputs
+    # ============================================================
+    text_clean = original_text.strip().lower()
+    
+    # Reject very short text
+    if len(original_text.strip()) < 12:
+        print(f"[parse_analyze] Text too short, returning empty")
+        return []
+    
+    # Reject common non-UI inputs
+    common_non_ui = {
+        "hello world", "hi", "hey", "test", "testing",
+        "lorem ipsum", "asdf", "qwerty", "good morning",
+        "good evening", "what's up", "how are you"
+    }
+    if text_clean in common_non_ui:
+        print(f"[parse_analyze] Common non-UI input, returning empty")
+        return []
+
     # Validate and filter each phrase
     validated = []
     for item in parsed:
@@ -136,6 +156,11 @@ def parse_analyze_response(raw_response, original_text):
         alternatives = item.get('alternatives', [])
         
         if not phrase or not term:
+            continue
+
+        # Reject if the phrase IS the entire input text (suspicious)
+        if phrase.strip().lower() == original_text.strip().lower():
+            print(f"[parse_analyze] Phrase equals entire input, skipping: {phrase}")
             continue
         
         # CRITICAL: verify phrase actually exists in original text
