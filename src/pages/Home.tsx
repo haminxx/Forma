@@ -12,24 +12,27 @@ const PLATFORMS: readonly PlatformId[] = ["v0", "lovable", "replit", "bolt", "ma
 
 export function HomePage() {
   return (
-    <div className="bg-[var(--color-forma-bg)]">
+    <div>
       {/* ------------------------------------------------------------------ *
        * Hero — eyebrow / headline / non-interactive prompt demo.
-       * The PromptDemoBox renders its FORMA SUGGESTS popover beneath itself,
-       * so we reserve generous padding-bottom on the hero to fit the popover.
+       * Padding-bottom is generous so the FORMA SUGGESTS popover beneath
+       * the prompt box can fully unfold without colliding with section 2.
        * ------------------------------------------------------------------ */}
-      <section className="relative px-6 pt-20 pb-[44rem] sm:pb-[40rem]">
+      <section className="relative px-6 pt-16 pb-[44rem] sm:pt-24 sm:pb-[40rem]">
         <div className="mx-auto max-w-3xl text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[var(--color-forma-gold)]">
-            Forma
-          </p>
-          <h1 className="mt-6 text-4xl font-semibold tracking-tight text-[var(--color-forma-fg)] sm:text-6xl">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.28em] text-white/70 backdrop-blur">
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-aurora-purple)]" />
+            AI-native prompt vocabulary
+          </span>
+          <h1 className="mt-8 text-balance text-5xl font-semibold tracking-[-0.02em] text-white sm:text-7xl">
             Precise Prompts.
-            <span className="block text-[var(--color-forma-muted)]">Perfect UI.</span>
+            <span className="block bg-gradient-to-r from-[var(--color-aurora-blue)] via-[var(--color-aurora-purple)] to-[var(--color-aurora-pink)] bg-clip-text text-transparent">
+              Perfect UI.
+            </span>
           </h1>
-          <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[var(--color-forma-muted)] sm:text-lg">
+          <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-white/65 sm:text-lg">
             Surface-grade vocabulary for component prompts. Forma quietly
-            corrects vague UI words while you write, before generation runs.
+            corrects vague UI words while you write — before generation runs.
           </p>
         </div>
 
@@ -39,25 +42,24 @@ export function HomePage() {
       </section>
 
       {/* ------------------------------------------------------------------ *
-       * Platform integration grid — Forma slots into the prompt boxes you
-       * already use. Each card is a stylized mock of that platform's input.
+       * Bento — platform compatibility grid as glassy rounded-3xl cards.
        * ------------------------------------------------------------------ */}
-      <section className="border-t border-[var(--color-forma-border)] px-6 py-24">
+      <section className="relative px-6 py-24">
         <div className="mx-auto max-w-6xl">
           <div className="max-w-2xl">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[var(--color-forma-gold)]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-white/55">
               Works everywhere
             </p>
-            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-[var(--color-forma-fg)] sm:text-4xl">
+            <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-white sm:text-5xl">
               Drop into the prompt boxes you already use.
             </h2>
-            <p className="mt-4 text-sm leading-relaxed text-[var(--color-forma-muted)] sm:text-base">
+            <p className="mt-4 text-sm leading-relaxed text-white/60 sm:text-base">
               Forma rides on top of any prompt input — no plugin to install on
               the platform side, no UI to learn. Type as you always do.
             </p>
           </div>
 
-          <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {PLATFORMS.map((platform) => (
               <PlatformCard key={platform} platform={platform} />
             ))}
@@ -66,17 +68,17 @@ export function HomePage() {
       </section>
 
       {/* ------------------------------------------------------------------ *
-       * Install bookmarklet — preserved from the previous Home page.
+       * Install bookmarklet — preserved entry point.
        * ------------------------------------------------------------------ */}
-      <section className="border-t border-[var(--color-forma-border)] px-6 py-24">
-        <div className="mx-auto max-w-3xl">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-[var(--color-forma-gold)]">
+      <section className="relative px-6 py-24">
+        <div className="mx-auto max-w-3xl rounded-3xl forma-glass p-10 sm:p-14">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.32em] text-white/55">
             Install Forma
           </p>
-          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-[var(--color-forma-fg)] sm:text-4xl">
+          <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl">
             One drag. Then it&apos;s on every tab.
           </h2>
-          <p className="mt-4 max-w-xl text-sm leading-relaxed text-[var(--color-forma-muted)] sm:text-base">
+          <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/60 sm:text-base">
             Drag the control below into your bookmarks bar. Invoke it on any
             page to verify the bookmarklet shell.
           </p>
@@ -85,18 +87,22 @@ export function HomePage() {
             <a
               draggable
               href={bookmarkletHref()}
-              className="inline-flex cursor-grab select-none items-center justify-center rounded-full border border-[var(--color-forma-gold)]/30 bg-[var(--color-forma-gold)]/10 px-8 py-4 text-sm font-semibold tracking-tight text-[var(--color-forma-gold-bright)] shadow-[0_18px_40px_-22px_rgba(212,184,122,0.5)] backdrop-blur-md transition hover:border-[var(--color-forma-gold)]/60 hover:bg-[var(--color-forma-gold)]/15 active:cursor-grabbing"
+              className="inline-flex cursor-grab select-none items-center justify-center rounded-full border border-white/15 bg-white px-8 py-4 text-sm font-semibold tracking-tight text-black shadow-[0_18px_40px_-22px_rgba(255,255,255,0.4)] transition hover:bg-white/90 active:cursor-grabbing"
             >
               Forma · Drag to bookmarks
             </a>
           </div>
 
-          <p className="mt-6 max-w-md text-xs uppercase tracking-[0.18em] text-[var(--color-forma-faint)]">
+          <p className="mt-6 max-w-md text-xs uppercase tracking-[0.18em] text-white/40">
             Drag this button to your browser&apos;s bookmarks bar, then click
             the new bookmark on any tab.
           </p>
         </div>
       </section>
+
+      <footer className="relative border-t border-white/[0.06] px-6 py-10 text-center text-xs tracking-tight text-white/40">
+        Forma · designed for the prompt-first era.
+      </footer>
     </div>
   );
 }

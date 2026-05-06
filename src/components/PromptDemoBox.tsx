@@ -229,7 +229,7 @@ export function PromptDemoBox({ className }: PromptDemoBoxProps) {
     <div ref={containerRef} className={cn("relative", className)}>
       {/* The non-interactive prompt-input capsule. */}
       <div
-        className="rounded-3xl border border-[var(--color-forma-border-strong)] bg-[var(--color-forma-card)] px-3 pt-3 pb-2 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.85)]"
+        className="rounded-3xl border border-white/10 bg-white/[0.04] px-3 pt-3 pb-2 shadow-[0_24px_60px_-30px_rgba(0,0,0,0.85)] backdrop-blur-xl"
         role="presentation"
         aria-hidden="true"
       >

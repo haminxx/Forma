@@ -8,19 +8,27 @@
  *   - cream foreground for primary text
  * ------------------------------------------------------------------------ */
 @theme {
-  --color-forma-bg: #0d0c0a;
-  --color-forma-surface: #16140f;
-  --color-forma-card: #1d1a14;
-  --color-forma-card-2: #221e17;
-  --color-forma-border: #2a261d;
-  --color-forma-border-strong: #3a3528;
+  /* Stitch-inspired AI-native dark mode base. Charcoal canvas, aurora pastels
+     (blue / purple / pink) layered on top, gold preserved as Forma's brand
+     accent for the suggests popover and subtle highlights. */
+  --color-forma-bg: #0d0d0d;
+  --color-forma-surface: #131314;
+  --color-forma-card: #161618;
+  --color-forma-card-2: #1c1c1f;
+  --color-forma-border: rgba(255, 255, 255, 0.08);
+  --color-forma-border-strong: rgba(255, 255, 255, 0.14);
   --color-forma-gold: #c8b89a;
   --color-forma-gold-strong: #d4b87a;
   --color-forma-gold-bright: #e8d8b6;
   --color-forma-fg: #f5f1e8;
-  --color-forma-muted: #8a8478;
-  --color-forma-faint: #5c574e;
+  --color-forma-muted: #9a9aa3;
+  --color-forma-faint: #5c5c66;
   --color-forma-status: #6ee08a;
+
+  /* Aurora pastels used by the background. */
+  --color-aurora-blue: #7aa6ff;
+  --color-aurora-purple: #b58bff;
+  --color-aurora-pink: #ff9ec5;
 }
 
 html,
@@ -204,13 +212,167 @@ body {
   animation: forma-status-dot 1.6s ease-in-out infinite;
 }
 
+/* ---------------------------------------------------------------------------
+ * Aurora background — three pastel orbs that drift, a low-opacity dot grid,
+ * and a brighter dot-grid spotlight masked to the cursor. Mouse position is
+ * fed via CSS variables --mx / --my (set on body by AuroraBackground).
+ * ------------------------------------------------------------------------ */
+.aurora-root {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.aurora-orb {
+  position: absolute;
+  width: 55vmax;
+  height: 55vmax;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.55;
+  mix-blend-mode: screen;
+  will-change: transform;
+}
+
+.aurora-orb--blue {
+  background: radial-gradient(
+    circle,
+    var(--color-aurora-blue) 0%,
+    transparent 60%
+  );
+  top: -20%;
+  left: -15%;
+  animation: aurora-drift-1 32s ease-in-out infinite;
+}
+
+.aurora-orb--purple {
+  background: radial-gradient(
+    circle,
+    var(--color-aurora-purple) 0%,
+    transparent 60%
+  );
+  top: 20%;
+  right: -20%;
+  animation: aurora-drift-2 38s ease-in-out infinite;
+}
+
+.aurora-orb--pink {
+  background: radial-gradient(
+    circle,
+    var(--color-aurora-pink) 0%,
+    transparent 60%
+  );
+  bottom: -25%;
+  left: 30%;
+  animation: aurora-drift-3 44s ease-in-out infinite;
+}
+
+@keyframes aurora-drift-1 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(15%, 18%) scale(1.15);
+  }
+}
+@keyframes aurora-drift-2 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1.05);
+  }
+  50% {
+    transform: translate(-18%, 12%) scale(0.95);
+  }
+}
+@keyframes aurora-drift-3 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-10%, -20%) scale(1.2);
+  }
+}
+
+/* Dim base dot grid covering the whole viewport. */
+.aurora-dots {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.045) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+  background-position: 0 0;
+  animation: aurora-dots-breathe 6s ease-in-out infinite;
+}
+
+@keyframes aurora-dots-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Brighter version of the same grid, masked to a circle around cursor. */
+.aurora-dots-spotlight {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.18) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+  background-position: 0 0;
+  -webkit-mask-image: radial-gradient(
+    260px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0) 70%
+  );
+  mask-image: radial-gradient(
+    260px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(0, 0, 0, 1) 0%,
+    rgba(0, 0, 0, 0) 70%
+  );
+}
+
+/* Subtle vignette so edges fade into pure black. */
+.aurora-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 0%,
+    transparent 50%,
+    rgba(13, 13, 13, 0.85) 100%
+  );
+}
+
+/* ---------------------------------------------------------------------------
+ * Glass surface utility — Stitch-style frosted card.
+ * ------------------------------------------------------------------------ */
+.forma-glass {
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
 /* Reduce motion support */
 @media (prefers-reduced-motion: reduce) {
   .forma-caret,
   .forma-underline,
   .forma-popover-in,
   .forma-popover-out,
-  .forma-status-dot {
+  .forma-status-dot,
+  .aurora-orb,
+  .aurora-dots {
     animation: none;
   }
   .forma-underline {
