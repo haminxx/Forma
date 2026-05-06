@@ -79,7 +79,10 @@ async def analyze(request: AnalyzeRequest):
     
     try:
         raw_response = analyze_sentence(text)
+        print(f"[DEBUG /analyze] Input text: {text}")
+        print(f"[DEBUG /analyze] Raw AMD response: {raw_response}")
         phrases = parse_analyze_response(raw_response, text)
+        print(f"[DEBUG /analyze] Parsed phrases count: {len(phrases)}")
         
         latency = int((time.time() - start_time) * 1000)
         
