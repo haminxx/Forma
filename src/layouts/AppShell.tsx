@@ -1,56 +1,80 @@
-import { Columns2, Home, ScanSearch } from "lucide-react";
-import { NavLink, Outlet } from "react-router-dom";
+import { Outlet } from "react-router-dom";
+import { Github } from "lucide-react";
+import { PillNav } from "../components/PillNav";
+import { SiteFooter } from "../components/SiteFooter";
 
-const linkBase =
-  "flex items-center gap-2 border-b border-transparent pb-1 text-[13px] font-medium uppercase tracking-[0.2em] text-zinc-500 transition hover:text-zinc-200";
-
+/**
+ * Three-column sticky top bar:
+ *   [Forma brand]  [PillNav]  [GitHub button]
+ *
+ * The grid template (`1fr auto 1fr`) keeps the pill perfectly centered
+ * regardless of brand/button widths, so adding/removing copy on the side
+ * columns never shifts the nav.
+ */
 export function AppShell() {
   return (
-    <div className="flex min-h-full flex-col bg-zinc-950 text-zinc-100">
-      <header className="border-b border-white/[0.06]">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <NavLink
-            to="/"
-            className="text-[15px] font-semibold tracking-[0.08em] text-white"
-          >
-            Forma
-          </NavLink>
-          <nav className="flex gap-8">
-            <NavLink
-              to="/"
-              end
-              className={({ isActive }) =>
-                `${linkBase} ${isActive ? "border-white text-white" : ""}`
-              }
-            >
-              <Home className="size-4 opacity-70" strokeWidth={1.5} aria-hidden />
-              Home
-            </NavLink>
-            <NavLink
-              to="/detector"
-              className={({ isActive }) =>
-                `${linkBase} ${isActive ? "border-white text-white" : ""}`
-              }
-            >
-              <ScanSearch className="size-4 opacity-70" strokeWidth={1.5} aria-hidden />
-              Detector
-            </NavLink>
-            <NavLink
-              to="/compare"
-              className={({ isActive }) =>
-                `${linkBase} ${isActive ? "border-white text-white" : ""}`
-              }
-            >
-              <Columns2 className="size-4 opacity-70" strokeWidth={1.5} aria-hidden />
-              Compare
-            </NavLink>
-          </nav>
+    <div
+      data-app-shell
+      className="relative flex min-h-full flex-col text-[var(--color-stitch-fg)]"
+    >
+      <header className="sticky top-5 z-50 mx-auto grid w-full grid-cols-[1fr_auto_1fr] items-center gap-4 px-6">
+        <BrandMark />
+        <div className="justify-self-center">
+          <PillNav />
         </div>
+        <GithubButton />
       </header>
 
       <main className="flex-1">
         <Outlet />
       </main>
+
+      <SiteFooter />
     </div>
+  );
+}
+
+function BrandMark() {
+  return (
+    <a
+      href="/"
+      aria-label="Forma — home"
+      className="group inline-flex h-14 items-center gap-2 rounded-full px-2 text-white transition-opacity hover:opacity-90"
+    >
+      <span
+        aria-hidden="true"
+        className="flex h-6 w-6 items-center justify-center rounded-full bg-[#d4b87a] text-[10px] font-bold text-black shadow-[0_4px_10px_-4px_rgba(212,184,122,0.6)]"
+      >
+        F
+      </span>
+      <span
+        className="text-base font-semibold tracking-tight"
+        style={{
+          fontFamily:
+            '"SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif',
+        }}
+      >
+        Forma
+      </span>
+    </a>
+  );
+}
+
+function GithubButton() {
+  return (
+    <a
+      href="https://github.com/haminxx/forma"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Forma on GitHub"
+      className="group inline-flex h-11 items-center gap-2 justify-self-end rounded-full border border-white/15 bg-white/[0.04] px-4 text-sm font-medium text-white/85 backdrop-blur-md transition-colors hover:border-white/25 hover:bg-white/[0.08] hover:text-white"
+    >
+      <Github
+        size={16}
+        strokeWidth={1.8}
+        className="text-white/80 transition-colors group-hover:text-white"
+      />
+      <span className="hidden sm:inline">GitHub</span>
+    </a>
   );
 }

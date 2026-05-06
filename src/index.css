@@ -1,13 +1,70 @@
 @import "tailwindcss";
 
+/* ---------------------------------------------------------------------------
+ * Stitch-derived theme (designlang extract, May 2026)
+ *   bg:  #191a1f   text: #ffffff   accents: pure #000000 / pure #ffffff
+ *   material: flat — no shadows, no radii, no gradients, no backdrop blur
+ *   motion: scroll-linked, mixed feel
+ *
+ * Forma's brand gold lives as a legacy token; SolutionReveal & InstallSteps
+ * use it via inline values now (driven by framer-motion useTransform), so no
+ * keyframes are needed here.
+ * ------------------------------------------------------------------------ */
+@theme {
+  --color-stitch-bg: #191a1f;
+  --color-stitch-fg: #ffffff;
+  --color-stitch-fg-dim: rgba(255, 255, 255, 0.6);
+  --color-stitch-fg-faint: rgba(255, 255, 255, 0.35);
+
+  --color-forma-bg: #191a1f;
+  --color-forma-fg: #ffffff;
+  --color-forma-muted: rgba(255, 255, 255, 0.6);
+  --color-forma-faint: rgba(255, 255, 255, 0.35);
+
+  --color-aurora-purple: #b58bff;
+  --color-aurora-pink: #ff9ec5;
+}
+
 html,
 body,
 #root {
   height: 100%;
 }
 
+/* Smooth anchor scrolls + scroll-padding so #anchor jumps land below the
+ * sticky top bar. Scroll-snap is intentionally NOT enabled — the user
+ * wanted free user-driven scrolling without each screen auto-locking
+ * to the viewport. */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 88px;
+  /* Hide scrollbars (Firefox + IE). */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* Hide scrollbars (WebKit / Blink). */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
 body {
   margin: 0;
+  background: var(--color-stitch-bg);
+  color: var(--color-stitch-fg);
+  font-family:
+    "Google Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Inter", "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }

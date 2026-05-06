@@ -1,0 +1,137 @@
+{
+  "colors": {
+    "all": [
+      {
+        "hex": "#000000",
+        "rgb": {
+          "r": 0,
+          "g": 0,
+          "b": 0,
+          "a": 1
+        },
+        "hsl": {
+          "h": 0,
+          "s": 0,
+          "l": 0
+        },
+        "count": 138,
+        "contexts": [
+          "text",
+          "border"
+        ]
+      },
+      {
+        "hex": "#ffffff",
+        "rgb": {
+          "r": 255,
+          "g": 255,
+          "b": 255,
+          "a": 1
+        },
+        "hsl": {
+          "h": 0,
+          "s": 0,
+          "l": 100
+        },
+        "count": 18,
+        "contexts": [
+          "text",
+          "border"
+        ]
+      },
+      {
+        "hex": "#191a1f",
+        "rgb": {
+          "r": 25,
+          "g": 26,
+          "b": 31,
+          "a": 1
+        },
+        "hsl": {
+          "h": 230,
+          "s": 11,
+          "l": 11
+        },
+        "count": 2,
+        "contexts": [
+          "background"
+        ]
+      }
+    ]
+  },
+  "regions": [
+    {
+      "role": "content",
+      "tag": "main",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "w": 1280,
+        "h": 800
+      },
+      "heading": null,
+      "buttonCount": 0,
+      "cardCount": 0,
+      "className": "main"
+    }
+  ],
+  "componentClusters": [],
+  "accessibility": {
+    "remediation": []
+  },
+  "cssHealth": {
+    "sheets": [
+      {
+        "url": "https://stitch.withgoogle.com/",
+        "totalBytes": 4614,
+        "usedBytes": 295,
+        "unusedBytes": 4319,
+        "unusedPercent": 94
+      },
+      {
+        "url": "https://stitch.withgoogle.com/",
+        "totalBytes": 7317,
+        "usedBytes": 0,
+        "unusedBytes": 7317,
+        "unusedPercent": 100
+      },
+      {
+        "url": "https://fonts.googleapis.com/css2?family=Google+Sans+Text:wght@400;500;700",
+        "totalBytes": 30496,
+        "usedBytes": 0,
+        "unusedBytes": 30496,
+        "unusedPercent": 100
+      }
+    ],
+    "totalBytes": 42427,
+    "usedBytes": 295,
+    "unusedBytes": 42132,
+    "unusedPercent": 99,
+    "importantCount": 0,
+    "duplicates": 374,
+    "vendorPrefixes": {
+      "webkit": 3,
+      "moz": 0,
+      "ms": 0,
+      "o": 0
+    },
+    "keyframes": [],
+    "specificity": {
+      "max": [
+        0,
+        3,
+        1
+      ],
+      "average": [
+        0,
+        0.66,
+        0.69
+      ],
+      "count": 128
+    },
+    "issues": [
+      "374 duplicate declarations",
+      "99% unused CSS"
+    ]
+  }
+}
