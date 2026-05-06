@@ -1,5 +1,14 @@
 import { Steps } from "@ark-ui/react/steps";
 
+/**
+ * Forma install path — 4-step Ark UI Steps indicator.
+ *
+ * Visual matches the user-pasted reference (numbered circles + connecting
+ * bars, blue-600 accent on complete/current, gray-800 surface). The site is
+ * permanently dark so the `dark:` variants from the reference are folded
+ * into the base classes. Step labels are kept on Trigger as `aria-label`
+ * for accessibility — the reference UI deliberately shows numbers only.
+ */
 const STEPS = [
   "Download Forma",
   "Visit Chrome Extensions",
@@ -7,32 +16,28 @@ const STEPS = [
   "Load unpacked Forma",
 ] as const;
 
-/**
- * Forma install path — 4-step Ark UI Steps indicator. Themed for the
- * Forma dark canvas with a gold accent on completed/current rings.
- */
 export function InstallSteps() {
   return (
-    <div className="w-full px-4 py-6">
-      <Steps.Root count={STEPS.length} defaultStep={0} className="mx-auto w-full max-w-2xl">
+    <div className="flex w-full max-w-3xl items-center justify-center rounded-xl bg-gray-800 px-4 py-12">
+      <Steps.Root count={STEPS.length} defaultStep={1} className="w-full max-w-2xl">
         <Steps.List className="flex items-center justify-between">
           {STEPS.map((label, index) => (
             <Steps.Item
               key={label}
               index={index}
-              className="relative flex flex-1 items-center last:flex-initial"
+              className="relative flex items-center not-last:flex-1"
             >
-              <Steps.Trigger className="flex items-center gap-3 rounded-md text-left">
-                <Steps.Indicator className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 text-sm font-semibold transition-colors data-[state=complete]:border-[#d4b87a] data-[state=complete]:bg-[#d4b87a] data-[state=complete]:text-[#1a1612] data-[state=current]:border-[#d4b87a] data-[state=current]:bg-[#d4b87a] data-[state=current]:text-[#1a1612] data-[state=incomplete]:border-white/20 data-[state=incomplete]:bg-white/5 data-[state=incomplete]:text-white/60">
+              <Steps.Trigger
+                aria-label={label}
+                className="flex items-center gap-3 rounded-md text-left"
+              >
+                <Steps.Indicator className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 text-sm font-semibold data-[state=complete]:border-blue-600 data-[state=complete]:bg-blue-600 data-[state=complete]:text-white data-[state=current]:border-blue-600 data-[state=current]:bg-blue-600 data-[state=current]:text-white data-[state=incomplete]:border-gray-600 data-[state=incomplete]:bg-gray-700 data-[state=incomplete]:text-gray-300">
                   {index + 1}
                 </Steps.Indicator>
-                <span className="hidden text-xs font-medium uppercase tracking-[0.18em] text-white/70 sm:inline-block">
-                  {label}
-                </span>
               </Steps.Trigger>
               <Steps.Separator
                 hidden={index === STEPS.length - 1}
-                className="mx-3 h-0.5 flex-1 bg-white/10 data-[state=complete]:bg-[#d4b87a]"
+                className="mx-3 h-0.5 flex-1 bg-gray-700 data-[state=complete]:bg-blue-600"
               />
             </Steps.Item>
           ))}

@@ -1,8 +1,7 @@
 import { GlassTextarea } from "../components/GlassTextarea";
 import { InstallSteps } from "../components/InstallSteps";
 import { InteractiveCanvas } from "../components/InteractiveCanvas";
-import { PlatformCardStack } from "../components/PlatformCardStack";
-import { SandboxBadge } from "../components/SandboxBadge";
+import { PlatformLinks } from "../components/PlatformLinks";
 import { SolutionReveal } from "../components/SolutionReveal";
 
 /**
@@ -46,10 +45,9 @@ export function HomePage() {
         id="sandbox"
         className="flex min-h-screen scroll-mt-24 flex-col items-center justify-center gap-10 px-6 py-24"
       >
-        <SandboxBadge />
         <InstallSteps />
         <GlassTextarea />
-        <PlatformCardStack />
+        <PlatformLinks />
       </section>
 
       <section id="docs" className="min-h-screen scroll-mt-24" />
