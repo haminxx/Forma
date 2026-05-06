@@ -59,36 +59,36 @@ export function PixelWave({
       ctx.clearRect(0, 0, width, height);
 
       const cols = Math.ceil(width / pixelSize);
+      const rowsTotal = Math.ceil(height / pixelSize);
       const baseLine = height * 0.55; // wave centre line
+
+      // Pre-bake the body fill style — every column reuses the same colour
+      // for everything beneath the crest, so we set it once.
+      const bodyStyle = `rgba(${color}, 0.42)`;
+      const crestStyle = `rgba(${color}, 0.85)`;
 
       for (let i = 0; i < cols; i++) {
         const x = i * pixelSize;
 
-        // Two octaves of sine at different speeds and wavelengths.
+        // Two-octave sine — slower long wave + faster ripple.
         const wave =
           Math.sin(x * 0.012 + t * 0.85) * 28 +
           Math.sin(x * 0.028 + t * 0.5) * 14;
         const crest = baseLine + wave;
-
-        // Bright crest band (top 1 row) — denser gold near the crest line.
         const crestRow = Math.floor(crest / pixelSize);
-        const yCrest = crestRow * pixelSize;
-        if (yCrest >= 0 && yCrest < height) {
-          ctx.fillStyle = `rgba(${color}, 0.55)`;
-          ctx.fillRect(x, yCrest, pixelSize - 1, pixelSize - 1);
+
+        // Solid body fill: every pixel from one row below the crest down
+        // to the section's bottom edge.
+        ctx.fillStyle = bodyStyle;
+        const bodyStart = crestRow + 1;
+        for (let j = bodyStart; j < rowsTotal; j++) {
+          ctx.fillRect(x, j * pixelSize, pixelSize - 1, pixelSize - 1);
         }
 
-        // Body underneath: alpha falls off with distance from the crest so
-        // the wave fades into the page rather than ending in a hard edge.
-        const startRow = crestRow + 1;
-        const endRow = Math.ceil(height / pixelSize);
-        for (let j = startRow; j < endRow; j++) {
-          const y = j * pixelSize;
-          const depth = (y - crest) / 240;
-          const alpha = Math.max(0, 0.32 - depth * 0.32);
-          if (alpha < 0.02) break; // nothing left to draw further down
-          ctx.fillStyle = `rgba(${color}, ${alpha})`;
-          ctx.fillRect(x, y, pixelSize - 1, pixelSize - 1);
+        // Bright crest band (one row right at the wave line).
+        if (crestRow >= 0 && crestRow < rowsTotal) {
+          ctx.fillStyle = crestStyle;
+          ctx.fillRect(x, crestRow * pixelSize, pixelSize - 1, pixelSize - 1);
         }
       }
 

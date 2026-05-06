@@ -2,15 +2,19 @@ import { useEffect, useRef } from "react";
 
 /**
  * Cursor-reactive dot grid with vector lines from each dot toward the mouse.
- * Adapted from the user's pasted snippet with surgical changes:
- *   - Positioned `absolute` (not `fixed`) so it can be scoped to its parent
- *     section instead of covering the entire viewport.
- *   - Resize uses `setTransform` instead of cumulative `scale`.
- *   - mix-blend-mode lifted off — the colour inversion is now handled by a
- *     dedicated `CursorInverter` element above this canvas, which gives a
- *     clean, gap-free inversion circle (the dots alone left visible gaps).
- *   - Default grid trimmed to 80 × 80 (6 400 dots) and `dotSizeMultiplier`
- *     to 80 for a smaller cursor cluster + cheaper per-frame cost.
+ * Mirrors the user's reference snippet (gridWidth/Height = 120, multiplier
+ * = 200) but with three surgical fixes versus the raw paste:
+ *   - Positioned `absolute` so the canvas stays scoped to its parent
+ *     section (the original `fixed` covers the viewport).
+ *   - Resize uses `setTransform` instead of cumulative `ctx.scale` (the
+ *     original compounded DPR on every resize).
+ *   - The pasted code attaches a `circleMethod` to `ctx` via `(ctx as any)`;
+ *     we inline a typed `drawCircle` instead.
+ *
+ * The colour-inversion-on-cursor effect is provided by `mix-blend-mode:
+ * difference` on the canvas: bright dots become "the inverse colour of
+ * whatever is beneath them" — text turns black under white dots, gold
+ * pixels turn dark blue, and the dark site bg lifts to a near-white dot.
  */
 interface InteractiveCanvasProps {
   gridWidth?: number;
@@ -33,16 +37,16 @@ type Dot = {
 };
 
 export function InteractiveCanvas({
-  // Pure decoration now (CursorInverter handles inversion). Faint white
-  // dots + faint white connecting lines on the dark Forma bg.
-  gridWidth = 80,
-  gridHeight = 80,
-  dotColor = "rgba(255, 255, 255, 0.45)",
-  lineColor = "rgba(255, 255, 255, 0.12)",
+  // Pure-white dots so `mix-blend-mode: difference` produces a clean
+  // inversion against text, gold pixels, and the dark bg alike.
+  gridWidth = 120,
+  gridHeight = 120,
+  dotColor = "#ffffff",
+  lineColor = "rgba(255, 255, 255, 0.16)",
   backgroundColor = "transparent",
   padding = 0,
   maxDistance = 2,
-  dotSizeMultiplier = 80,
+  dotSizeMultiplier = 200,
 }: InteractiveCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mouseRef = useRef({ x: 0, y: 0 });
@@ -196,6 +200,7 @@ export function InteractiveCanvas({
       ref={canvasRef}
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 h-full w-full"
+      style={{ mixBlendMode: "difference" }}
     />
   );
 }

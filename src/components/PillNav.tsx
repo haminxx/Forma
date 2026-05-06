@@ -6,7 +6,7 @@ interface NavItem {
   id: string;
 }
 
-const NAV_ITEMS: NavItem[] = [
+export const NAV_ITEMS: NavItem[] = [
   { label: "Home", id: "home" },
   { label: "Problem", id: "problem" },
   { label: "Solution", id: "solution" },
@@ -135,8 +135,7 @@ export const PillNav: React.FC = () => {
   );
 
   return (
-    <header className="sticky top-5 z-50 mx-auto flex w-full justify-center px-4">
-      <motion.nav
+    <motion.nav
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         className="relative rounded-full"
@@ -463,7 +462,6 @@ export const PillNav: React.FC = () => {
           )}
         </div>
       </motion.nav>
-    </header>
   );
 };
 

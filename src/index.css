@@ -31,15 +31,25 @@ body,
   height: 100%;
 }
 
-/* Scroll-snap is enabled on the html viewport with `proximity` so the page
- * "locks" to the nearest section as the user scrolls without trapping them
- * inside long sections (sandbox is taller than 100 vh on smaller viewports).
- * `scroll-padding-top` matches the sticky PillNav height so anchored scrolls
- * land below the pill instead of behind it. */
+/* Scroll-snap on the html viewport. `mandatory` "locks" each screen as
+ * the user scrolls — every section ends up centered in the viewport.
+ * `scroll-padding-top` accounts for the sticky top bar so anchored
+ * scrolls land below it rather than behind it. */
 html {
   scroll-behavior: smooth;
-  scroll-snap-type: y proximity;
-  scroll-padding-top: 96px;
+  scroll-snap-type: y mandatory;
+  scroll-padding-top: 88px;
+  /* Hide scrollbars (Firefox + IE). */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* Hide scrollbars (WebKit / Blink). */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 body {
@@ -51,17 +61,20 @@ body {
     "Inter", "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
-/* Every direct top-level <section> on the home page is a snap target.
- * The selector is intentionally broad — every section in this app is
- * a full-screen page chunk, so snapping at section boundaries is what
- * we want everywhere. */
-main section,
-[data-app-shell] section,
+/* Default snap target: each section centers in the viewport. */
 section[id] {
-  scroll-snap-align: start;
+  scroll-snap-align: center;
   scroll-snap-stop: always;
+}
+
+/* Solution is a 200vh scroll-driven reveal — center alignment would
+ * land the user at 50 % progress (half-revealed words), so it snaps to
+ * its top edge instead. */
+section[id="solution"] {
+  scroll-snap-align: start;
 }
 
 @media (prefers-reduced-motion: reduce) {

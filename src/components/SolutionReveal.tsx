@@ -1,100 +1,103 @@
-import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { type ReactNode, useRef } from "react";
+import { type MotionValue, motion, useScroll, useTransform } from "framer-motion";
 
 const SENTENCE =
   "Forma turns vague text into precise visual UI components.";
 
-const WORD_STAGGER = 0.18; // seconds between each word reveal
-const WORD_DURATION = 0.45;
-const UNDERLINE_DELAY_AFTER_WORDS = 0.15; // breath between words finishing and underline starting
-const UNDERLINE_DURATION = 1.1;
-
 /**
- * Self-running solution reveal. When the section enters the viewport, the
- * sentence highlights word-by-word from left to right, and once the last
- * word lights up the gold dashed underline draws from left to right
- * underneath. No scroll-driven progress, no 200 vh tall pinned container —
- * just one `min-h-screen` section that animates itself once on entry.
+ * Scroll-driven sentence reveal.
  *
- * Single-line layout is preserved via fluid `clamp()` font sizing.
+ * The outer container is 200vh tall. The inner panel is `sticky top-0`, so
+ * the sentence stays pinned in the viewport while the user scrolls past it.
+ *   - First 75 % of scroll progress: each word fades in left → right.
+ *   - Last 25 %: a gold dashed "breaking" underline draws left → right
+ *     beneath the entire sentence.
+ *
+ * Single-line layout via fluid `clamp(...vw...)` font sizing so all eight
+ * words sit on one line from mobile through 4K.
  */
 export function SolutionReveal() {
-  const sectionRef = useRef<HTMLDivElement | null>(null);
-  const [hasPlayed, setHasPlayed] = useState(false);
-
-  useEffect(() => {
-    const node = sectionRef.current;
-    if (!node || hasPlayed) return;
-
-    const obs = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setHasPlayed(true);
-          obs.disconnect();
-        }
-      },
-      { threshold: 0.45 },
-    );
-    obs.observe(node);
-    return () => obs.disconnect();
-  }, [hasPlayed]);
+  const targetRef = useRef<HTMLDivElement | null>(null);
+  const { scrollYProgress } = useScroll({ target: targetRef });
 
   const words = SENTENCE.split(" ");
-  const wordsEndAt = words.length * WORD_STAGGER + WORD_DURATION;
-  const underlineDelay = wordsEndAt + UNDERLINE_DELAY_AFTER_WORDS;
+
+  const WORDS_END = 0.75; // word reveal completes at 75 % scroll
+  const UNDERLINE_START = 0.78; // small breath, then underline draws
+
+  const underlineWidth = useTransform(
+    scrollYProgress,
+    [UNDERLINE_START, 1],
+    ["0%", "100%"],
+  );
 
   return (
-    <div
-      ref={sectionRef}
-      className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col items-center justify-center px-6"
-    >
-      <p
-        className="flex items-center justify-center font-semibold tracking-tight text-white"
-        style={{ fontSize: "clamp(1rem, 3.2vw, 2.75rem)" }}
-      >
-        {words.map((word, i) => (
-          <motion.span
-            key={`${word}-${i}`}
-            initial={{ opacity: 0.2 }}
-            animate={hasPlayed ? { opacity: 1 } : { opacity: 0.2 }}
-            transition={{
-              duration: WORD_DURATION,
-              delay: i * WORD_STAGGER,
-              ease: "easeOut",
-            }}
-            className="mx-1 whitespace-pre text-white lg:mx-2"
-          >
-            {word}
-          </motion.span>
-        ))}
-      </p>
+    <div ref={targetRef} className="relative h-[200vh]">
+      <div className="sticky top-0 mx-auto flex h-screen max-w-6xl flex-col items-center justify-center px-6">
+        <p
+          className="flex items-center justify-center font-semibold tracking-tight text-white/30"
+          style={{ fontSize: "clamp(1rem, 3.2vw, 2.75rem)" }}
+        >
+          {words.map((word, i) => {
+            const start = (i / words.length) * WORDS_END;
+            const end = ((i + 1) / words.length) * WORDS_END;
+            return (
+              <Word
+                key={`${word}-${i}`}
+                progress={scrollYProgress}
+                range={[start, end]}
+              >
+                {word}
+              </Word>
+            );
+          })}
+        </p>
 
-      {/* Fixed-width wrapper anchors the underline to the LEFT edge so the
-          dashed line draws left → right instead of expanding from centre
-          (the parent column is `items-center`, which would otherwise keep
-          re-centring it). The mt is small so the line sits close to the
-          baseline. */}
-      <div
-        aria-hidden="true"
-        className="mt-2 w-full"
-        style={{ maxWidth: "min(46rem, calc(100vw - 3rem))" }}
-      >
-        <motion.div
-          className="h-[2px]"
-          initial={{ width: "0%" }}
-          animate={hasPlayed ? { width: "100%" } : { width: "0%" }}
-          transition={{
-            duration: UNDERLINE_DURATION,
-            delay: underlineDelay,
-            ease: "easeInOut",
-          }}
-          style={{
-            backgroundImage:
-              "repeating-linear-gradient(90deg, #d4b87a 0 6px, transparent 6px 10px)",
-            backgroundRepeat: "no-repeat",
-          }}
-        />
+        {/* The dashed gold underline lives in a left-anchored fixed-width
+            wrapper so it grows from the LEFT edge instead of expanding from
+            the centre (the parent column is `items-center`, which would
+            otherwise re-centre the underline as its width animates). The
+            wrapper width matches the sentence's natural width via the same
+            clamp scale, so the line ends right under the period. */}
+        <div
+          aria-hidden="true"
+          className="mt-3 w-full"
+          style={{ maxWidth: "min(46rem, calc(100vw - 3rem))" }}
+        >
+          <motion.div
+            className="h-[2px]"
+            style={{
+              width: underlineWidth,
+              backgroundImage:
+                "repeating-linear-gradient(90deg, #d4b87a 0 6px, transparent 6px 10px)",
+              backgroundRepeat: "no-repeat",
+            }}
+          />
+        </div>
       </div>
     </div>
+  );
+}
+
+function Word({
+  children,
+  progress,
+  range,
+}: {
+  children: ReactNode;
+  progress: MotionValue<number>;
+  range: [number, number];
+}) {
+  const opacity = useTransform(progress, range, [0, 1]);
+  return (
+    <span className="relative mx-1 whitespace-pre lg:mx-2">
+      <span>{children}</span>
+      <motion.span
+        style={{ opacity }}
+        className="absolute inset-0 text-white"
+      >
+        {children}
+      </motion.span>
+    </span>
   );
 }
