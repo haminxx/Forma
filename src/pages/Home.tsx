@@ -27,7 +27,7 @@ export function HomePage() {
     <div>
       <section
         id="home"
-        className="relative isolate flex min-h-screen scroll-mt-24 flex-col justify-center overflow-hidden px-6 pb-40 pt-20"
+        className="relative isolate flex min-h-screen scroll-mt-24 flex-col items-center justify-start overflow-hidden px-6 pb-32 pt-28"
       >
         <div className="absolute inset-0 z-0">
           <PixelWave />
@@ -36,29 +36,33 @@ export function HomePage() {
           <InteractiveCanvas />
         </div>
 
-        <div className="relative z-20 mx-auto grid w-full max-w-6xl gap-16 md:grid-cols-[1.2fr_1fr] md:items-center md:gap-12">
+        {/* Hero content sits in the upper portion of the section so it
+            never overlaps the wave (which crests at ~55 % of the section
+            height). Two columns: HomeHero on the left, LoopingWords on
+            the right. */}
+        <div className="relative z-20 mx-auto mt-4 grid w-full max-w-6xl gap-12 md:grid-cols-[1.2fr_1fr] md:items-start md:gap-12">
           <HomeHero />
           <div className="md:justify-self-end">
             <LoopingWords />
           </div>
         </div>
 
-        {/* Bottom-edge blur: a thin band that softly blurs whatever is
-            beneath it (gold pixels) and fades the section into black so
-            the next screen feels like a soft hand-off rather than a hard
-            cut. Sits above content so the gold crest dissolves under it. */}
+        {/* Bottom-edge blur: a tall, blurred glass band that softens the
+            gold wave into the page bg. The mask makes the band fade in
+            from the top of the band down to its bottom edge so the
+            transition feels like a slow exhale instead of a hard cut. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-28"
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-56"
           style={{
-            backdropFilter: "blur(8px)",
-            WebkitBackdropFilter: "blur(8px)",
+            backdropFilter: "blur(18px)",
+            WebkitBackdropFilter: "blur(18px)",
             background:
-              "linear-gradient(180deg, rgba(25, 26, 31, 0) 0%, rgba(25, 26, 31, 0.55) 55%, rgba(25, 26, 31, 0.95) 100%)",
+              "linear-gradient(180deg, rgba(25, 26, 31, 0) 0%, rgba(25, 26, 31, 0.55) 50%, rgba(25, 26, 31, 0.98) 100%)",
             maskImage:
-              "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 50%)",
+              "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 60%)",
             WebkitMaskImage:
-              "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 50%)",
+              "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 60%)",
           }}
         />
       </section>
@@ -97,8 +101,16 @@ export function HomePage() {
 
       <section
         id="sandbox"
-        className="relative flex min-h-screen scroll-mt-24 flex-col items-center justify-end gap-10 px-6 pb-20 pt-32"
+        className="relative flex min-h-screen scroll-mt-24 flex-col items-center justify-center gap-8 px-6 py-24"
       >
+        <div className="flex flex-col items-center text-center">
+          <h2 className="text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
+            Define the form.
+          </h2>
+          <p className="mt-3 text-base text-white/55 sm:text-lg">
+            Test it on every web vibe-coding platform.
+          </p>
+        </div>
         <InstallSteps />
         <GlassTextarea />
         <LogoCloud />

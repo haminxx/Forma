@@ -31,13 +31,12 @@ body,
   height: 100%;
 }
 
-/* Scroll-snap on the html viewport. `mandatory` "locks" each screen as
- * the user scrolls — every section ends up centered in the viewport.
- * `scroll-padding-top` accounts for the sticky top bar so anchored
- * scrolls land below it rather than behind it. */
+/* Smooth anchor scrolls + scroll-padding so #anchor jumps land below the
+ * sticky top bar. Scroll-snap is intentionally NOT enabled — the user
+ * wanted free user-driven scrolling without each screen auto-locking
+ * to the viewport. */
 html {
   scroll-behavior: smooth;
-  scroll-snap-type: y mandatory;
   scroll-padding-top: 88px;
   /* Hide scrollbars (Firefox + IE). */
   scrollbar-width: none;
@@ -64,22 +63,8 @@ body {
   overflow-x: hidden;
 }
 
-/* Default snap target: each section centers in the viewport. */
-section[id] {
-  scroll-snap-align: center;
-  scroll-snap-stop: always;
-}
-
-/* Solution is a 200vh scroll-driven reveal — center alignment would
- * land the user at 50 % progress (half-revealed words), so it snaps to
- * its top edge instead. */
-section[id="solution"] {
-  scroll-snap-align: start;
-}
-
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
-    scroll-snap-type: none;
   }
 }

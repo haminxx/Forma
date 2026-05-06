@@ -92,9 +92,9 @@ export const PromptInput = React.forwardRef<HTMLTextAreaElement, PromptInputProp
           <div className="flex flex-col p-3 sm:p-4">
             <TextareaAutosize
               ref={ref}
-              className="w-full resize-none bg-transparent text-base text-white placeholder:text-white/40 focus:outline-none disabled:cursor-not-allowed"
-              minRows={2}
-              maxRows={10}
+              className="w-full resize-none bg-transparent text-sm leading-relaxed text-white placeholder:text-white/40 focus:outline-none disabled:cursor-not-allowed"
+              minRows={3}
+              maxRows={12}
               {...props}
             />
 
