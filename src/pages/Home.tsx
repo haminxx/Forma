@@ -1,7 +1,7 @@
 import { GlassTextarea } from "../components/GlassTextarea";
 import { InstallSteps } from "../components/InstallSteps";
 import { InteractiveCanvas } from "../components/InteractiveCanvas";
-import { PlatformLinks } from "../components/PlatformLinks";
+import { PlatformGrid } from "../components/PlatformGrid";
 import { SolutionReveal } from "../components/SolutionReveal";
 
 /**
@@ -47,7 +47,7 @@ export function HomePage() {
       >
         <InstallSteps />
         <GlassTextarea />
-        <PlatformLinks />
+        <PlatformGrid />
       </section>
 
       <section id="docs" className="min-h-screen scroll-mt-24" />

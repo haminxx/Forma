@@ -33,15 +33,15 @@ type Dot = {
 };
 
 export function InteractiveCanvas({
-  // Defaults match the user's pasted reference snippet. Note: the snippet's
-  // `lineColor: "#5555550"` is an invalid 7-char CSS hex — the canvas API
-  // would silently retain the previous (default black) strokeStyle, which is
-  // invisible against the dark Forma bg under `mix-blend-mode: difference`.
-  // Interpreted here as the apparent intent: low-opacity grey.
+  // Monochrome theme: white dots with faint white lines. Combined with the
+  // `mix-blend-mode: difference` on the canvas layer, this gives:
+  //   - light grey dots over the dark site bg (visible),
+  //   - black "holes" wherever a dot crosses the white hero text
+  //     (the cursor-area inversion effect).
   gridWidth = 120,
   gridHeight = 120,
-  dotColor = "#0000ff",
-  lineColor = "rgba(85, 85, 85, 0.45)",
+  dotColor = "#ffffff",
+  lineColor = "rgba(255, 255, 255, 0.18)",
   backgroundColor = "transparent",
   padding = 0,
   maxDistance = 2,

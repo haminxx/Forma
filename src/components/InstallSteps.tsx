@@ -18,7 +18,7 @@ const STEPS = [
 
 export function InstallSteps() {
   return (
-    <div className="flex w-full max-w-3xl items-center justify-center rounded-xl bg-gray-800 px-4 py-12">
+    <div className="flex w-full max-w-3xl items-center justify-center px-4 py-2">
       <Steps.Root count={STEPS.length} defaultStep={1} className="w-full max-w-2xl">
         <Steps.List className="flex items-center justify-between">
           {STEPS.map((label, index) => (

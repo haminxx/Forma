@@ -49,18 +49,25 @@ export function SolutionReveal() {
           })}
         </p>
 
-        <motion.div
+        {/* Fixed-width wrapper so the inner motion.div grows from its left
+            edge instead of expanding symmetrically from center (the parent
+            flex column is `items-center`, which would otherwise re-center
+            the underline as its width animates). */}
+        <div
           aria-hidden="true"
-          className="mt-8 h-[2px]"
-          style={{
-            width: underlineWidth,
-            maxWidth: "min(46rem, calc(100vw - 3rem))",
-            backgroundImage:
-              "repeating-linear-gradient(90deg, #d4b87a 0 6px, transparent 6px 10px)",
-            backgroundRepeat: "no-repeat",
-            backgroundSize: "100% 2px",
-          }}
-        />
+          className="mt-3 w-full"
+          style={{ maxWidth: "min(46rem, calc(100vw - 3rem))" }}
+        >
+          <motion.div
+            className="h-[2px]"
+            style={{
+              width: underlineWidth,
+              backgroundImage:
+                "repeating-linear-gradient(90deg, #d4b87a 0 6px, transparent 6px 10px)",
+              backgroundRepeat: "no-repeat",
+            }}
+          />
+        </div>
       </div>
     </div>
   );
