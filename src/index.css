@@ -6,9 +6,9 @@
  *   material: flat — no shadows, no radii, no gradients, no backdrop blur
  *   motion: scroll-linked, mixed feel
  *
- * Forma's brand gold is preserved as a legacy token but not used on the
- * landing page; the FloatingHeader keeps a couple of pastel tokens for icon
- * hover so it doesn't mute when the dot field is dark.
+ * Forma's brand gold lives as a legacy token; SolutionReveal & InstallSteps
+ * use it via inline values now (driven by framer-motion useTransform), so no
+ * keyframes are needed here.
  * ------------------------------------------------------------------------ */
 @theme {
   --color-stitch-bg: #191a1f;
@@ -31,6 +31,10 @@ body,
   height: 100%;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
   background: var(--color-stitch-bg);
@@ -42,62 +46,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-@keyframes forma-underline-draw {
-  0% {
-    background-size: 0% 100%;
-  }
-  35% {
-    background-size: 38% 100%;
-  }
-  45% {
-    background-size: 38% 100%;
-  }
-  100% {
-    background-size: 100% 100%;
-  }
-}
-
-@keyframes word-reveal {
-  from {
-    opacity: 0.2;
-    filter: blur(4px);
-  }
-  to {
-    opacity: 1;
-    filter: blur(0);
-  }
-}
-
-.word-reveal {
-  animation: word-reveal 0.65s cubic-bezier(0.2, 0.9, 0.2, 1) forwards;
-}
-
-.forma-underline {
-  width: min(46rem, calc(100vw - 2rem));
-  background-image: repeating-linear-gradient(
-    90deg,
-    #d4b87a 0 6px,
-    transparent 6px 10px
-  );
-  background-position: 0 100%;
-  background-repeat: no-repeat;
-  background-size: 0% 2px;
-  padding-bottom: 4px;
-}
-
-.forma-underline.is-active {
-  animation: forma-underline-draw 0.85s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .word-reveal {
-    animation: none;
-    opacity: 1;
-    filter: none;
-  }
-
-  .forma-underline.is-active {
-    animation: none;
-    background-size: 100% 2px;
+  html {
+    scroll-behavior: auto;
   }
 }

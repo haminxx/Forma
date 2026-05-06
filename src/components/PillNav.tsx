@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useSpring } from "framer-motion";
 
 interface NavItem {
@@ -6,9 +6,21 @@ interface NavItem {
   id: string;
 }
 
+const NAV_ITEMS: NavItem[] = [
+  { label: "Home", id: "home" },
+  { label: "Problem", id: "problem" },
+  { label: "Solution", id: "solution" },
+  { label: "Demo", id: "demo" },
+  { label: "Sandbox", id: "sandbox" },
+  { label: "Docs", id: "docs" },
+];
+
 /**
  * 3D Adaptive Navigation Pill (PillBase) — adopted verbatim style-wise.
- * Modified to support 6 sections and click-to-anchor smooth scrolling.
+ * Modifications:
+ *   - 6 sections, click → smooth-scroll to anchor.
+ *   - Active section tracked from scroll via IntersectionObserver.
+ *   - Collapsed label animates per-character on change.
  */
 export const PillNav: React.FC = () => {
   const [activeSection, setActiveSection] = useState("home");
@@ -18,15 +30,9 @@ export const PillNav: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevSectionRef = useRef("home");
+  const userScrollLockUntil = useRef<number>(0);
 
-  const navItems: NavItem[] = [
-    { label: "Home", id: "home" },
-    { label: "Problem", id: "problem" },
-    { label: "Solution", id: "solution" },
-    { label: "Demo", id: "demo" },
-    { label: "Sandbox", id: "sandbox" },
-    { label: "Docs", id: "docs" },
-  ];
+  const navItems = NAV_ITEMS;
 
   // Spring animations for smooth motion
   const pillWidth = useSpring(140, { stiffness: 220, damping: 25, mass: 1 });
@@ -71,7 +77,12 @@ export const PillNav: React.FC = () => {
     // Collapse the pill after selection
     setHovering(false);
 
-    // Scroll to anchor
+    // Lock IO-driven active updates while smooth-scroll is mid-flight,
+    // otherwise mid-scroll sections would temporarily flip the label.
+    userScrollLockUntil.current = Date.now() + 800;
+
+    // Scroll to anchor — sections carry scroll-margin-top so the pill doesn't
+    // overlap their content.
     const node = document.getElementById(sectionId);
     node?.scrollIntoView({ behavior: "smooth", block: "start" });
 
@@ -82,6 +93,46 @@ export const PillNav: React.FC = () => {
   };
 
   const activeItem = navItems.find((item) => item.id === activeSection);
+
+  // Track which section is most visible. Drives the collapsed label.
+  useEffect(() => {
+    const ratios = new Map<string, number>();
+    const observers: IntersectionObserver[] = [];
+
+    NAV_ITEMS.forEach(({ id }) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const obs = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) ratios.set(id, e.intersectionRatio);
+
+          if (Date.now() < userScrollLockUntil.current) return;
+
+          let bestId = "home";
+          let bestRatio = -1;
+          ratios.forEach((r, k) => {
+            if (r > bestRatio) {
+              bestRatio = r;
+              bestId = k;
+            }
+          });
+          if (bestRatio > 0) {
+            setActiveSection((prev) => (prev === bestId ? prev : bestId));
+          }
+        },
+        { threshold: [0, 0.25, 0.5, 0.75, 1] },
+      );
+      obs.observe(el);
+      observers.push(obs);
+    });
+
+    return () => observers.forEach((o) => o.disconnect());
+  }, []);
+
+  const activeChars = useMemo(
+    () => (activeItem ? activeItem.label.split("") : []),
+    [activeItem],
+  );
 
   return (
     <header className="sticky top-5 z-50 mx-auto flex w-full justify-center px-4">
@@ -279,20 +330,15 @@ export const PillNav: React.FC = () => {
               'Inter, -apple-system, BlinkMacSystemFont, "SF Pro", Poppins, sans-serif',
           }}
         >
-          {/* Collapsed state - show only active section with smooth text transitions */}
+          {/* Collapsed state — per-character cross-fade as the active section
+              changes mid-scroll. Each char has its own delay so the label
+              "types" in and "types" out. */}
           {!expanded && (
             <div className="relative flex items-center">
               <AnimatePresence mode="wait">
                 {activeItem && (
                   <motion.span
                     key={activeItem.id}
-                    initial={{ opacity: 0, y: 8, filter: "blur(4px)" }}
-                    animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                    exit={{ opacity: 0, y: -8, filter: "blur(4px)" }}
-                    transition={{
-                      duration: 0.35,
-                      ease: [0.4, 0.0, 0.2, 1],
-                    }}
                     style={{
                       fontSize: "15.5px",
                       fontWeight: 680,
@@ -311,7 +357,22 @@ export const PillNav: React.FC = () => {
                     `,
                     }}
                   >
-                    {activeItem.label}
+                    {activeChars.map((ch, i) => (
+                      <motion.span
+                        key={`${activeItem.id}-${i}`}
+                        initial={{ opacity: 0, y: 8, filter: "blur(4px)" }}
+                        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                        exit={{ opacity: 0, y: -8, filter: "blur(4px)" }}
+                        transition={{
+                          duration: 0.28,
+                          delay: i * 0.035,
+                          ease: [0.4, 0.0, 0.2, 1],
+                        }}
+                        style={{ display: "inline-block", whiteSpace: "pre" }}
+                      >
+                        {ch}
+                      </motion.span>
+                    ))}
                   </motion.span>
                 )}
               </AnimatePresence>
