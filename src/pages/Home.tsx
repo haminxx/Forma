@@ -16,11 +16,11 @@ import { LogoCloud } from "../components/ui/logo-cloud";
  * from sliding under the sticky top bar when an anchor is clicked.
  *
  * Home stacking (back → front):
- *   z-0  PixelWave        gold pixel wave (animated, fills from crest down)
+ *   z-0  PixelWave        WebGL dithered gold wave (fine pxSize)
  *   z-10 InteractiveCanvas white dot field with mix-blend-mode: difference
- *                          → cursor area inverts dots/text/wave colour
+ *                          → dots brighten near cursor; difference inverts beneath
  *   z-20 HomeHero + LoopingWords (text content)
- *   z-30 bottom-edge blur fade so the crest dissolves into the page
+ *   z-30 bottom-edge gradient fade (no backdrop-filter)
  */
 export function HomePage() {
   return (
@@ -47,16 +47,12 @@ export function HomePage() {
           </div>
         </div>
 
-        {/* Bottom-edge blur: a tall, blurred glass band that softens the
-            gold wave into the page bg. The mask makes the band fade in
-            from the top of the band down to its bottom edge so the
-            transition feels like a slow exhale instead of a hard cut. */}
+        {/* Bottom-edge fade: gradient-only (no backdrop-filter) so scroll
+            stays cheap — same dissolve of the wave into the page bg. */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-56"
           style={{
-            backdropFilter: "blur(18px)",
-            WebkitBackdropFilter: "blur(18px)",
             background:
               "linear-gradient(180deg, rgba(25, 26, 31, 0) 0%, rgba(25, 26, 31, 0.55) 50%, rgba(25, 26, 31, 0.98) 100%)",
             maskImage:
@@ -72,10 +68,16 @@ export function HomePage() {
         className="flex min-h-screen scroll-mt-24 items-center justify-center px-6 py-24"
       >
         <ProblemTestimonial
-          quote="Building UI by prompt feels fast — until 'card' means six different things and you spend an hour clarifying which one you actually meant."
-          highlightedText="six different things"
-          authorName="The vibecoder problem"
-          authorPosition="What we hear from teams every week"
+          quotes={[
+            "Building UI by prompt feels fast — until 'card' means six different things and you spend an hour clarifying which one you actually meant.",
+            "Every team has a 'modal' that's actually a sheet, a dialog, and a popover all wearing the same name.",
+            "The fastest way to ship the wrong component is to describe it in three vague words.",
+          ]}
+          attributions={[
+            "The vibecoder problem — What we hear from teams every week",
+            "The naming-collision problem — Same word, three implementations",
+            "The vague-prompt problem — Precision beats speed",
+          ]}
         />
       </section>
 

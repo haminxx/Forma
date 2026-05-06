@@ -1,89 +1,86 @@
-import type { HTMLAttributes } from "react";
-import { forwardRef } from "react";
+import type { HTMLAttributes, SVGProps } from "react";
+import { forwardRef, useRef } from "react";
+import { LayoutGroup, motion } from "framer-motion";
 import { cn } from "../lib/cn";
+import { DotPattern } from "./ui/dot-pattern";
+import { TextRotate, type TextRotateRef } from "./ui/text-rotate";
 
 /**
- * Problem-screen statement. Same Testimonial vocabulary the user pasted
- * (quote glyph + balanced quote + small attribution row), but now without
- * a card / panel chrome — the type sits directly on the page bg, much
- * larger, set in an SF-Pro-Display-leaning bold stack.
+ * Problem-screen statement with dot-pattern frame and rotating quote / attribution.
  */
 type ProblemTestimonialProps = HTMLAttributes<HTMLDivElement> & {
-  quote: string;
-  highlightedText?: string;
-  authorName: string;
-  authorPosition: string;
+  quotes: string[];
+  attributions: string[];
 };
 
 const SF_DISPLAY_STACK =
   '"SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter", "Helvetica Neue", system-ui, sans-serif';
 
+const ROTATION_MS = 5000;
+
 export const ProblemTestimonial = forwardRef<HTMLDivElement, ProblemTestimonialProps>(
-  (
-    {
-      className,
-      quote,
-      highlightedText,
-      authorName,
-      authorPosition,
-      ...props
-    },
-    ref,
-  ) => {
-    const renderQuote = () => {
-      if (!highlightedText || !quote.includes(highlightedText)) {
-        return <>“{quote}”</>;
-      }
-      const parts = quote.split(highlightedText);
-      return (
-        <>
-          “{parts[0]}
-          <span className="text-[#d4b87a]">{highlightedText}</span>
-          {parts.slice(1).join(highlightedText)}”
-        </>
-      );
-    };
+  ({ className, quotes, attributions, ...props }, ref) => {
+    const attributionRef = useRef<TextRotateRef>(null);
 
     return (
       <div
         ref={ref}
-        className={cn(
-          "relative isolate w-full max-w-5xl px-4 sm:px-6",
-          className,
-        )}
+        className={cn("relative isolate w-full max-w-5xl px-4 sm:px-6", className)}
         {...props}
       >
-        <QuoteGlyph
-          aria-hidden="true"
-          className="mb-6 h-10 w-10 text-white/85 sm:h-12 sm:w-12"
-        />
+        <DotPattern className="fill-white/15 md:fill-white/20" />
 
-        <p
-          className="text-balance text-3xl font-black leading-[1.05] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-[5rem]"
-          style={{
-            fontFamily: SF_DISPLAY_STACK,
-            fontWeight: 900,
-            letterSpacing: "-0.02em",
-          }}
-        >
-          {renderQuote()}
-        </p>
-
-        <div className="mt-10 flex flex-wrap items-center gap-3 text-sm text-white/55">
-          <span
+        <div className="relative z-10">
+          <QuoteGlyph
             aria-hidden="true"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.07] text-[10px] font-medium uppercase tracking-[0.18em] text-white/55"
-          >
-            {authorName
-              .split(" ")
-              .map((s) => s[0])
-              .slice(0, 2)
-              .join("")}
-          </span>
-          <span className="text-white/75">
-            {authorName}
-            <span className="text-white/35">, {authorPosition}</span>
-          </span>
+            className="mb-6 h-10 w-10 text-white/85 sm:h-12 sm:w-12"
+          />
+
+          <LayoutGroup>
+            <TextRotate
+              texts={quotes}
+              auto
+              rotationInterval={ROTATION_MS}
+              onNext={(index) => attributionRef.current?.jumpTo(index)}
+              splitBy="words"
+              staggerFrom="first"
+              staggerDuration={0.01}
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              transition={{ type: "spring", damping: 30, stiffness: 400 }}
+              animatePresenceMode="wait"
+              mainClassName={cn(
+                "text-balance text-3xl font-black leading-[1.05] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-[5rem]",
+              )}
+              style={{
+                fontFamily: SF_DISPLAY_STACK,
+                fontWeight: 900,
+                letterSpacing: "-0.02em",
+              }}
+            />
+
+            <motion.div
+              layout
+              className="my-8 h-2 w-2 rounded-full bg-[#ff5941] sm:h-3 sm:w-3"
+              aria-hidden="true"
+            />
+
+            <TextRotate
+              ref={attributionRef}
+              texts={attributions}
+              auto={false}
+              splitBy="characters"
+              staggerFrom="first"
+              staggerDuration={0.025}
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              transition={{ type: "spring", damping: 30, stiffness: 400 }}
+              animatePresenceMode="wait"
+              mainClassName="text-sm text-white/75 sm:text-base"
+            />
+          </LayoutGroup>
         </div>
       </div>
     );
@@ -92,7 +89,7 @@ export const ProblemTestimonial = forwardRef<HTMLDivElement, ProblemTestimonialP
 
 ProblemTestimonial.displayName = "ProblemTestimonial";
 
-function QuoteGlyph(props: React.SVGProps<SVGSVGElement>) {
+function QuoteGlyph(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       viewBox="0 0 32 32"

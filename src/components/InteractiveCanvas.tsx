@@ -2,19 +2,12 @@ import { useEffect, useRef } from "react";
 
 /**
  * Cursor-reactive dot grid with vector lines from each dot toward the mouse.
- * Mirrors the user's reference snippet (gridWidth/Height = 120, multiplier
- * = 200) but with three surgical fixes versus the raw paste:
- *   - Positioned `absolute` so the canvas stays scoped to its parent
- *     section (the original `fixed` covers the viewport).
- *   - Resize uses `setTransform` instead of cumulative `ctx.scale` (the
- *     original compounded DPR on every resize).
- *   - The pasted code attaches a `circleMethod` to `ctx` via `(ctx as any)`;
- *     we inline a typed `drawCircle` instead.
+ * Dots use `mix-blend-mode: difference` so bright areas invert colours beneath.
  *
- * The colour-inversion-on-cursor effect is provided by `mix-blend-mode:
- * difference` on the canvas: bright dots become "the inverse colour of
- * whatever is beneath them" — text turns black under white dots, gold
- * pixels turn dark blue, and the dark site bg lifts to a near-white dot.
+ * Performance: capped DPR (≤1.5), smaller grid (90×90), IntersectionObserver
+ * pauses the animation loop offscreen, mouse position synced once per frame,
+ * single pass computes distance + vector once per dot, alpha bucketing, lines
+ * only near the cursor.
  */
 interface InteractiveCanvasProps {
   gridWidth?: number;
@@ -25,6 +18,8 @@ interface InteractiveCanvasProps {
   padding?: number;
   maxDistance?: number;
   dotSizeMultiplier?: number;
+  /** Cursor influence radius in CSS pixels (distance-based dot opacity). */
+  influenceRadius?: number;
 }
 
 type Dot = {
@@ -32,24 +27,52 @@ type Dot = {
   y: number;
   ox: number;
   oy: number;
-  size?: number;
-  angle?: number;
+  size: number;
+  /** Offset toward cursor this frame (device pixels). */
+  vx: number;
+  vy: number;
 };
 
+const CAP_DPR = 1.5;
+const BASE_ALPHA = 0.6;
+const ALPHA_RANGE = 0.4;
+
+const BUCKET_EDGES = [0.68, 0.82, 0.94] as const;
+
+function bucketIndexForAlpha(a: number): number {
+  if (a < BUCKET_EDGES[0]) return 0;
+  if (a < BUCKET_EDGES[1]) return 1;
+  if (a < BUCKET_EDGES[2]) return 2;
+  return 3;
+}
+
+function bucketAlphaValue(bucket: number): number {
+  switch (bucket) {
+    case 0:
+      return 0.64;
+    case 1:
+      return 0.75;
+    case 2:
+      return 0.88;
+    default:
+      return 0.98;
+  }
+}
+
 export function InteractiveCanvas({
-  // Pure-white dots so `mix-blend-mode: difference` produces a clean
-  // inversion against text, gold pixels, and the dark bg alike.
-  gridWidth = 120,
-  gridHeight = 120,
+  gridWidth = 90,
+  gridHeight = 90,
   dotColor = "#ffffff",
   lineColor = "rgba(255, 255, 255, 0.16)",
   backgroundColor = "transparent",
   padding = 0,
   maxDistance = 2,
   dotSizeMultiplier = 200,
+  influenceRadius = 220,
 }: InteractiveCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mouseRef = useRef({ x: 0, y: 0 });
+  const pendingMouseRef = useRef({ x: 0, y: 0 });
   const dotsRef = useRef<Dot[]>([]);
 
   useEffect(() => {
@@ -58,7 +81,11 @@ export function InteractiveCanvas({
     const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) return;
 
-    const ratio = window.devicePixelRatio || 1;
+    const ratio = Math.min(window.devicePixelRatio || 1, CAP_DPR);
+    const influenceCanvas = influenceRadius * ratio;
+
+    let visible = true;
+    let raf = 0;
 
     const handleResize = () => {
       const parent = canvas.parentElement;
@@ -74,8 +101,10 @@ export function InteractiveCanvas({
 
     const handleMouseMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
-      mouseRef.current.x = (e.clientX - rect.left) * ratio;
-      mouseRef.current.y = (e.clientY - rect.top) * ratio;
+      pendingMouseRef.current = {
+        x: (e.clientX - rect.left) * ratio,
+        y: (e.clientY - rect.top) * ratio,
+      };
     };
 
     const createDots = () => {
@@ -94,6 +123,9 @@ export function InteractiveCanvas({
             y: y * ratio,
             ox: x * ratio,
             oy: y * ratio,
+            size: 1,
+            vx: 0,
+            vy: 0,
           });
         }
       }
@@ -103,40 +135,24 @@ export function InteractiveCanvas({
     window.addEventListener("resize", handleResize);
     window.addEventListener("mousemove", handleMouseMove);
 
-    const getDistance = (a: { x: number; y: number }, b: { x: number; y: number }) => {
-      const dx = a.x - b.x;
-      const dy = a.y - b.y;
-      return Math.sqrt(dx * dx + dy * dy);
-    };
-
-    const getAngle = (a: { x: number; y: number }, b: { x: number; y: number }) => {
-      const dX = b.x - a.x;
-      const dY = b.y - a.y;
-      return (Math.atan2(dY, dX) / Math.PI) * 180;
-    };
-
-    const getVector = (dot: Dot) => {
-      const d = getDistance(dot, mouseRef.current);
-      let size = (dotSizeMultiplier - d) / 20;
-      if (size < 1) size = 1;
-      dot.size = size;
-      dot.angle = getAngle(dot, mouseRef.current);
-
-      const distance = d > maxDistance ? maxDistance : d;
-      return {
-        x: distance * Math.cos((dot.angle * Math.PI) / 180),
-        y: distance * Math.sin((dot.angle * Math.PI) / 180),
-      };
-    };
-
     const drawCircle = (x: number, y: number, r: number) => {
       ctx.beginPath();
       ctx.arc(x, y, r, 0, 2 * Math.PI, false);
       ctx.closePath();
     };
 
-    let raf = 0;
+    const buckets: Dot[][] = [[], [], [], []];
+
     const animate = () => {
+      if (!visible) {
+        raf = 0;
+        return;
+      }
+
+      mouseRef.current = pendingMouseRef.current;
+      const mx = mouseRef.current.x;
+      const my = mouseRef.current.y;
+
       if (backgroundColor && backgroundColor !== "transparent") {
         ctx.fillStyle = backgroundColor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -144,42 +160,85 @@ export function InteractiveCanvas({
         ctx.clearRect(0, 0, canvas.width, canvas.height);
       }
 
+      for (let b = 0; b < 4; b++) buckets[b].length = 0;
+
+      // One pass: distance + vector once per dot; stroke lines in radius; bucket fills.
+      for (let i = 0; i < dotsRef.current.length; i++) {
+        const dot = dotsRef.current[i];
+        if (!dot) continue;
+
+        const dX = dot.x - mx;
+        const dY = dot.y - my;
+        const d = Math.sqrt(dX * dX + dY * dY);
+
+        let size = (dotSizeMultiplier - d) / 20;
+        if (size < 1) size = 1;
+        dot.size = size;
+
+        const angleRad = Math.atan2(my - dot.y, mx - dot.x);
+        const distance = d > maxDistance ? maxDistance : d;
+        dot.vx = distance * Math.cos(angleRad);
+        dot.vy = distance * Math.sin(angleRad);
+
+        if (d <= influenceCanvas) {
+          ctx.beginPath();
+          ctx.moveTo(dot.x / ratio, dot.y / ratio);
+          ctx.lineTo((dot.x + dot.vx) / ratio, (dot.y + dot.vy) / ratio);
+          ctx.strokeStyle = lineColor;
+          ctx.globalAlpha = BASE_ALPHA + ALPHA_RANGE * (1 - Math.min(1, d / influenceCanvas));
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          ctx.closePath();
+        }
+
+        const t = Math.min(1, d / influenceCanvas);
+        const alpha = BASE_ALPHA + ALPHA_RANGE * (1 - t);
+        const bi = bucketIndexForAlpha(alpha);
+        const list = buckets[bi];
+        if (list) list.push(dot);
+      }
+      ctx.globalAlpha = 1;
+
       ctx.fillStyle = dotColor;
 
-      // Lines from each dot toward the mouse-warped target.
-      for (let i = 0; i < dotsRef.current.length; i++) {
-        const dot = dotsRef.current[i];
-        if (!dot) continue;
-        const v = getVector(dot);
-
-        ctx.beginPath();
-        ctx.moveTo(dot.x / ratio, dot.y / ratio);
-        ctx.lineTo((dot.x + v.x) / ratio, (dot.y + v.y) / ratio);
-        ctx.strokeStyle = lineColor;
-        ctx.lineWidth = 1;
-        ctx.stroke();
-        ctx.closePath();
+      for (let bi = 0; bi < 4; bi++) {
+        const list = buckets[bi];
+        if (!list?.length) continue;
+        ctx.globalAlpha = bucketAlphaValue(bi);
+        for (let j = 0; j < list.length; j++) {
+          const dot = list[j];
+          if (!dot) continue;
+          drawCircle(
+            (dot.x + dot.vx) / ratio,
+            (dot.y + dot.vy) / ratio,
+            dot.size / 2,
+          );
+          ctx.fill();
+        }
       }
-
-      // Dots themselves.
-      for (let i = 0; i < dotsRef.current.length; i++) {
-        const dot = dotsRef.current[i];
-        if (!dot) continue;
-        const v = getVector(dot);
-        drawCircle(
-          (dot.x + v.x) / ratio,
-          (dot.y + v.y) / ratio,
-          (dot.size ?? 1) / 2,
-        );
-        ctx.fill();
-      }
+      ctx.globalAlpha = 1;
 
       raf = requestAnimationFrame(animate);
     };
 
-    animate();
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        visible = Boolean(entry?.isIntersecting);
+        if (!visible && raf) {
+          cancelAnimationFrame(raf);
+          raf = 0;
+        } else if (visible && !raf) {
+          raf = requestAnimationFrame(animate);
+        }
+      },
+      { root: null, threshold: 0, rootMargin: "80px" },
+    );
+    io.observe(canvas);
+
+    if (visible) raf = requestAnimationFrame(animate);
 
     return () => {
+      io.disconnect();
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("mousemove", handleMouseMove);
       if (raf) cancelAnimationFrame(raf);
@@ -193,6 +252,7 @@ export function InteractiveCanvas({
     padding,
     maxDistance,
     dotSizeMultiplier,
+    influenceRadius,
   ]);
 
   return (
