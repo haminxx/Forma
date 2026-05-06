@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "Forma",
+  "version": "1.0.0",
+  "description": "Grammarly for UI design. Translates vague UI descriptions into precise design terminology powered by AMD MI300X.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Forma",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": [
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://forma-production-c800.up.railway.app/*"
+  ]
+}
