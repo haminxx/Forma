@@ -252,7 +252,7 @@ For "Notification Badge" → alternatives: "Toast Notification", "Notification C
 Return ONLY a raw JSON array with NO other text. The array must contain 
 ALL detected phrases. If nothing is vague, return an empty array [].
 
-Example response format:
+Example response format (note: ALL terms in this example are from the canonical list above):
 [
   {{
     "phrase": "menu that slides from the right",
@@ -262,9 +262,22 @@ Example response format:
     "definition": "A panel that slides in from the viewport edge when triggered.",
     "category": "Navigation",
     "alternatives": [
-      {{"term": "Side Drawer", "description": "A sliding panel for secondary navigation."}},
-      {{"term": "Slide-In Menu", "description": "A menu animating in from the screen edge."}},
-      {{"term": "Hamburger Overlay", "description": "A menu revealed by a hamburger icon."}}
+      {{"term": "Sidebar Navigation", "description": "A vertical panel for secondary navigation."}},
+      {{"term": "Bottom Sheet", "description": "A panel that slides up from the bottom of the screen."}},
+      {{"term": "Modal Overlay", "description": "A blocking overlay that appears above content."}}
+    ]
+  }},
+  {{
+    "phrase": "password strength meter",
+    "start": 5,
+    "end": 28,
+    "term": "Password Strength",
+    "definition": "A visual indicator of password complexity and security.",
+    "category": "Action",
+    "alternatives": [
+      {{"term": "Progress Bar", "description": "A linear bar showing completion progress."}},
+      {{"term": "Form Input Field", "description": "A text input for entering data."}},
+      {{"term": "Login Form", "description": "A form for user authentication."}}
     ]
   }}
 ]
