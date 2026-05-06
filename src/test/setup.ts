@@ -1,5 +1,32 @@
 import "@testing-library/jest-dom/vitest";
 
+function mockIntersectionEntry(target: Element): IntersectionObserverEntry {
+  const empty = (): DOMRectReadOnly =>
+    ({
+      bottom: 0,
+      height: 0,
+      left: 0,
+      right: 0,
+      top: 0,
+      width: 0,
+      x: 0,
+      y: 0,
+      toJSON() {
+        return {};
+      },
+    }) as DOMRectReadOnly;
+
+  return {
+    isIntersecting: true,
+    boundingClientRect: empty(),
+    intersectionRatio: 1,
+    intersectionRect: empty(),
+    rootBounds: null,
+    target,
+    time: 0,
+  };
+}
+
 /** jsdom lacks these; UI code and framer-motion viewport features expect them. */
 class IntersectionObserverStub implements IntersectionObserver {
   readonly root: Element | Document | null = null;
@@ -11,7 +38,7 @@ class IntersectionObserverStub implements IntersectionObserver {
   ) {
     queueMicrotask(() => {
       this.callback(
-        [{ isIntersecting: true, target: document.body } as IntersectionObserverEntry],
+        [mockIntersectionEntry(document.body)],
         this,
       );
     });
@@ -34,12 +61,13 @@ class ResizeObserverStub implements ResizeObserver {
 globalThis.ResizeObserver = ResizeObserverStub as unknown as typeof ResizeObserver;
 
 const noop = () => {};
-/** Minimal 2D canvas stub for hero / dot canvases */
-HTMLCanvasElement.prototype.getContext = function (
+
+/** Minimal 2D canvas stub for hero / dot canvases (`getContext` is overloaded on the prototype). */
+const stubCanvasGetContext: typeof HTMLCanvasElement.prototype.getContext = function (
   this: HTMLCanvasElement,
   contextId: string,
-  _attrs?: CanvasRenderingContext2DSettings | WebGLContextAttributes,
-): RenderingContext | null {
+  _attrs?,
+) {
   if (contextId === "2d") {
     return {
       canvas: this,
@@ -60,4 +88,6 @@ HTMLCanvasElement.prototype.getContext = function (
     } as unknown as CanvasRenderingContext2D;
   }
   return null;
-};
+} as typeof HTMLCanvasElement.prototype.getContext;
+
+HTMLCanvasElement.prototype.getContext = stubCanvasGetContext;
