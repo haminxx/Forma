@@ -131,12 +131,17 @@ function LogoCard({ href, src, alt, className, children }: LogoCardProps) {
           className,
         )}
       >
-        <img
-          src={src}
-          alt={alt}
-          loading="lazy"
-          className="pointer-events-none h-7 select-none object-contain transition duration-300 group-hover:grayscale-0 md:h-9 grayscale"
-        />
+        {/* Fixed bounding box gives every logo the same visual weight: square
+            marks render small inside it, wide wordmarks fill the width.
+            object-contain centres each mark inside this 140 × 36 cell. */}
+        <span className="relative flex h-9 w-[140px] items-center justify-center md:h-10 md:w-[160px]">
+          <img
+            src={src}
+            alt={alt}
+            loading="lazy"
+            className="pointer-events-none max-h-full max-w-full select-none object-contain grayscale transition duration-300 group-hover:grayscale-0"
+          />
+        </span>
         {children}
       </a>
     </HoverPeek>

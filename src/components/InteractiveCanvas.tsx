@@ -2,15 +2,15 @@ import { useEffect, useRef } from "react";
 
 /**
  * Cursor-reactive dot grid with vector lines from each dot toward the mouse.
- * Adapted from the user's pasted snippet with three surgical changes:
+ * Adapted from the user's pasted snippet with surgical changes:
  *   - Positioned `absolute` (not `fixed`) so it can be scoped to its parent
  *     section instead of covering the entire viewport.
- *   - Resize uses `setTransform` instead of cumulative `scale` (the original
- *     compounded the DPR scale on every resize).
- *   - `mix-blend-mode: difference` applied so the lit cursor area inverts
- *     whatever (text, background) sits beneath it inside the same stacking
- *     context. Pair the parent with `isolation: isolate` so the blend doesn't
- *     leak past the section.
+ *   - Resize uses `setTransform` instead of cumulative `scale`.
+ *   - mix-blend-mode lifted off — the colour inversion is now handled by a
+ *     dedicated `CursorInverter` element above this canvas, which gives a
+ *     clean, gap-free inversion circle (the dots alone left visible gaps).
+ *   - Default grid trimmed to 80 × 80 (6 400 dots) and `dotSizeMultiplier`
+ *     to 80 for a smaller cursor cluster + cheaper per-frame cost.
  */
 interface InteractiveCanvasProps {
   gridWidth?: number;
@@ -33,19 +33,16 @@ type Dot = {
 };
 
 export function InteractiveCanvas({
-  // Monochrome theme: white dots with faint white lines. Combined with the
-  // `mix-blend-mode: difference` on the canvas layer, this gives:
-  //   - light grey dots over the dark site bg (visible),
-  //   - black "holes" wherever a dot crosses the white hero text
-  //     (the cursor-area inversion effect).
-  gridWidth = 120,
-  gridHeight = 120,
-  dotColor = "#ffffff",
-  lineColor = "rgba(255, 255, 255, 0.18)",
+  // Pure decoration now (CursorInverter handles inversion). Faint white
+  // dots + faint white connecting lines on the dark Forma bg.
+  gridWidth = 80,
+  gridHeight = 80,
+  dotColor = "rgba(255, 255, 255, 0.45)",
+  lineColor = "rgba(255, 255, 255, 0.12)",
   backgroundColor = "transparent",
   padding = 0,
   maxDistance = 2,
-  dotSizeMultiplier = 200,
+  dotSizeMultiplier = 80,
 }: InteractiveCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mouseRef = useRef({ x: 0, y: 0 });
@@ -59,16 +56,6 @@ export function InteractiveCanvas({
 
     const ratio = window.devicePixelRatio || 1;
 
-    // Viewport-driven dot size: bigger screens grow the radius (and the
-    // "neighbourhood" each dot reacts to the cursor across) so the field
-    // doesn't feel sparse on a 1440p+ monitor or tiny on mobile.
-    let effectiveMultiplier = dotSizeMultiplier;
-    const computeMultiplier = () => {
-      const vw = window.innerWidth;
-      // 768 vw → +0, 1280 → +128, 1920 → +288, 2560 → +448
-      effectiveMultiplier = dotSizeMultiplier + Math.max(0, (vw - 768) / 4);
-    };
-
     const handleResize = () => {
       const parent = canvas.parentElement;
       const w = parent?.clientWidth ?? window.innerWidth;
@@ -78,7 +65,6 @@ export function InteractiveCanvas({
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-      computeMultiplier();
       createDots();
     };
 
@@ -127,7 +113,7 @@ export function InteractiveCanvas({
 
     const getVector = (dot: Dot) => {
       const d = getDistance(dot, mouseRef.current);
-      let size = (effectiveMultiplier - d) / 20;
+      let size = (dotSizeMultiplier - d) / 20;
       if (size < 1) size = 1;
       dot.size = size;
       dot.angle = getAngle(dot, mouseRef.current);
@@ -210,7 +196,6 @@ export function InteractiveCanvas({
       ref={canvasRef}
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 h-full w-full"
-      style={{ mixBlendMode: "difference" }}
     />
   );
 }

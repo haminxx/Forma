@@ -31,8 +31,15 @@ body,
   height: 100%;
 }
 
+/* Scroll-snap is enabled on the html viewport with `proximity` so the page
+ * "locks" to the nearest section as the user scrolls without trapping them
+ * inside long sections (sandbox is taller than 100 vh on smaller viewports).
+ * `scroll-padding-top` matches the sticky PillNav height so anchored scrolls
+ * land below the pill instead of behind it. */
 html {
   scroll-behavior: smooth;
+  scroll-snap-type: y proximity;
+  scroll-padding-top: 96px;
 }
 
 body {
@@ -46,8 +53,20 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Every direct top-level <section> on the home page is a snap target.
+ * The selector is intentionally broad — every section in this app is
+ * a full-screen page chunk, so snapping at section boundaries is what
+ * we want everywhere. */
+main section,
+[data-app-shell] section,
+section[id] {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+    scroll-snap-type: none;
   }
 }
