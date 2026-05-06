@@ -3,9 +3,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from agents import translate_phrase
+from agents import translate_phrase, analyze_sentence
 from patterns import contains_vague_phrase
-from parser import parse_response
+from parser import parse_response, parse_analyze_response
 
 app = FastAPI(title="Forma Backend")
 
@@ -53,4 +53,41 @@ def translate(request: PhraseRequest):
     parsed["latency"] = latency_ms
 
     return parsed
+
+
+# ============================================================
+# AI MODE — Sentence-Level Analysis Endpoint
+# ============================================================
+
+class AnalyzeRequest(BaseModel):
+    text: str
+
+@app.post("/analyze")
+async def analyze(request: AnalyzeRequest):
+    """Analyze full text and return all detected vague UI phrases with translations."""
+    import time
+    start_time = time.time()
+    
+    text = request.text.strip()
+    
+    if not text or len(text) < 3:
+        return {"phrases": [], "latency": 0}
+    
+    # Limit text length to prevent abuse
+    if len(text) > 2000:
+        text = text[:2000]
+    
+    try:
+        raw_response = analyze_sentence(text)
+        phrases = parse_analyze_response(raw_response, text)
+        
+        latency = int((time.time() - start_time) * 1000)
+        
+        return {
+            "phrases": phrases,
+            "latency": latency
+        }
+    except Exception as e:
+        print(f"Error in /analyze: {e}")
+        return {"phrases": [], "latency": 0, "error": str(e)}
 
