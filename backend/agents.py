@@ -4,7 +4,7 @@ from crewai import Agent, Task, Crew, Process, LLM
 
 load_dotenv()
 
-AMD_ENDPOINT = os.getenv("AMD_ENDPOINT", "http://129.212.178.153:8000/v1")
+AMD_ENDPOINT = os.getenv("AMD_ENDPOINT", "http://165.245.128.5:8000/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "meta-llama/Meta-Llama-3.1-8B-Instruct")
 
 llm = LLM(
