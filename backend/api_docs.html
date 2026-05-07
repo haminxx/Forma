@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Forma API — Design Intelligence Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0a0a09;
+  color: #f0ece4;
+  font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  padding: 32px 24px;
+  line-height: 1.6;
+}
+.container { max-width: 1100px; margin: 0 auto; }
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 48px;
+  padding-bottom: 24px;
+  border-bottom: 0.5px solid #2a2825;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #c8b89a 0%, #8a7a5c 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0a0a09;
+  font-family: 'DM Serif Display', serif;
+  font-size: 20px;
+}
+.brand-text { display: flex; flex-direction: column; gap: 2px; }
+.brand-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  color: #f5f3ef;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+.brand-sub {
+  font-size: 10px;
+  color: #6b6560;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.header-nav {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+.nav-link {
+  color: #a0998c;
+  text-decoration: none;
+  font-size: 13px;
+  transition: color 0.15s;
+}
+.nav-link:hover { color: #c8b89a; }
+.beta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: rgba(200,184,154,0.08);
+  border: 0.5px solid rgba(200,184,154,0.3);
+  border-radius: 12px;
+  font-size: 10px;
+  color: #c8b89a;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.05em;
+}
+
+.hero {
+  text-align: center;
+  padding: 60px 0 48px;
+  border-bottom: 0.5px solid #2a2825;
+  margin-bottom: 48px;
+}
+.hero-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 56px;
+  color: #f5f3ef;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin-bottom: 20px;
+}
+.hero-subtitle {
+  font-size: 17px;
+  color: #a0998c;
+  max-width: 640px;
+  margin: 0 auto 24px;
+  line-height: 1.6;
+}
+.hero-pills {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.hero-pill {
+  padding: 6px 12px;
+  background: #1a1917;
+  border: 0.5px solid #2a2825;
+  border-radius: 16px;
+  font-size: 11px;
+  color: #a0998c;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.03em;
+}
+.hero-pill.live {
+  border-color: rgba(74,222,128,0.4);
+  color: #4ade80;
+}
+.hero-pill.live::before {
+  content: '● ';
+  font-size: 10px;
+  margin-right: 4px;
+}
+
+.section {
+  margin-bottom: 48px;
+}
+.section-header {
+  margin-bottom: 24px;
+}
+.section-tag {
+  display: inline-block;
+  font-size: 10px;
+  color: #c8b89a;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.section-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 32px;
+  color: #f5f3ef;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+.section-subtitle {
+  font-size: 14px;
+  color: #6b6560;
+}
+
+.code-block {
+  background: #141412;
+  border: 0.5px solid #2a2825;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 16px 0;
+}
+.code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: #1a1917;
+  border-bottom: 0.5px solid #2a2825;
+}
+.code-method {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.method-pill {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+.method-pill.post { background: rgba(74,222,128,0.15); color: #4ade80; }
+.method-pill.get { background: rgba(200,184,154,0.15); color: #c8b89a; }
+.endpoint-path {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: #f0ece4;
+}
+.code-body {
+  padding: 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: #e8e2d4;
+  overflow-x: auto;
+  white-space: pre;
+  line-height: 1.6;
+}
+.code-comment { color: #6b6560; font-style: italic; }
+.code-key { color: #c8b89a; }
+.code-string { color: #4ade80; }
+.code-number { color: #f59e0b; }
+
+.endpoint-card {
+  background: #1a1917;
+  border: 0.5px solid #2a2825;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+.endpoint-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.endpoint-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.endpoint-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: #f5f3ef;
+  font-weight: 500;
+}
+.status-tag {
+  font-size: 9px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+.status-tag.live { background: rgba(74,222,128,0.15); color: #4ade80; }
+.status-tag.beta { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.status-tag.coming { background: rgba(107,101,96,0.2); color: #a0998c; }
+.endpoint-desc {
+  font-size: 13px;
+  color: #a0998c;
+  margin-bottom: 16px;
+}
+
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+.pricing-card {
+  background: #1a1917;
+  border: 0.5px solid #2a2825;
+  border-radius: 12px;
+  padding: 28px 24px;
+  position: relative;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.pricing-card:hover {
+  border-color: rgba(200,184,154,0.3);
+  transform: translateY(-2px);
+}
+.pricing-card.featured {
+  border-color: rgba(200,184,154,0.4);
+  background: linear-gradient(135deg, #1a1917 0%, #1c1a17 100%);
+}
+.pricing-card.featured::before {
+  content: 'POPULAR';
+  position: absolute;
+  top: -8px;
+  right: 16px;
+  padding: 3px 8px;
+  background: #c8b89a;
+  color: #0a0a09;
+  font-size: 9px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  border-radius: 4px;
+  letter-spacing: 0.08em;
+}
+.tier-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  color: #f5f3ef;
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+.tier-target {
+  font-size: 11px;
+  color: #6b6560;
+  letter-spacing: 0.05em;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+.tier-price {
+  font-family: 'DM Serif Display', serif;
+  font-size: 36px;
+  color: #c8b89a;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.tier-price-suffix {
+  font-size: 13px;
+  color: #6b6560;
+  font-family: 'JetBrains Mono', monospace;
+  margin-left: 4px;
+}
+.tier-features {
+  list-style: none;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 0.5px solid #2a2825;
+}
+.tier-features li {
+  font-size: 12px;
+  color: #a0998c;
+  padding: 6px 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.tier-features li::before {
+  content: '→';
+  color: #c8b89a;
+  flex-shrink: 0;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.cta-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 32px;
+  flex-wrap: wrap;
+}
+.cta {
+  padding: 12px 24px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.cta-primary {
+  background: #c8b89a;
+  color: #0a0a09;
+}
+.cta-primary:hover { background: #d8c8aa; }
+.cta-secondary {
+  background: transparent;
+  border: 0.5px solid #2a2825;
+  color: #a0998c;
+}
+.cta-secondary:hover {
+  border-color: #c8b89a;
+  color: #c8b89a;
+}
+
+.footer {
+  margin-top: 80px;
+  padding-top: 32px;
+  border-top: 0.5px solid #2a2825;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: #6b6560;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.05em;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.footer-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.footer-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #4ade80;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+.info-card {
+  background: #1a1917;
+  border: 0.5px solid #2a2825;
+  border-radius: 8px;
+  padding: 20px;
+}
+.info-label {
+  font-size: 10px;
+  color: #6b6560;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.info-value {
+  font-size: 16px;
+  color: #f0ece4;
+  margin-bottom: 4px;
+}
+.info-desc {
+  font-size: 12px;
+  color: #6b6560;
+}
+
+@media (max-width: 768px) {
+  .hero-title { font-size: 36px; }
+  .header-nav { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<header class="header">
+  <div class="brand">
+    <div class="brand-logo">F</div>
+    <div class="brand-text">
+      <div class="brand-name">Forma</div>
+      <div class="brand-sub">API Documentation</div>
+    </div>
+  </div>
+  <nav class="header-nav">
+    <a href="/admin" class="nav-link">Dashboard</a>
+    <a href="https://github.com/haminxx/Forma" class="nav-link">GitHub</a>
+    <span class="beta-pill">v1.0.0-beta</span>
+  </nav>
+</header>
+
+<section class="hero">
+  <h1 class="hero-title">Design Intelligence API</h1>
+  <p class="hero-subtitle">
+    Real-time UI terminology translation and behavioral intelligence for AI-powered design tools. Powered by Llama 3.1 8B on AMD MI300X.
+  </p>
+  <div class="hero-pills">
+    <span class="hero-pill live">LIVE</span>
+    <span class="hero-pill">v1.0.0</span>
+    <span class="hero-pill">Llama 3.1 8B</span>
+    <span class="hero-pill">AMD MI300X</span>
+    <span class="hero-pill">Private Beta</span>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-header">
+    <div class="section-tag">QUICK START</div>
+    <h2 class="section-title">Try the API</h2>
+    <p class="section-subtitle">One curl command. Real response from production.</p>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-method">
+        <span class="method-pill post">POST</span>
+        <span class="endpoint-path">/v1/translate</span>
+      </div>
+      <span class="status-tag live">● LIVE</span>
+    </div>
+<div class="code-body">curl -X POST https://forma-production-c800.up.railway.app/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"text": "sticky top bar with frosted blurry popup"}'</div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-method">
+        <span class="endpoint-path">Response (200 OK)</span>
+      </div>
+      <span class="status-tag live">~1.5s latency</span>
+    </div>
+<div class="code-body">{
+  "phrases": [
+    {
+      "phrase": "sticky top bar",
+      "term": "Sticky Navbar",
+      "definition": "A navigation bar that remains visible at the top.",
+      "category": "Layout",
+      "alternatives": [...]
+    },
+    {
+      "phrase": "frosted blurry popup",
+      "term": "Glassmorphic Popover",
+      "definition": "A floating panel with frosted glass aesthetic.",
+      "category": "Overlay",
+      "alternatives": [...]
+    }
+  ],
+  "latency": 1547
+}</div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-header">
+    <div class="section-tag">ENDPOINTS</div>
+    <h2 class="section-title">API Reference</h2>
+    <p class="section-subtitle">Production endpoints and roadmap.</p>
+  </div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-header">
+      <div class="endpoint-title">
+        <span class="method-pill post">POST</span>
+        <span class="endpoint-name">/v1/translate</span>
+      </div>
+      <span class="status-tag live">● LIVE</span>
+    </div>
+    <p class="endpoint-desc">
+      Translate vague UI descriptions into canonical design terminology. Returns matched phrases, canonical terms, definitions, and ranked alternatives.
+    </p>
+  </div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-header">
+      <div class="endpoint-title">
+        <span class="method-pill get">GET</span>
+        <span class="endpoint-name">/v1/intelligence/{term}</span>
+      </div>
+      <span class="status-tag coming">COMING Q3 2026</span>
+    </div>
+    <p class="endpoint-desc">
+      Retrieve behavioral intelligence for a canonical term. Includes acceptance rates, regional preferences, top alternatives users selected instead, and trend data over time.
+    </p>
+    <div class="code-block">
+<div class="code-body">{
+  "term": "Off-Canvas Drawer",
+  "global_acceptance_rate": 0.823,
+  "detections_last_30d": 14782,
+  "top_alternatives": [
+    { "term": "Bottom Sheet", "selection_rate": 0.12 },
+    { "term": "Sidebar Navigation", "selection_rate": 0.06 }
+  ],
+  "platform_distribution": {
+    "v0.app": 0.45,
+    "cursor.com": 0.20,
+    "lovable.dev": 0.15
+  }
+}</div>
+    </div>
+  </div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-header">
+      <div class="endpoint-title">
+        <span class="method-pill get">GET</span>
+        <span class="endpoint-name">/v1/insights/by-site</span>
+      </div>
+      <span class="status-tag coming">COMING Q3 2026</span>
+    </div>
+    <p class="endpoint-desc">
+      Aggregate insights about which canonical terms are most-described per AI builder platform. Useful for component library prioritization and design system gap analysis.
+    </p>
+  </div>
+
+  <div class="endpoint-card">
+    <div class="endpoint-header">
+      <div class="endpoint-title">
+        <span class="method-pill get">GET</span>
+        <span class="endpoint-name">/v1/insights/trends</span>
+      </div>
+      <span class="status-tag coming">COMING Q4 2026</span>
+    </div>
+    <p class="endpoint-desc">
+      Time-series data on UI terminology trends. Track which components are gaining traction, which are declining, and emerging patterns across the AI builder ecosystem.
+    </p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-header">
+    <div class="section-tag">PRICING</div>
+    <h2 class="section-title">Plans for Every Scale</h2>
+    <p class="section-subtitle">From individual designers to AI builder companies.</p>
+  </div>
+
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <div class="tier-name">Free</div>
+      <div class="tier-target">Individual designers</div>
+      <div class="tier-price">$0<span class="tier-price-suffix">/month</span></div>
+      <ul class="tier-features">
+        <li>100 translations/month</li>
+        <li>Chrome extension access</li>
+        <li>60 canonical components</li>
+        <li>Community support</li>
+      </ul>
+    </div>
+
+    <div class="pricing-card featured">
+      <div class="tier-name">Pro</div>
+      <div class="tier-target">Power users + freelancers</div>
+      <div class="tier-price">$49<span class="tier-price-suffix">/month</span></div>
+      <ul class="tier-features">
+        <li>Unlimited translations</li>
+        <li>Priority AMD inference</li>
+        <li>API access (10K req/mo)</li>
+        <li>Custom term definitions</li>
+        <li>Priority support</li>
+      </ul>
+    </div>
+
+    <div class="pricing-card">
+      <div class="tier-name">Team</div>
+      <div class="tier-target">Design teams + agencies</div>
+      <div class="tier-price">$499<span class="tier-price-suffix">/month</span></div>
+      <ul class="tier-features">
+        <li>Everything in Pro</li>
+        <li>API access (100K req/mo)</li>
+        <li>Behavioral insights API</li>
+        <li>Team analytics dashboard</li>
+        <li>SSO authentication</li>
+      </ul>
+    </div>
+
+    <div class="pricing-card">
+      <div class="tier-name">Enterprise</div>
+      <div class="tier-target">AI builders + Foundation labs</div>
+      <div class="tier-price">Contact<span class="tier-price-suffix">us</span></div>
+      <ul class="tier-features">
+        <li>Unlimited API access</li>
+        <li>Behavioral data licensing</li>
+        <li>Dedicated AMD MI300X</li>
+        <li>Custom canonical terms</li>
+        <li>SLA + dedicated support</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="cta-row">
+    <a href="https://github.com/haminxx/Forma" class="cta cta-primary">Request API Access →</a>
+    <a href="/admin" class="cta cta-secondary">View Dashboard</a>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-header">
+    <div class="section-tag">PLATFORM</div>
+    <h2 class="section-title">Built for Scale</h2>
+  </div>
+
+  <div class="info-grid">
+    <div class="info-card">
+      <div class="info-label">INFERENCE</div>
+      <div class="info-value">AMD MI300X · vLLM 0.17.1</div>
+      <div class="info-desc">Sub-2-second inference on production GPU. Llama 3.1 8B serving real translations.</div>
+    </div>
+    <div class="info-card">
+      <div class="info-label">AUTHENTICATION</div>
+      <div class="info-value">Bearer Token (Coming Q3)</div>
+      <div class="info-desc">API key authentication via Authorization header. OAuth 2.0 planned for Enterprise.</div>
+    </div>
+    <div class="info-card">
+      <div class="info-label">RATE LIMITS</div>
+      <div class="info-value">Tier-based</div>
+      <div class="info-desc">Free: 100/mo · Pro: 10K/mo · Team: 100K/mo · Enterprise: Custom</div>
+    </div>
+    <div class="info-card">
+      <div class="info-label">DATA RESIDENCY</div>
+      <div class="info-value">US-West (Default)</div>
+      <div class="info-desc">EU and APAC regions available for Enterprise customers.</div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div>FORMA · DESIGN INTELLIGENCE PLATFORM · 2026 · MIT LICENSE</div>
+  <div class="footer-badge">
+    <div class="footer-dot"></div>
+    Llama 3.1 8B · AMD MI300X · vLLM 0.17.1
+  </div>
+</footer>
+
+</div>
+
+</body>
+</html>

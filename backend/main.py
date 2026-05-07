@@ -18,7 +18,7 @@ from events import (
     get_site_breakdown,
 )
 
-app = FastAPI(title="Forma Backend")
+app = FastAPI(title="Forma Backend", docs_url=None, redoc_url=None, openapi_url=None)
 
 @app.on_event("startup")
 def startup_event():
@@ -245,4 +245,15 @@ def admin_seed():
         return {"status": "seeded", "events_created": count}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+
+# ============================================================
+# API DOCUMENTATION — Public-facing API docs page
+# ============================================================
+
+@app.get("/docs")
+def api_documentation():
+    """Serve the public API documentation page."""
+    docs_path = os.path.join(os.path.dirname(__file__), "api_docs.html")
+    return FileResponse(docs_path, media_type="text/html")
 
