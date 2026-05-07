@@ -1,13 +1,23 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Cursor-reactive dot grid with vector lines from each dot toward the mouse.
- * Dots use `mix-blend-mode: difference` so bright areas invert colours beneath.
+ * Cursor-reactive dot grid + radial cursor glow, blended with `difference`.
  *
- * Performance: capped DPR (≤1.5), smaller grid (90×90), IntersectionObserver
- * pauses the animation loop offscreen, mouse position synced once per frame,
- * single pass computes distance + vector once per dot, alpha bucketing, lines
- * only near the cursor.
+ * Visual model:
+ *   - Dots are ALWAYS full opaque white. The `mix-blend-mode: difference`
+ *     filter on the canvas inverts whatever sits beneath, so a dot reads as
+ *     dark amber on the gold wave, near-white on the dark page bg, and
+ *     black on hovered text. White was the only colour that would invert
+ *     consistently in every region.
+ *   - The "fade" comes from dot RADIUS, not alpha. Far dots are tiny (~0.4 px),
+ *     dots near the cursor swell to ~1.8 px. Lines also only draw inside the
+ *     influence radius. Reducing alpha would dampen the difference blend.
+ *   - A radial spotlight is also drawn at the cursor in white — under the
+ *     difference blend, that creates a "halo of inverted colour" exactly
+ *     where the user is pointing.
+ *
+ * Performance: capped DPR (≤1.5), 90×90 grid by default, IntersectionObserver
+ * pauses the loop offscreen, mouse position synced once per frame.
  */
 interface InteractiveCanvasProps {
   gridWidth?: number;
@@ -16,67 +26,42 @@ interface InteractiveCanvasProps {
   lineColor?: string;
   backgroundColor?: string;
   padding?: number;
-  maxDistance?: number;
-  dotSizeMultiplier?: number;
-  /** Cursor influence radius in CSS pixels (distance-based dot opacity). */
+  /** Cursor influence radius in CSS pixels (controls dot size + line gating). */
   influenceRadius?: number;
+  /** Min/max dot radius in CSS pixels — far dots vs near-cursor dots. */
+  minRadius?: number;
+  maxRadius?: number;
+  /** Radial cursor spotlight — radius + peak alpha (alpha pre-difference). */
+  spotlightRadius?: number;
+  spotlightAlpha?: number;
 }
 
 type Dot = {
   x: number;
   y: number;
-  ox: number;
-  oy: number;
-  size: number;
-  /** Offset toward cursor this frame (device pixels). */
+  r: number;
   vx: number;
   vy: number;
 };
 
 const CAP_DPR = 1.5;
-// Higher base alpha so the dot field reads as evenly filled across the
-// whole section — including the top area above the heading — instead of
-// fading into the bg where the cursor isn't. ALPHA_RANGE still gives the
-// cursor neighbourhood a brighter halo on top.
-const BASE_ALPHA = 0.78;
-const ALPHA_RANGE = 0.22;
-
-const BUCKET_EDGES = [0.82, 0.9, 0.96] as const;
-
-function bucketIndexForAlpha(a: number): number {
-  if (a < BUCKET_EDGES[0]) return 0;
-  if (a < BUCKET_EDGES[1]) return 1;
-  if (a < BUCKET_EDGES[2]) return 2;
-  return 3;
-}
-
-function bucketAlphaValue(bucket: number): number {
-  switch (bucket) {
-    case 0:
-      return 0.78;
-    case 1:
-      return 0.86;
-    case 2:
-      return 0.92;
-    default:
-      return 1;
-  }
-}
 
 export function InteractiveCanvas({
   gridWidth = 90,
   gridHeight = 90,
   dotColor = "#ffffff",
-  lineColor = "rgba(255, 255, 255, 0.16)",
+  lineColor = "rgba(255, 255, 255, 0.8)",
   backgroundColor = "transparent",
   padding = 0,
-  maxDistance = 2,
-  dotSizeMultiplier = 200,
   influenceRadius = 220,
+  minRadius = 0.4,
+  maxRadius = 1.9,
+  spotlightRadius = 180,
+  spotlightAlpha = 0.45,
 }: InteractiveCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const mouseRef = useRef({ x: 0, y: 0 });
-  const pendingMouseRef = useRef({ x: 0, y: 0 });
+  const mouseRef = useRef({ x: -9999, y: -9999 });
+  const pendingMouseRef = useRef({ x: -9999, y: -9999 });
   const dotsRef = useRef<Dot[]>([]);
 
   useEffect(() => {
@@ -111,6 +96,10 @@ export function InteractiveCanvas({
       };
     };
 
+    const handleMouseLeave = () => {
+      pendingMouseRef.current = { x: -9999, y: -9999 };
+    };
+
     const createDots = () => {
       dotsRef.current = [];
       const w = canvas.width / ratio;
@@ -125,9 +114,7 @@ export function InteractiveCanvas({
           dotsRef.current.push({
             x: x * ratio,
             y: y * ratio,
-            ox: x * ratio,
-            oy: y * ratio,
-            size: 1,
+            r: minRadius,
             vx: 0,
             vy: 0,
           });
@@ -138,14 +125,7 @@ export function InteractiveCanvas({
     handleResize();
     window.addEventListener("resize", handleResize);
     window.addEventListener("mousemove", handleMouseMove);
-
-    const drawCircle = (x: number, y: number, r: number) => {
-      ctx.beginPath();
-      ctx.arc(x, y, r, 0, 2 * Math.PI, false);
-      ctx.closePath();
-    };
-
-    const buckets: Dot[][] = [[], [], [], []];
+    window.addEventListener("mouseleave", handleMouseLeave);
 
     const animate = () => {
       if (!visible) {
@@ -164,63 +144,68 @@ export function InteractiveCanvas({
         ctx.clearRect(0, 0, canvas.width, canvas.height);
       }
 
-      for (let b = 0; b < 4; b++) buckets[b].length = 0;
+      // Spotlight halo at the cursor (drawn in CSS px space).
+      if (mx > -1 && my > -1) {
+        const cx = mx / ratio;
+        const cy = my / ratio;
+        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, spotlightRadius);
+        grad.addColorStop(0, `rgba(255,255,255,${spotlightAlpha})`);
+        grad.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = grad;
+        ctx.fillRect(
+          cx - spotlightRadius,
+          cy - spotlightRadius,
+          spotlightRadius * 2,
+          spotlightRadius * 2,
+        );
+      }
 
-      // One pass: distance + vector once per dot; stroke lines in radius; bucket fills.
-      for (let i = 0; i < dotsRef.current.length; i++) {
-        const dot = dotsRef.current[i];
+      const dots = dotsRef.current;
+      const radiusRange = maxRadius - minRadius;
+
+      // ── Lines pass (only within influence) ─────────────────────────────
+      ctx.strokeStyle = lineColor;
+      ctx.lineWidth = 1;
+      for (let i = 0; i < dots.length; i++) {
+        const dot = dots[i];
         if (!dot) continue;
 
         const dX = dot.x - mx;
         const dY = dot.y - my;
         const d = Math.sqrt(dX * dX + dY * dY);
 
-        let size = (dotSizeMultiplier - d) / 20;
-        if (size < 1) size = 1;
-        dot.size = size;
-
-        const angleRad = Math.atan2(my - dot.y, mx - dot.x);
-        const distance = d > maxDistance ? maxDistance : d;
-        dot.vx = distance * Math.cos(angleRad);
-        dot.vy = distance * Math.sin(angleRad);
-
         if (d <= influenceCanvas) {
+          const t = 1 - d / influenceCanvas;
+          // pull line endpoint slightly toward cursor for a subtle field effect
+          const pullCanvas = Math.min(d, 4 * ratio) * t;
+          const angle = Math.atan2(my - dot.y, mx - dot.x);
+          dot.vx = pullCanvas * Math.cos(angle);
+          dot.vy = pullCanvas * Math.sin(angle);
+          dot.r = minRadius + radiusRange * t;
+
           ctx.beginPath();
           ctx.moveTo(dot.x / ratio, dot.y / ratio);
           ctx.lineTo((dot.x + dot.vx) / ratio, (dot.y + dot.vy) / ratio);
-          ctx.strokeStyle = lineColor;
-          ctx.globalAlpha = BASE_ALPHA + ALPHA_RANGE * (1 - Math.min(1, d / influenceCanvas));
-          ctx.lineWidth = 1;
           ctx.stroke();
-          ctx.closePath();
+        } else {
+          dot.vx = 0;
+          dot.vy = 0;
+          dot.r = minRadius;
         }
-
-        const t = Math.min(1, d / influenceCanvas);
-        const alpha = BASE_ALPHA + ALPHA_RANGE * (1 - t);
-        const bi = bucketIndexForAlpha(alpha);
-        const list = buckets[bi];
-        if (list) list.push(dot);
       }
-      ctx.globalAlpha = 1;
 
+      // ── Dot pass: full opaque white so `difference` inverts cleanly ───
       ctx.fillStyle = dotColor;
-
-      for (let bi = 0; bi < 4; bi++) {
-        const list = buckets[bi];
-        if (!list?.length) continue;
-        ctx.globalAlpha = bucketAlphaValue(bi);
-        for (let j = 0; j < list.length; j++) {
-          const dot = list[j];
-          if (!dot) continue;
-          drawCircle(
-            (dot.x + dot.vx) / ratio,
-            (dot.y + dot.vy) / ratio,
-            dot.size / 2,
-          );
-          ctx.fill();
-        }
+      ctx.beginPath();
+      for (let i = 0; i < dots.length; i++) {
+        const dot = dots[i];
+        if (!dot) continue;
+        const cxCss = (dot.x + dot.vx) / ratio;
+        const cyCss = (dot.y + dot.vy) / ratio;
+        ctx.moveTo(cxCss + dot.r, cyCss);
+        ctx.arc(cxCss, cyCss, dot.r, 0, 2 * Math.PI, false);
       }
-      ctx.globalAlpha = 1;
+      ctx.fill();
 
       raf = requestAnimationFrame(animate);
     };
@@ -245,6 +230,7 @@ export function InteractiveCanvas({
       io.disconnect();
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseleave", handleMouseLeave);
       if (raf) cancelAnimationFrame(raf);
     };
   }, [
@@ -254,9 +240,11 @@ export function InteractiveCanvas({
     lineColor,
     backgroundColor,
     padding,
-    maxDistance,
-    dotSizeMultiplier,
     influenceRadius,
+    minRadius,
+    maxRadius,
+    spotlightRadius,
+    spotlightAlpha,
   ]);
 
   return (
