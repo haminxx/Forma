@@ -7,8 +7,8 @@ import { InteractiveCanvas } from "../components/InteractiveCanvas";
 import { LoopingWords } from "../components/LoopingWords";
 import { PixelWave } from "../components/PixelWave";
 import { ProblemTestimonial } from "../components/ProblemTestimonial";
-import { SolutionReveal } from "../components/SolutionReveal";
 import { LogoCloud } from "../components/ui/logo-cloud";
+import { TextRevealByWord } from "../components/ui/text-reveal";
 
 /**
  * Each section is a full-screen page chunk that snaps into the viewport
@@ -29,11 +29,8 @@ export function HomePage() {
         id="home"
         className="relative isolate flex min-h-screen scroll-mt-20 flex-col items-center overflow-hidden px-6"
         style={{
-          paddingTop: "clamp(5rem, 12vh, 9rem)",
+          paddingTop: "clamp(2.5rem, 6vh, 4.5rem)",
           paddingBottom: "clamp(2rem, 6vh, 5rem)",
-          // Anchor content to roughly the upper third so the heading
-          // sits ABOVE the section's horizontal midline (where the wave
-          // crests) instead of being centred and sliding into the wave.
           justifyContent: "flex-start",
         }}
       >
@@ -116,7 +113,7 @@ export function HomePage() {
       </section>
 
       <section id="solution" data-snap-start className="scroll-mt-20">
-        <SolutionReveal />
+        <TextRevealByWord text="Forma turns vague text into precise visual UI components." />
       </section>
 
       <section
