@@ -16,6 +16,7 @@ from events import (
     get_top_terms,
     get_recent_activity,
     get_site_breakdown,
+    get_average_forma_score,
 )
 
 app = FastAPI(title="Forma Backend", docs_url=None, redoc_url=None, openapi_url=None)
@@ -223,6 +224,12 @@ def stats_recent(limit: int = 20, db: Session = Depends(get_db)):
 def stats_sites(db: Session = Depends(get_db)):
     """Site breakdown for dashboard."""
     return {"sites": get_site_breakdown(db)}
+
+
+@app.get("/stats/forma-score")
+def stats_forma_score(db: Session = Depends(get_db)):
+    """Average Forma Score across all detections."""
+    return get_average_forma_score(db)
 
 
 # ============================================================

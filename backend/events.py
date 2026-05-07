@@ -137,3 +137,82 @@ def get_site_breakdown(db: Session):
         {"site": site, "events": count}
         for site, count in results
     ]
+
+
+# ============================================================
+# FORMA SCORE — Average prompt quality metric
+# ============================================================
+
+FORMA_SCORE_VAGUE_WORDS = [
+    'nice', 'cool', 'modern', 'clean', 'simple', 'pretty', 'beautiful',
+    'something', 'thing', 'stuff', 'kind of', 'sort of', 'like a',
+    'good', 'great', 'awesome', 'fancy', 'normal', 'regular'
+]
+
+FORMA_SCORE_SPECIFICITY_WORDS = [
+    'sticky', 'fixed', 'floating', 'blurry', 'frosted', 'glass',
+    'animated', 'sliding', 'rotating', 'expanding', 'collapsing',
+    'with', 'when', 'after', 'before', 'using', 'showing',
+    'mobile', 'desktop', 'responsive', 'compact', 'minimal'
+]
+
+
+def compute_forma_score(phrase: str, has_term: bool) -> int:
+    """Compute Forma Score (0-100) for a single phrase."""
+    if not phrase or len(phrase.strip()) < 3:
+        return 0
+    
+    lower = phrase.lower()
+    score = 30
+    
+    # +20 if a canonical term was detected (cap +60, but we only have 1 here)
+    if has_term:
+        score += 20
+    
+    # +5 per specificity word (cap +15)
+    specificity_count = sum(1 for w in FORMA_SCORE_SPECIFICITY_WORDS if w in lower)
+    score += min(specificity_count * 5, 15)
+    
+    # -5 per vague word
+    vague_count = sum(1 for w in FORMA_SCORE_VAGUE_WORDS if w in lower)
+    score -= vague_count * 5
+    
+    return max(0, min(100, score))
+
+
+def get_average_forma_score(db: Session) -> dict:
+    """Compute average Forma Score across all detection events."""
+    detections = db.query(Event).filter(Event.event_type == "detection").all()
+    
+    if not detections:
+        return {"average_score": 0, "label": "Empty", "color": "#6b6560", "sample_size": 0}
+    
+    total_score = 0
+    count = 0
+    for event in detections:
+        if event.phrase:
+            score = compute_forma_score(event.phrase, has_term=bool(event.term))
+            total_score += score
+            count += 1
+    
+    if count == 0:
+        return {"average_score": 0, "label": "Empty", "color": "#6b6560", "sample_size": 0}
+    
+    avg = round(total_score / count)
+    
+    if avg < 40:
+        label = "Vague"
+        color = "#ef4444"
+    elif avg < 70:
+        label = "Decent"
+        color = "#f59e0b"
+    else:
+        label = "Precise"
+        color = "#4ade80"
+    
+    return {
+        "average_score": avg,
+        "label": label,
+        "color": color,
+        "sample_size": count
+    }
