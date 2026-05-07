@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Forma — Design Intelligence Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0a0a09;
+  color: #f0ece4;
+  font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  padding: 32px 24px;
+}
+.container { max-width: 1200px; margin: 0 auto; }
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 40px;
+  padding-bottom: 24px;
+  border-bottom: 0.5px solid #2a2825;
+}
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.brand-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 32px;
+  color: #f5f3ef;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.brand-tagline {
+  font-size: 12px;
+  color: #6b6560;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+.live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(74,222,128,0.08);
+  border: 0.5px solid rgba(74,222,128,0.3);
+  border-radius: 20px;
+  font-size: 11px;
+  color: #4ade80;
+  font-family: monospace;
+  letter-spacing: 0.05em;
+}
+.live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4ade80;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 48px;
+}
+.stat-card {
+  background: #1a1917;
+  border: 0.5px solid #2a2825;
+  border-radius: 12px;
+  padding: 24px 20px;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #c8b89a 50%, transparent);
+  opacity: 0.4;
+}
+.stat-label {
+  font-size: 10px;
+  color: #6b6560;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.stat-value {
+  font-family: 'DM Serif Display', serif;
+  font-size: 42px;
+  color: #f5f3ef;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.stat-suffix {
+  font-size: 20px;
+  color: #c8b89a;
+  margin-left: 4px;
+}
+.stat-sublabel {
+  font-size: 11px;
+  color: #a0998c;
+  margin-top: 8px;
+}
+
+.section {
+  background: #1a1917;
+  border: 0.5px solid #2a2825;
+  border-radius: 12px;
+  padding: 28px;
+  margin-bottom: 24px;
+}
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.section-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  color: #f5f3ef;
+  letter-spacing: -0.01em;
+}
+.section-subtitle {
+  font-size: 12px;
+  color: #6b6560;
+  letter-spacing: 0.05em;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+@media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+.chart-container {
+  position: relative;
+  height: 320px;
+}
+
+.terms-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.terms-table th {
+  text-align: left;
+  font-size: 10px;
+  color: #6b6560;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 10px 12px;
+  border-bottom: 0.5px solid #2a2825;
+}
+.terms-table td {
+  padding: 12px;
+  border-bottom: 0.5px solid #2a2825;
+  font-size: 13px;
+  color: #f0ece4;
+}
+.terms-table tr:last-child td { border-bottom: none; }
+.terms-table tr:hover td { background: rgba(200,184,154,0.04); }
+
+.acceptance-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.acceptance-bar-track {
+  flex: 1;
+  height: 4px;
+  background: #2a2825;
+  border-radius: 2px;
+  overflow: hidden;
+  min-width: 80px;
+}
+.acceptance-bar-fill {
+  height: 100%;
+  background: #c8b89a;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+.acceptance-bar-value {
+  font-family: monospace;
+  font-size: 11px;
+  color: #c8b89a;
+  min-width: 40px;
+}
+
+.activity-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #141412;
+  border: 0.5px solid #2a2825;
+  border-radius: 6px;
+  animation: slideIn 0.3s ease-out;
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.activity-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.activity-dot.detection { background: #c8b89a; }
+.activity-dot.acceptance { background: #4ade80; }
+.activity-dot.skip { background: #6b6560; }
+.activity-text {
+  flex: 1;
+  font-size: 12px;
+  color: #f0ece4;
+}
+.activity-term {
+  color: #c8b89a;
+  font-weight: 500;
+}
+.activity-meta {
+  font-size: 10px;
+  color: #6b6560;
+  font-family: monospace;
+  letter-spacing: 0.05em;
+}
+
+.vision-section {
+  background: linear-gradient(135deg, #1a1917 0%, #1c1a17 100%);
+  border: 0.5px solid rgba(200,184,154,0.2);
+  border-radius: 16px;
+  padding: 40px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.vision-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #c8b89a, transparent);
+  opacity: 0.6;
+}
+.vision-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 28px;
+  color: #f5f3ef;
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
+}
+.vision-text {
+  font-size: 15px;
+  color: #a0998c;
+  line-height: 1.7;
+  max-width: 720px;
+  margin-bottom: 16px;
+}
+.vision-highlight {
+  color: #c8b89a;
+  font-weight: 500;
+}
+.vision-quote {
+  border-left: 2px solid #c8b89a;
+  padding-left: 20px;
+  margin-top: 24px;
+  font-size: 14px;
+  color: #f0ece4;
+  font-style: italic;
+  line-height: 1.6;
+  max-width: 640px;
+}
+
+.footer {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 0.5px solid #2a2825;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: #6b6560;
+  font-family: monospace;
+  letter-spacing: 0.05em;
+}
+.footer-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.footer-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #4ade80;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6b6560;
+  font-size: 13px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header class="header">
+  <div class="brand">
+    <div class="brand-name">Forma</div>
+    <div class="brand-tagline">Design Intelligence Dashboard</div>
+  </div>
+  <div class="live-indicator">
+    <div class="live-dot"></div>
+    LIVE • AMD MI300X
+  </div>
+</header>
+
+<section class="hero-stats">
+  <div class="stat-card">
+    <div class="stat-label">Total Events Logged</div>
+    <div class="stat-value" id="stat-total">—</div>
+    <div class="stat-sublabel" id="stat-total-sub">across all sites</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Acceptance Rate</div>
+    <div class="stat-value" id="stat-acceptance">—<span class="stat-suffix">%</span></div>
+    <div class="stat-sublabel">of canonical suggestions</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Active Sites</div>
+    <div class="stat-value" id="stat-sites">—</div>
+    <div class="stat-sublabel">unique platforms</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Events Today</div>
+    <div class="stat-value" id="stat-today">—</div>
+    <div class="stat-sublabel">last 24 hours</div>
+  </div>
+</section>
+
+<section class="vision-section">
+  <div class="vision-title">The Network Effect Moat</div>
+  <div class="vision-text">
+    Every detection, every acceptance, every skip becomes part of <span class="vision-highlight">the largest behavioral dataset on UI design decisions ever assembled</span>. As Forma scales, we replace LLM guesses with data-backed terminology choices.
+  </div>
+  <div class="vision-text">
+    LLMs train on text. They see what people <em>wrote</em> about design. Forma sees what users <em>actually choose</em> across millions of real prompts on every AI builder. <span class="vision-highlight">No foundation model can replicate this.</span>
+  </div>
+  <div class="vision-quote">
+    "Within 18 months, Forma's API will power terminology decisions for v0, Lovable, Bolt, and every other AI builder. Real-time inference on AMD MI300X. Behavioral data from millions of prompts. The design intelligence layer for the AI building era."
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-header">
+    <div>
+      <div class="section-title">Top Detected Components</div>
+      <div class="section-subtitle">Most frequently identified canonical terms</div>
+    </div>
+  </div>
+  <div class="chart-container">
+    <canvas id="topTermsChart"></canvas>
+  </div>
+</section>
+
+<div class="grid-2">
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Acceptance Rates</div>
+        <div class="section-subtitle">Per canonical term</div>
+      </div>
+    </div>
+    <table class="terms-table" id="termsTable">
+      <thead>
+        <tr>
+          <th>Component</th>
+          <th>Detected</th>
+          <th>Rate</th>
+        </tr>
+      </thead>
+      <tbody id="termsTableBody">
+        <tr><td colspan="3"><div class="empty-state">Loading...</div></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Live Activity</div>
+        <div class="section-subtitle">Real-time event stream</div>
+      </div>
+    </div>
+    <div class="activity-feed" id="activityFeed">
+      <div class="empty-state">Loading...</div>
+    </div>
+  </section>
+</div>
+
+<footer class="footer">
+  <div>FORMA · DESIGN INTELLIGENCE PLATFORM · 2026</div>
+  <div class="footer-badge">
+    <div class="footer-dot"></div>
+    Llama 3.1 8B · AMD MI300X · vLLM 0.17.1
+  </div>
+</footer>
+
+</div>
+
+<script>
+const API_BASE = window.location.origin;
+
+let topTermsChart = null;
+
+async function fetchSummary() {
+  try {
+    const res = await fetch(`${API_BASE}/stats/summary`);
+    const data = await res.json();
+    document.getElementById('stat-total').textContent = data.total_events.toLocaleString();
+    document.getElementById('stat-total-sub').textContent = `${data.total_detections} detections · ${data.total_acceptances} acceptances`;
+    document.getElementById('stat-acceptance').innerHTML = `${data.acceptance_rate}<span class="stat-suffix">%</span>`;
+    document.getElementById('stat-sites').textContent = data.unique_sites;
+    document.getElementById('stat-today').textContent = data.events_today.toLocaleString();
+  } catch (err) {
+    console.error('Failed to fetch summary:', err);
+  }
+}
+
+async function fetchTopTerms() {
+  try {
+    const res = await fetch(`${API_BASE}/stats/top-terms?limit=10`);
+    const data = await res.json();
+    const terms = data.terms || [];
+
+    if (terms.length === 0) {
+      document.getElementById('termsTableBody').innerHTML = '<tr><td colspan="3"><div class="empty-state">No data yet — start using Forma to populate</div></td></tr>';
+      return;
+    }
+
+    const labels = terms.map(t => t.term);
+    const detections = terms.map(t => t.detections);
+
+    const ctx = document.getElementById('topTermsChart').getContext('2d');
+    if (topTermsChart) topTermsChart.destroy();
+    topTermsChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Detections',
+          data: detections,
+          backgroundColor: '#c8b89a',
+          borderColor: '#c8b89a',
+          borderWidth: 0,
+          borderRadius: 4,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1c1a17',
+            borderColor: '#c8b89a',
+            borderWidth: 0.5,
+            titleColor: '#f5f3ef',
+            bodyColor: '#c8b89a',
+            padding: 10,
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#6b6560', font: { size: 11 } },
+            grid: { color: 'rgba(42,40,37,0.5)' },
+          },
+          y: {
+            ticks: { color: '#a0998c', font: { size: 11 } },
+            grid: { display: false },
+          }
+        }
+      }
+    });
+
+    let tableHtml = '';
+    for (const t of terms) {
+      tableHtml += `
+        <tr>
+          <td>${t.term}</td>
+          <td><span style="font-family:monospace;color:#a0998c;">${t.detections}</span></td>
+          <td>
+            <div class="acceptance-bar">
+              <div class="acceptance-bar-track">
+                <div class="acceptance-bar-fill" style="width:${t.acceptance_rate}%"></div>
+              </div>
+              <span class="acceptance-bar-value">${t.acceptance_rate}%</span>
+            </div>
+          </td>
+        </tr>
+      `;
+    }
+    document.getElementById('termsTableBody').innerHTML = tableHtml;
+  } catch (err) {
+    console.error('Failed to fetch top terms:', err);
+  }
+}
+
+async function fetchActivity() {
+  try {
+    const res = await fetch(`${API_BASE}/stats/recent?limit=15`);
+    const data = await res.json();
+    const events = data.events || [];
+
+    if (events.length === 0) {
+      document.getElementById('activityFeed').innerHTML = '<div class="empty-state">No activity yet</div>';
+      return;
+    }
+
+    let html = '';
+    for (const e of events) {
+      const timeAgo = formatTimeAgo(e.timestamp);
+      const verb = {
+        'detection': 'detected',
+        'acceptance': 'accepted',
+        'skip': 'skipped'
+      }[e.event_type] || e.event_type;
+
+      html += `
+        <div class="activity-item">
+          <div class="activity-dot ${e.event_type}"></div>
+          <div class="activity-text">
+            <span class="activity-term">${e.term}</span>
+            <span style="color:#6b6560;"> ${verb} on </span>
+            <span style="color:#a0998c;">${e.site}</span>
+          </div>
+          <div class="activity-meta">${timeAgo}</div>
+        </div>
+      `;
+    }
+    document.getElementById('activityFeed').innerHTML = html;
+  } catch (err) {
+    console.error('Failed to fetch activity:', err);
+  }
+}
+
+function formatTimeAgo(isoString) {
+  const date = new Date(isoString + 'Z');
+  const now = new Date();
+  const diffSec = Math.floor((now - date) / 1000);
+  if (diffSec < 60) return `${diffSec}s ago`;
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h ago`;
+  return `${Math.floor(diffHr / 24)}d ago`;
+}
+
+async function refreshAll() {
+  await Promise.all([
+    fetchSummary(),
+    fetchTopTerms(),
+    fetchActivity(),
+  ]);
+}
+
+refreshAll();
+setInterval(refreshAll, 5000);
+</script>
+
+</body>
+</html>
