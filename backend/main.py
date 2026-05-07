@@ -1,6 +1,8 @@
+import os
 import time
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -221,4 +223,15 @@ def stats_recent(limit: int = 20, db: Session = Depends(get_db)):
 def stats_sites(db: Session = Depends(get_db)):
     """Site breakdown for dashboard."""
     return {"sites": get_site_breakdown(db)}
+
+
+# ============================================================
+# DESIGN INTELLIGENCE LAYER — Admin Dashboard
+# ============================================================
+
+@app.get("/admin")
+def admin_dashboard():
+    """Serve the Design Intelligence Dashboard."""
+    dashboard_path = os.path.join(os.path.dirname(__file__), "dashboard.html")
+    return FileResponse(dashboard_path, media_type="text/html")
 

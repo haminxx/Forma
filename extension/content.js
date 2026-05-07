@@ -20,9 +20,62 @@ function initForma() {
   
   const RAILWAY_URL = 'https://forma-production-c800.up.railway.app/translate';
   const ANALYZE_URL = 'https://forma-production-c800.up.railway.app/analyze';
+  const LOG_DETECTION_URL = 'https://forma-production-c800.up.railway.app/log/detection';
+  const LOG_ACCEPTANCE_URL = 'https://forma-production-c800.up.railway.app/log/acceptance';
+  const LOG_SKIP_URL = 'https://forma-production-c800.up.railway.app/log/skip';
   
   console.log('[Forma Extension] Initializing on:', window.location.hostname);
   console.log('[Forma] Detection mode:', DETECTION_MODE.toUpperCase());
+
+  // ============================================================
+  // DESIGN INTELLIGENCE LAYER — Event Logging
+  // Fire and forget. Never blocks user experience.
+  // ============================================================
+
+  function logDetection(phrase, term, latencyMs) {
+    fetch(LOG_DETECTION_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        phrase: phrase,
+        term: term,
+        site: window.location.hostname,
+        latency_ms: latencyMs
+      })
+    }).catch(err => {
+      // Silent fail — logging is non-essential
+      console.log('[Forma DI] Detection log failed:', err.message);
+    });
+  }
+
+  function logAcceptance(phrase, term, alternativeTerm) {
+    fetch(LOG_ACCEPTANCE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        phrase: phrase,
+        term: term,
+        alternative_term: alternativeTerm || null,
+        site: window.location.hostname
+      })
+    }).catch(err => {
+      console.log('[Forma DI] Acceptance log failed:', err.message);
+    });
+  }
+
+  function logSkip(phrase, term) {
+    fetch(LOG_SKIP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        phrase: phrase,
+        term: term,
+        site: window.location.hostname
+      })
+    }).catch(err => {
+      console.log('[Forma DI] Skip log failed:', err.message);
+    });
+  }
 
   const VAGUE_PATTERNS = [
     "menu that slides out from the right", "menu that slides in from the side",
@@ -441,6 +494,14 @@ function initForma() {
       // Cache the result
       aiResponseCache.set(text, data.phrases);
       lastAIResponse = data.phrases;
+
+      // Log each detection to Design Intelligence Layer
+      const latency = data.latency || 0;
+      for (const phrase of data.phrases) {
+        if (phrase.term && phrase.phrase) {
+          logDetection(phrase.phrase, phrase.term, latency);
+        }
+      }
       
       // Trigger callback to re-render overlay
       onComplete(data.phrases);
@@ -838,6 +899,14 @@ function initForma() {
     targetTextarea.dispatchEvent(new Event('input', { bubbles: true }));
     targetTextarea.dispatchEvent(new Event('change', { bubbles: true }));
     
+    // Log acceptance to Design Intelligence Layer
+    const phraseText = currentSpan.dataset.phrase;
+    logAcceptance(
+      phraseText,
+      currentResponse.term,
+      selectedAlternative ? selectedAlternative.term : null
+    );
+    
     hideTooltip();
     positionOverlay(targetTextarea);
     renderOverlay(targetTextarea);
@@ -848,6 +917,11 @@ function initForma() {
   function handleSkip() {
     if (!currentPhrase) return;
     skippedPhrases.add(currentPhrase.toLowerCase());
+    
+    // Log skip to Design Intelligence Layer
+    const term = currentResponse ? currentResponse.term : currentPhrase;
+    logSkip(currentPhrase, term);
+    
     hideTooltip();
     positionOverlay(targetTextarea);
     renderOverlay(targetTextarea);
