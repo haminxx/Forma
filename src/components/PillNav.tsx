@@ -8,11 +8,11 @@ interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { label: "Home", id: "home" },
+  { label: "Demo", id: "demo" },
+  { label: "Sandbox", id: "sandbox" },
   { label: "Problem", id: "problem" },
   { label: "Solution", id: "solution" },
   { label: "About", id: "about" },
-  { label: "Demo", id: "demo" },
-  { label: "Sandbox", id: "sandbox" },
   { label: "Docs", id: "docs" },
 ];
 

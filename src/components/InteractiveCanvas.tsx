@@ -1,23 +1,19 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Cursor-reactive dot grid + radial cursor glow, blended with `difference`.
+ * Cursor-reactive dot+line halo. The OLD animation: each dot in a sparse
+ * grid draws a short line toward the mouse, dot size scales with distance.
  *
- * Visual model:
- *   - Dots are ALWAYS full opaque white. The `mix-blend-mode: difference`
- *     filter on the canvas inverts whatever sits beneath, so a dot reads as
- *     dark amber on the gold wave, near-white on the dark page bg, and
- *     black on hovered text. White was the only colour that would invert
- *     consistently in every region.
- *   - The "fade" comes from dot RADIUS, not alpha. Far dots are tiny (~0.4 px),
- *     dots near the cursor swell to ~1.8 px. Lines also only draw inside the
- *     influence radius. Reducing alpha would dampen the difference blend.
- *   - A radial spotlight is also drawn at the cursor in white — under the
- *     difference blend, that creates a "halo of inverted colour" exactly
- *     where the user is pointing.
+ * Differences from earlier revisions:
+ *   - Dots/lines are only RENDERED inside `influenceRadius` of the cursor
+ *     (no global dot field across the page).
+ *   - Default colour is the brand gold so the halo reads like the wave's
+ *     pixels following the cursor — `mix-blend-mode: difference` is gone.
+ *   - No white spotlight halo behind the cursor.
  *
- * Performance: capped DPR (≤1.5), 90×90 grid by default, IntersectionObserver
- * pauses the loop offscreen, mouse position synced once per frame.
+ * Performance: capped DPR (≤1.5), IntersectionObserver pauses offscreen,
+ * mouse position synced once per frame. Grid kept dense enough that the
+ * halo always has a few dozen dots inside the radius.
  */
 interface InteractiveCanvasProps {
   gridWidth?: number;
@@ -26,14 +22,11 @@ interface InteractiveCanvasProps {
   lineColor?: string;
   backgroundColor?: string;
   padding?: number;
-  /** Cursor influence radius in CSS pixels (controls dot size + line gating). */
+  /** Cursor influence radius in CSS pixels (controls dot size + render gating). */
   influenceRadius?: number;
-  /** Min/max dot radius in CSS pixels — far dots vs near-cursor dots. */
+  /** Min/max dot radius in CSS pixels — far edge of halo vs near-cursor dots. */
   minRadius?: number;
   maxRadius?: number;
-  /** Radial cursor spotlight — radius + peak alpha (alpha pre-difference). */
-  spotlightRadius?: number;
-  spotlightAlpha?: number;
 }
 
 type Dot = {
@@ -49,15 +42,13 @@ const CAP_DPR = 1.5;
 export function InteractiveCanvas({
   gridWidth = 90,
   gridHeight = 90,
-  dotColor = "#ffffff",
-  lineColor = "rgba(255, 255, 255, 0.8)",
+  dotColor = "#d4b87a",
+  lineColor = "rgba(212, 184, 122, 0.75)",
   backgroundColor = "transparent",
   padding = 0,
   influenceRadius = 220,
-  minRadius = 0.4,
-  maxRadius = 1.9,
-  spotlightRadius = 180,
-  spotlightAlpha = 0.45,
+  minRadius = 0.5,
+  maxRadius = 2.2,
 }: InteractiveCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mouseRef = useRef({ x: -9999, y: -9999 });
@@ -144,26 +135,17 @@ export function InteractiveCanvas({
         ctx.clearRect(0, 0, canvas.width, canvas.height);
       }
 
-      // Spotlight halo at the cursor (drawn in CSS px space).
-      if (mx > -1 && my > -1) {
-        const cx = mx / ratio;
-        const cy = my / ratio;
-        const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, spotlightRadius);
-        grad.addColorStop(0, `rgba(255,255,255,${spotlightAlpha})`);
-        grad.addColorStop(1, "rgba(255,255,255,0)");
-        ctx.fillStyle = grad;
-        ctx.fillRect(
-          cx - spotlightRadius,
-          cy - spotlightRadius,
-          spotlightRadius * 2,
-          spotlightRadius * 2,
-        );
+      // Cursor outside the canvas: nothing to draw.
+      if (mx < 0 && my < 0) {
+        raf = requestAnimationFrame(animate);
+        return;
       }
 
       const dots = dotsRef.current;
       const radiusRange = maxRadius - minRadius;
+      const inHalo: Dot[] = [];
 
-      // ── Lines pass (only within influence) ─────────────────────────────
+      // Pass 1 — find dots in halo, compute size + line endpoint, stroke lines.
       ctx.strokeStyle = lineColor;
       ctx.lineWidth = 1;
       for (let i = 0; i < dots.length; i++) {
@@ -173,39 +155,37 @@ export function InteractiveCanvas({
         const dX = dot.x - mx;
         const dY = dot.y - my;
         const d = Math.sqrt(dX * dX + dY * dY);
+        if (d > influenceCanvas) continue;
 
-        if (d <= influenceCanvas) {
-          const t = 1 - d / influenceCanvas;
-          // pull line endpoint slightly toward cursor for a subtle field effect
-          const pullCanvas = Math.min(d, 4 * ratio) * t;
-          const angle = Math.atan2(my - dot.y, mx - dot.x);
-          dot.vx = pullCanvas * Math.cos(angle);
-          dot.vy = pullCanvas * Math.sin(angle);
-          dot.r = minRadius + radiusRange * t;
+        const t = 1 - d / influenceCanvas;
+        const pullCanvas = Math.min(d, 4 * ratio) * t;
+        const angle = Math.atan2(my - dot.y, mx - dot.x);
+        dot.vx = pullCanvas * Math.cos(angle);
+        dot.vy = pullCanvas * Math.sin(angle);
+        dot.r = minRadius + radiusRange * t;
 
-          ctx.beginPath();
-          ctx.moveTo(dot.x / ratio, dot.y / ratio);
-          ctx.lineTo((dot.x + dot.vx) / ratio, (dot.y + dot.vy) / ratio);
-          ctx.stroke();
-        } else {
-          dot.vx = 0;
-          dot.vy = 0;
-          dot.r = minRadius;
+        ctx.beginPath();
+        ctx.moveTo(dot.x / ratio, dot.y / ratio);
+        ctx.lineTo((dot.x + dot.vx) / ratio, (dot.y + dot.vy) / ratio);
+        ctx.stroke();
+
+        inHalo.push(dot);
+      }
+
+      // Pass 2 — fill all in-halo dots in one batched path, gold colour.
+      if (inHalo.length) {
+        ctx.fillStyle = dotColor;
+        ctx.beginPath();
+        for (let i = 0; i < inHalo.length; i++) {
+          const dot = inHalo[i];
+          if (!dot) continue;
+          const cxCss = (dot.x + dot.vx) / ratio;
+          const cyCss = (dot.y + dot.vy) / ratio;
+          ctx.moveTo(cxCss + dot.r, cyCss);
+          ctx.arc(cxCss, cyCss, dot.r, 0, 2 * Math.PI, false);
         }
+        ctx.fill();
       }
-
-      // ── Dot pass: full opaque white so `difference` inverts cleanly ───
-      ctx.fillStyle = dotColor;
-      ctx.beginPath();
-      for (let i = 0; i < dots.length; i++) {
-        const dot = dots[i];
-        if (!dot) continue;
-        const cxCss = (dot.x + dot.vx) / ratio;
-        const cyCss = (dot.y + dot.vy) / ratio;
-        ctx.moveTo(cxCss + dot.r, cyCss);
-        ctx.arc(cxCss, cyCss, dot.r, 0, 2 * Math.PI, false);
-      }
-      ctx.fill();
 
       raf = requestAnimationFrame(animate);
     };
@@ -243,8 +223,6 @@ export function InteractiveCanvas({
     influenceRadius,
     minRadius,
     maxRadius,
-    spotlightRadius,
-    spotlightAlpha,
   ]);
 
   return (
@@ -252,7 +230,6 @@ export function InteractiveCanvas({
       ref={canvasRef}
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 h-full w-full"
-      style={{ mixBlendMode: "difference" }}
     />
   );
 }

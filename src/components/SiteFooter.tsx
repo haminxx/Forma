@@ -1,7 +1,7 @@
 import { NAV_ITEMS } from "./PillNav";
 
 const SECTION_DESCRIPTIONS: Record<string, string> = {
-  home: "Brand-level intro and the live cursor field that gives Forma its dark gold feel.",
+  home: "Brand-level intro with a dithered gold wave and a cursor-reactive halo of pixels.",
   problem:
     "The vibecoder failure mode in one sentence — vague prompts, six different cards.",
   solution:
