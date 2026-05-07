@@ -1,7 +1,10 @@
+import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Github } from "lucide-react";
 import { PillNav } from "../components/PillNav";
 import { SiteFooter } from "../components/SiteFooter";
+
+const SCROLL_GLASS_THRESHOLD = 24;
 
 /**
  * Three-column sticky top bar:
@@ -10,13 +13,57 @@ import { SiteFooter } from "../components/SiteFooter";
  * The grid template (`1fr auto 1fr`) keeps the pill perfectly centered
  * regardless of brand/button widths, so adding/removing copy on the side
  * columns never shifts the nav.
+ *
+ * Once the user scrolls past `SCROLL_GLASS_THRESHOLD` pixels the dark
+ * glass backdrop fades in behind the header — hero is undisturbed at
+ * rest, but every scrolled section gets a clean readable bar above it.
  */
 export function AppShell() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const y = window.scrollY || window.pageYOffset || 0;
+      setScrolled(y > SCROLL_GLASS_THRESHOLD);
+    };
+    const onScroll = () => {
+      if (raf) return;
+      raf = window.requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (raf) window.cancelAnimationFrame(raf);
+    };
+  }, []);
+
   return (
     <div
       data-app-shell
       className="relative flex min-h-full flex-col text-[var(--color-stitch-fg)]"
     >
+      {/* Glass backdrop behind the top bar — fades in only after scroll
+          starts so the hero (which already has its own depth) isn't
+          washed out at rest. ~80% dark glass with a subtle hairline. */}
+      <div
+        aria-hidden="true"
+        data-scrolled={scrolled ? "true" : "false"}
+        className="pointer-events-none fixed inset-x-0 top-0 z-40 h-[88px] transition-opacity duration-300 ease-out"
+        style={{
+          opacity: scrolled ? 1 : 0,
+          background: "rgba(20, 21, 24, 0.78)",
+          backdropFilter: "saturate(140%) blur(14px)",
+          WebkitBackdropFilter: "saturate(140%) blur(14px)",
+          borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
+        }}
+      />
+
       <header className="sticky top-5 z-50 mx-auto grid w-full grid-cols-[1fr_auto_1fr] items-center gap-4 px-6">
         <BrandMark />
         <div className="justify-self-center">
