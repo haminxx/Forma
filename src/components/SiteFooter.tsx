@@ -6,6 +6,8 @@ const SECTION_DESCRIPTIONS: Record<string, string> = {
     "The vibecoder failure mode in one sentence — vague prompts, six different cards.",
   solution:
     "How Forma turns vague text into precise visual UI components, one scroll at a time.",
+  about:
+    "What Forma is, who it is for, and how design-language research turns into a real tool.",
   demo: "Side-by-side prompts that show the same intent before and after a vocab pass.",
   sandbox:
     "Install path, a real prompt textbox, and the eight platforms you can drop Forma into today.",

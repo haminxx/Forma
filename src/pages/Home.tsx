@@ -7,6 +7,7 @@ import { InteractiveCanvas } from "../components/InteractiveCanvas";
 import { LoopingWords } from "../components/LoopingWords";
 import { PixelWave } from "../components/PixelWave";
 import { ProblemTestimonial } from "../components/ProblemTestimonial";
+import { FAQ1 as AboutFaq } from "../components/ui/faq-monochrome";
 import { LogoCloud } from "../components/ui/logo-cloud";
 import { TextRevealByWord } from "../components/ui/text-reveal";
 
@@ -69,27 +70,6 @@ export function HomePage() {
       </section>
 
       <section
-        id="demo"
-        className="flex min-h-screen scroll-mt-20 flex-col items-center justify-center px-6"
-        style={{
-          paddingTop: "clamp(3rem,8vh,6rem)",
-          paddingBottom: "clamp(3rem,8vh,6rem)",
-          gap: "clamp(1.5rem,3vh,2.5rem)",
-        }}
-      >
-        <div className="w-full max-w-6xl px-4">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-white/55">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#d4b87a]" />
-            Demo · same intent, two prompts
-          </span>
-          <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
-            Watch the same idea land twice — once vague, once precise.
-          </h2>
-        </div>
-        <DemoSplit />
-      </section>
-
-      <section
         id="problem"
         className="flex min-h-screen scroll-mt-20 items-center justify-center px-6"
         style={{ paddingTop: "clamp(3rem,8vh,6rem)", paddingBottom: "clamp(3rem,8vh,6rem)" }}
@@ -110,6 +90,31 @@ export function HomePage() {
 
       <section id="solution" data-snap-start className="scroll-mt-20">
         <TextRevealByWord text="Forma turns vague text into precise visual UI components." />
+      </section>
+
+      <section id="about" className="scroll-mt-20">
+        <AboutFaq />
+      </section>
+
+      <section
+        id="demo"
+        className="flex min-h-screen scroll-mt-20 flex-col items-center justify-center px-6"
+        style={{
+          paddingTop: "clamp(3rem,8vh,6rem)",
+          paddingBottom: "clamp(3rem,8vh,6rem)",
+          gap: "clamp(1.5rem,3vh,2.5rem)",
+        }}
+      >
+        <div className="w-full max-w-6xl px-4">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-white/55">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#d4b87a]" />
+            Demo · same intent, two prompts
+          </span>
+          <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
+            Watch the same idea land twice — once vague, once precise.
+          </h2>
+        </div>
+        <DemoSplit />
       </section>
 
       <section
