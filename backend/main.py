@@ -235,3 +235,14 @@ def admin_dashboard():
     dashboard_path = os.path.join(os.path.dirname(__file__), "dashboard.html")
     return FileResponse(dashboard_path, media_type="text/html")
 
+
+@app.post("/admin/seed")
+def admin_seed():
+    """Trigger seed data generation. Used to populate dashboard for demo."""
+    try:
+        from seed_data import clear_and_seed
+        count = clear_and_seed(800)
+        return {"status": "seeded", "events_created": count}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
