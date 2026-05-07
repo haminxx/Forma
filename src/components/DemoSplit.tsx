@@ -1,18 +1,16 @@
 import { useState } from "react";
 import { PromptInput } from "./PromptInput";
 
-// Rough, rambling, vague — typed the way someone describes a thing when
-// they don't yet know the words for what they mean. No component vocab,
-// no motion spec, no library — just vibes.
+// Rough, vague — two sentences typed the way someone describes a thing
+// when they don't yet know the words for what they mean.
 const VIBE_PROMPT =
-  "yo so like can u make me one of those lil popup thingys that pops up in the corner when smth good happens?? like top right ish, kinda slides in or fades or whatever looks clean, with a green check and a msg like 'nice it worked', and it should poof away by itself after a sec but also have a lil x to close, oh and the close shouldnt feel snappy/janky, more like smooth y'know";
+  "make me one of those little popup thingys that slides in from the corner when smth good happens, with a green check and a small close x. should poof away by itself after a sec but smooth, not janky.";
 
-// Same intent, written as a precise English sentence that names real UI
-// component terminology, motion language, and the libraries an LLM
-// should reach for. No JSX-as-prose, no shorthand: a sentence a senior
-// designer-engineer would actually write.
+// Same intent in ONE sentence using direct UI component terminology, a
+// real anchor, motion spec, and the React library an LLM should reach
+// for.
 const FORMA_PROMPT =
-  "Render a success Toast notification anchored to the top-right corner of the viewport. On mount, slide in from the right with a 220 ms ease-out transition; auto-dismiss after 4 seconds, and on exit ease out with a fade and 8 px upward offset. Compose it with a leading CheckCircle status icon, a semibold Title row, a muted Description row, and a trailing IconButton with an X glyph for manual close. Implement using a Framer Motion AnimatePresence wrapper around a motion.div, expose accessible role=\"status\" and aria-live=\"polite\", and ensure it stacks safely with up to three concurrent toasts in a top-right region.";
+  "Render a success Toast (top-right anchor, 220 ms slide-in ease-out, 4 s auto-dismiss) with a CheckCircle status icon, semibold Title, muted Description, and trailing IconButton X for manual close, wrapped in a Framer Motion AnimatePresence + motion.div.";
 
 /**
  * Side-by-side demo of the same intent expressed two different ways:

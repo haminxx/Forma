@@ -34,10 +34,14 @@ type Dot = {
 };
 
 const CAP_DPR = 1.5;
-const BASE_ALPHA = 0.6;
-const ALPHA_RANGE = 0.4;
+// Higher base alpha so the dot field reads as evenly filled across the
+// whole section — including the top area above the heading — instead of
+// fading into the bg where the cursor isn't. ALPHA_RANGE still gives the
+// cursor neighbourhood a brighter halo on top.
+const BASE_ALPHA = 0.78;
+const ALPHA_RANGE = 0.22;
 
-const BUCKET_EDGES = [0.68, 0.82, 0.94] as const;
+const BUCKET_EDGES = [0.82, 0.9, 0.96] as const;
 
 function bucketIndexForAlpha(a: number): number {
   if (a < BUCKET_EDGES[0]) return 0;
@@ -49,13 +53,13 @@ function bucketIndexForAlpha(a: number): number {
 function bucketAlphaValue(bucket: number): number {
   switch (bucket) {
     case 0:
-      return 0.64;
+      return 0.78;
     case 1:
-      return 0.75;
+      return 0.86;
     case 2:
-      return 0.88;
+      return 0.92;
     default:
-      return 0.98;
+      return 1;
   }
 }
 

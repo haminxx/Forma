@@ -1,22 +1,26 @@
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 /**
- * LoopingWords — vertically scrolling list of UI component names. Adapted
- * from the user's GSAP reference using framer-motion (already in the
- * bundle) so we don't pull GSAP in for ~25 KB extra gzip.
+ * LoopingWords — vertically scrolling list of UI component names. Inspired
+ * by the GSAP looping-words pattern in `animations/loopingwords.md`,
+ * implemented with framer-motion (already in the bundle) so we don't
+ * pull GSAP in for ~25 KB extra gzip.
  *
  * Behaviour:
- *   - Auto-advances one word every WORD_INTERVAL_MS.
- *   - Hovering the container pauses the loop and pops a preview card
- *     showing a tiny live demo of whichever component is currently
- *     centred. Mouse leave resumes the loop and dismisses the card.
- *   - The list is rendered doubled so that the wrap-around (last → first)
- *     keeps animating downstream into the second copy, then we snap the
- *     index back to 0 with a zero-duration step to avoid a visible rewind.
+ *   - Auto-advances every WORD_INTERVAL_MS with a soft spring "settle"
+ *     so the word lands with a hint of elastic overshoot.
+ *   - Selector "edge" brackets at the four corners snap-animate their
+ *     width to match the centred word's width, mirroring the original
+ *     `looping-words__edge` markers.
+ *   - Hover pauses the loop and pops a tiny preview card showing a live
+ *     visual of whichever component is centred.
+ *   - Doubled list trick keeps wrap-around seamless: when the cursor
+ *     reaches the duplicate's first word, we hot-reset back to true 0
+ *     with a zero-duration step.
  */
 
-const ROW_HEIGHT = 56;
+const ROW_HEIGHT = 64;
 const WORD_INTERVAL_MS = 2400;
 
 const COMPONENT_WORDS = [
@@ -38,7 +42,9 @@ export function LoopingWords() {
   const [paused, setPaused] = useState(false);
   const [index, setIndex] = useState(0);
   const [isSnapping, setIsSnapping] = useState(false);
+  const [edgeWidth, setEdgeWidth] = useState(0);
   const tickRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const wordRefs = useRef<Array<HTMLLIElement | null>>([]);
 
   useEffect(() => {
     if (paused || isSnapping) return;
@@ -46,8 +52,8 @@ export function LoopingWords() {
       if (index < N) {
         setIndex((i) => i + 1);
       } else {
-        // Reached the duplicate's first word — snap back to true 0
-        // with a zero-duration transition.
+        // Reached the duplicate's first word — snap back to true 0 with a
+        // zero-duration transition so the rewind is invisible.
         setIsSnapping(true);
         setTimeout(() => {
           setIndex(0);
@@ -60,12 +66,26 @@ export function LoopingWords() {
     };
   }, [paused, isSnapping, index, N]);
 
+  // Track the centred word's natural width so the selector edges can
+  // snap to it. Re-measures on index change and on window resize.
+  useLayoutEffect(() => {
+    const measure = () => {
+      const el = wordRefs.current[index % N];
+      if (!el) return;
+      const inner = el.querySelector<HTMLSpanElement>("[data-word-text]");
+      if (inner) setEdgeWidth(inner.getBoundingClientRect().width);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [index, N]);
+
   const doubled = [...COMPONENT_WORDS, ...COMPONENT_WORDS];
   const currentWord = COMPONENT_WORDS[index % N] ?? COMPONENT_WORDS[0];
 
   return (
     <div
-      className="relative"
+      className="relative w-full max-w-sm"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -84,16 +104,23 @@ export function LoopingWords() {
           transition={
             isSnapping
               ? { duration: 0 }
-              : { type: "spring", stiffness: 90, damping: 20, mass: 0.9 }
+              : { type: "spring", stiffness: 120, damping: 14, mass: 1 }
           }
         >
           {doubled.map((word, i) => (
             <li
               key={i}
+              ref={(el) => {
+                wordRefs.current[i] = el;
+              }}
               className="flex items-center"
               style={{ height: ROW_HEIGHT }}
             >
-              <span className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+              <span
+                data-word-text
+                className="text-4xl font-semibold tracking-tight text-white sm:text-5xl"
+                style={{ color: "#d4b87a" }}
+              >
                 {word}
               </span>
             </li>
@@ -104,9 +131,22 @@ export function LoopingWords() {
         <div className="pointer-events-none absolute inset-x-0 top-0 h-3 bg-gradient-to-b from-[#191a1f] to-transparent" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-3 bg-gradient-to-t from-[#191a1f] to-transparent" />
 
-        {/* Selector edge corners — borrowed in spirit from the reference. */}
-        <div className="pointer-events-none absolute inset-y-1 left-0 w-1 border-l border-[#d4b87a]/60" />
-        <div className="pointer-events-none absolute inset-y-1 right-0 w-1 border-r border-[#d4b87a]/60" />
+        {/* Selector — corner brackets that animate-width to match the
+            centred word, the same idea as the GSAP `looping-words__edge`
+            elements in the spec. Padding (px-2) gives the bracket some
+            breathing room around the glyph. */}
+        <motion.div
+          aria-hidden="true"
+          className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2"
+          style={{ height: ROW_HEIGHT }}
+          animate={{ width: edgeWidth + 16 }}
+          transition={{ type: "spring", stiffness: 220, damping: 26 }}
+        >
+          <span className="absolute left-0 top-1 h-2.5 w-2.5 border-l-[1.5px] border-t-[1.5px] border-[#d4b87a]" />
+          <span className="absolute right-0 top-1 h-2.5 w-2.5 border-r-[1.5px] border-t-[1.5px] border-[#d4b87a]" />
+          <span className="absolute bottom-1 left-0 h-2.5 w-2.5 border-b-[1.5px] border-l-[1.5px] border-[#d4b87a]" />
+          <span className="absolute bottom-1 right-0 h-2.5 w-2.5 border-b-[1.5px] border-r-[1.5px] border-[#d4b87a]" />
+        </motion.div>
       </div>
 
       <AnimatePresence>

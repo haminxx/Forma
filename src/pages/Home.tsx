@@ -27,10 +27,14 @@ export function HomePage() {
     <div>
       <section
         id="home"
-        className="relative isolate flex min-h-screen scroll-mt-20 flex-col items-center justify-center overflow-hidden px-6"
+        className="relative isolate flex min-h-screen scroll-mt-20 flex-col items-center overflow-hidden px-6"
         style={{
-          paddingTop: "clamp(4.5rem, 10vh, 7rem)",
+          paddingTop: "clamp(5rem, 12vh, 9rem)",
           paddingBottom: "clamp(2rem, 6vh, 5rem)",
+          // Anchor content to roughly the upper third so the heading
+          // sits ABOVE the section's horizontal midline (where the wave
+          // crests) instead of being centred and sliding into the wave.
+          justifyContent: "flex-start",
         }}
       >
         {/* Wave is anchored to the BOTTOM half of the home screen only —
@@ -43,9 +47,12 @@ export function HomePage() {
           <InteractiveCanvas />
         </div>
 
-        {/* Hero content vertically centred. Two columns: HomeHero on the
-            left, LoopingWords on the right. */}
-        <div className="relative z-20 mx-auto grid w-full max-w-6xl gap-12 md:grid-cols-[1.2fr_1fr] md:items-center md:gap-12">
+        {/* Hero content lifted above the horizontal midline. Two columns:
+            HomeHero on the left, LoopingWords on the right. */}
+        <div
+          className="relative z-20 mx-auto grid w-full max-w-6xl gap-12 md:grid-cols-[1.2fr_1fr] md:items-center md:gap-12"
+          style={{ marginTop: "clamp(0.5rem, 4vh, 3rem)" }}
+        >
           <HomeHero />
           <div className="md:justify-self-end">
             <LoopingWords />
