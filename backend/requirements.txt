@@ -6,3 +6,4 @@ litellm
 python-multipart
 requests
 python-dotenv
+sqlalchemy
