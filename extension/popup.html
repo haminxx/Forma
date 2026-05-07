@@ -1,180 +1,378 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Forma</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
-    body {
-      width: 280px;
-      background: #0a0a09;
-      color: #f0ece4;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      padding: 16px;
-    }
-    
-    .header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
-      padding-bottom: 12px;
-      border-bottom: 0.5px solid #2a2825;
-    }
-    
-    .logo {
-      width: 28px;
-      height: 28px;
-      border-radius: 6px;
-      background: #c8b89a;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #0a0a09;
-      font-family: 'Georgia', serif;
-      font-size: 18px;
-      font-weight: 700;
-    }
-    
-    .brand {
-      font-size: 16px;
-      font-weight: 600;
-      color: #f0ece4;
-      letter-spacing: 0.02em;
-    }
-    
-    .tagline {
-      font-size: 10px;
-      color: #6b6560;
-      margin-top: 2px;
-      letter-spacing: 0.05em;
-    }
-    
-    .status-card {
-      background: #1c1a17;
-      border: 0.5px solid #2a2825;
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 10px;
-    }
-    
-    .status-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-    
-    .status-label {
-      font-size: 11px;
-      color: #a0998c;
-      letter-spacing: 0.03em;
-    }
-    
-    .status-value {
-      font-size: 11px;
-      color: #4ade80;
-      font-family: monospace;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    
-    .pulse {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #4ade80;
-      animation: pulse 1.5s ease-in-out infinite;
-    }
-    
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
-    
-    .info {
-      font-size: 11px;
-      color: #6b6560;
-      line-height: 1.5;
-      margin-top: 12px;
-      padding: 10px;
-      background: rgba(200, 184, 154, 0.05);
-      border-radius: 6px;
-      border-left: 2px solid #c8b89a;
-    }
-    
-    .footer {
-      margin-top: 14px;
-      padding-top: 12px;
-      border-top: 0.5px solid #2a2825;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .footer-text {
-      font-size: 9px;
-      color: #6b6560;
-      font-family: monospace;
-    }
-    
-    .footer-version {
-      font-size: 9px;
-      color: #c8b89a;
-      font-weight: 600;
-    }
-  </style>
+<meta charset="UTF-8" />
+<title>Forma</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  width: 360px;
+  background: #0a0a09;
+  color: #f0ece4;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  padding: 16px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 0.5px solid #2a2825;
+}
+.brand-block {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
+  background: linear-gradient(135deg, #c8b89a 0%, #8a7a5c 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0a0a09;
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+}
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+.brand-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  color: #f5f3ef;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+.brand-tagline {
+  font-size: 8px;
+  color: #6b6560;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+.live-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  background: rgba(74,222,128,0.08);
+  border: 0.5px solid rgba(74,222,128,0.3);
+  border-radius: 12px;
+  font-size: 9px;
+  color: #4ade80;
+  font-family: monospace;
+  letter-spacing: 0.05em;
+}
+.live-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #4ade80;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.stat-mini {
+  background: #1a1917;
+  border: 0.5px solid #2a2825;
+  border-radius: 6px;
+  padding: 10px 8px;
+  text-align: center;
+}
+.stat-mini-value {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  color: #c8b89a;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.stat-mini-label {
+  font-size: 8px;
+  color: #6b6560;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 5px;
+}
+
+.section {
+  margin-bottom: 12px;
+}
+.section-label {
+  font-size: 9px;
+  color: #6b6560;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.try-input {
+  width: 100%;
+  background: #1a1917;
+  border: 0.5px solid #2a2825;
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: #f0ece4;
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  resize: none;
+  height: 50px;
+  transition: border-color 0.2s;
+}
+.try-input:focus {
+  outline: none;
+  border-color: #c8b89a;
+}
+.try-input::placeholder {
+  color: #6b6560;
+}
+
+.try-result {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: rgba(200,184,154,0.05);
+  border: 0.5px solid rgba(200,184,154,0.15);
+  border-radius: 6px;
+  font-size: 10px;
+  color: #a0998c;
+  display: none;
+}
+.try-result.active { display: block; }
+.try-result-loading {
+  color: #6b6560;
+  font-style: italic;
+}
+.try-result-term {
+  display: inline-block;
+  padding: 2px 6px;
+  background: rgba(200,184,154,0.15);
+  border: 0.5px solid #c8b89a;
+  border-radius: 3px;
+  color: #c8b89a;
+  font-size: 9px;
+  font-weight: 600;
+  margin: 2px 3px 2px 0;
+  letter-spacing: 0.03em;
+}
+.try-result-empty {
+  color: #6b6560;
+  font-style: italic;
+}
+
+.sample-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+.sample-chip {
+  font-size: 9px;
+  padding: 3px 7px;
+  background: transparent;
+  border: 0.5px solid #2a2825;
+  border-radius: 10px;
+  color: #a0998c;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'Outfit', sans-serif;
+}
+.sample-chip:hover {
+  border-color: #c8b89a;
+  color: #c8b89a;
+}
+
+.activity-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 110px;
+  overflow-y: auto;
+}
+.activity-item-mini {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  background: #141412;
+  border: 0.5px solid #2a2825;
+  border-radius: 4px;
+  font-size: 10px;
+}
+.activity-dot-mini {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.activity-dot-mini.detection { background: #c8b89a; }
+.activity-dot-mini.acceptance { background: #4ade80; }
+.activity-dot-mini.skip { background: #6b6560; }
+.activity-text-mini {
+  flex: 1;
+  color: #a0998c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.activity-term-mini {
+  color: #c8b89a;
+  font-weight: 500;
+}
+.activity-time-mini {
+  font-size: 8px;
+  color: #6b6560;
+  font-family: monospace;
+  flex-shrink: 0;
+}
+
+.cta-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 0.5px solid #2a2825;
+}
+.cta-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 500;
+  text-decoration: none;
+  letter-spacing: 0.03em;
+  transition: all 0.15s;
+  cursor: pointer;
+  border: none;
+  font-family: 'Outfit', sans-serif;
+}
+.cta-primary {
+  background: #c8b89a;
+  color: #0a0a09;
+}
+.cta-primary:hover {
+  background: #d8c8aa;
+}
+.cta-secondary {
+  background: transparent;
+  border: 0.5px solid #2a2825;
+  color: #a0998c;
+}
+.cta-secondary:hover {
+  border-color: #c8b89a;
+  color: #c8b89a;
+}
+
+.footer {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 0.5px solid #2a2825;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 8px;
+  color: #6b6560;
+  font-family: monospace;
+  letter-spacing: 0.05em;
+}
+.footer-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.footer-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #4ade80;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+</style>
 </head>
 <body>
-  <div class="header">
+
+<header class="header">
+  <div class="brand-block">
     <div class="logo">F</div>
-    <div>
-      <div class="brand">Forma</div>
-      <div class="tagline">UI TERMINOLOGY ASSISTANT</div>
+    <div class="brand-text">
+      <div class="brand-name">Forma</div>
+      <div class="brand-tagline">Design Intelligence Platform</div>
     </div>
   </div>
-  
-  <div class="status-card">
-    <div class="status-row">
-      <div class="status-label">Status</div>
-      <div class="status-value">
-        <div class="pulse"></div>
-        Active
-      </div>
+  <div class="live-pill">
+    <div class="live-dot"></div>
+    LIVE
+  </div>
+</header>
+
+<section class="stats-grid">
+  <div class="stat-mini">
+    <div class="stat-mini-value" id="stat-events">—</div>
+    <div class="stat-mini-label">Events</div>
+  </div>
+  <div class="stat-mini">
+    <div class="stat-mini-value" id="stat-rate">—</div>
+    <div class="stat-mini-label">Accept Rate</div>
+  </div>
+  <div class="stat-mini">
+    <div class="stat-mini-value" id="stat-sites">—</div>
+    <div class="stat-mini-label">Platforms</div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-label">Try Forma</div>
+  <textarea id="try-input" class="try-input" placeholder="Describe a UI component vaguely..."></textarea>
+  <div id="try-result" class="try-result"></div>
+  <div class="sample-chips">
+    <button class="sample-chip" data-phrase="sliding menu from the right">sliding menu</button>
+    <button class="sample-chip" data-phrase="frosted blurry popup">frosted popup</button>
+    <button class="sample-chip" data-phrase="password strength meter">password strength</button>
+    <button class="sample-chip" data-phrase="pricing tier comparison">pricing tier</button>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-label">Live Activity</div>
+  <div class="activity-feed" id="activity-feed">
+    <div class="activity-item-mini" style="justify-content:center;color:#6b6560;font-style:italic;">
+      Loading...
     </div>
   </div>
-  
-  <div class="status-card">
-    <div class="status-row">
-      <div class="status-label">Detection Mode</div>
-      <div class="status-value" id="detection-mode">KEYWORD</div>
-    </div>
+</section>
+
+<div class="cta-row">
+  <button id="open-dashboard" class="cta-button cta-primary">View Dashboard</button>
+  <button id="open-github" class="cta-button cta-secondary">View on GitHub</button>
+</div>
+
+<footer class="footer">
+  <div>v1.0.0</div>
+  <div class="footer-badge">
+    <div class="footer-dot"></div>
+    Llama 3.1 8B · AMD MI300X
   </div>
-  
-  <div class="status-card">
-    <div class="status-row">
-      <div class="status-label">Powered By</div>
-      <div class="status-value">AMD MI300X</div>
-    </div>
-  </div>
-  
-  <div class="info">
-    Forma analyzes vague UI descriptions in any text field and 
-    suggests precise design terminology. Just type and hover the 
-    amber underlines.
-  </div>
-  
-  <div class="footer">
-    <div class="footer-text">Llama 3.1 8B</div>
-    <div class="footer-version">v1.0.0</div>
-  </div>
-  
-  <script src="popup.js"></script>
+</footer>
+
+<script src="popup.js"></script>
+
 </body>
 </html>
