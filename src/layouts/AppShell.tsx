@@ -39,16 +39,16 @@ function BrandMark() {
     <a
       href="/"
       aria-label="Forma — home"
-      className="group inline-flex h-14 items-center gap-2 rounded-full px-2 text-white transition-opacity hover:opacity-90"
+      className="group inline-flex h-11 items-center gap-2 rounded-full px-2 text-white transition-opacity hover:opacity-90"
     >
       <span
         aria-hidden="true"
-        className="flex h-6 w-6 items-center justify-center rounded-full bg-[#d4b87a] text-[10px] font-bold text-black shadow-[0_4px_10px_-4px_rgba(212,184,122,0.6)]"
+        className="flex h-5 w-5 items-center justify-center rounded-full bg-[#d4b87a] text-[9px] font-bold text-black shadow-[0_4px_10px_-4px_rgba(212,184,122,0.6)]"
       >
         F
       </span>
       <span
-        className="text-base font-semibold tracking-tight"
+        className="text-sm font-semibold tracking-tight"
         style={{
           fontFamily:
             '"SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif',

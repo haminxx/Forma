@@ -27,7 +27,11 @@ export function HomePage() {
     <div>
       <section
         id="home"
-        className="relative isolate flex min-h-screen scroll-mt-24 flex-col items-center justify-center overflow-hidden px-6 pb-24 pt-28"
+        className="relative isolate flex min-h-screen scroll-mt-20 flex-col items-center justify-center overflow-hidden px-6"
+        style={{
+          paddingTop: "clamp(4.5rem, 10vh, 7rem)",
+          paddingBottom: "clamp(2rem, 6vh, 5rem)",
+        }}
       >
         {/* Wave is anchored to the BOTTOM half of the home screen only —
             it rises from the bottom edge instead of filling the entire
@@ -66,7 +70,8 @@ export function HomePage() {
 
       <section
         id="problem"
-        className="flex min-h-screen scroll-mt-24 items-center justify-center px-6 py-24"
+        className="flex min-h-screen scroll-mt-20 items-center justify-center px-6"
+        style={{ paddingTop: "clamp(3rem,8vh,6rem)", paddingBottom: "clamp(3rem,8vh,6rem)" }}
       >
         <ProblemTestimonial
           quotes={[
@@ -82,13 +87,18 @@ export function HomePage() {
         />
       </section>
 
-      <section id="solution" data-snap-start className="scroll-mt-24">
+      <section id="solution" data-snap-start className="scroll-mt-20">
         <SolutionReveal />
       </section>
 
       <section
         id="demo"
-        className="flex min-h-screen scroll-mt-24 flex-col items-center justify-center gap-10 px-6 py-24"
+        className="flex min-h-screen scroll-mt-20 flex-col items-center justify-center px-6"
+        style={{
+          paddingTop: "clamp(3rem,8vh,6rem)",
+          paddingBottom: "clamp(3rem,8vh,6rem)",
+          gap: "clamp(1.5rem,3vh,2.5rem)",
+        }}
       >
         <div className="w-full max-w-6xl px-4">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-white/55">
@@ -104,7 +114,12 @@ export function HomePage() {
 
       <section
         id="sandbox"
-        className="relative flex min-h-screen scroll-mt-24 flex-col items-center justify-center gap-8 px-6 py-24"
+        className="relative flex min-h-screen scroll-mt-20 flex-col items-center justify-center px-6"
+        style={{
+          paddingTop: "clamp(3rem,8vh,6rem)",
+          paddingBottom: "clamp(3rem,8vh,6rem)",
+          gap: "clamp(1rem,2.5vh,2rem)",
+        }}
       >
         <div className="flex flex-col items-center text-center">
           <h2 className="text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
@@ -121,7 +136,8 @@ export function HomePage() {
 
       <section
         id="docs"
-        className="flex min-h-screen scroll-mt-24 items-center justify-center px-6 py-24"
+        className="flex min-h-screen scroll-mt-20 items-center justify-center px-6"
+        style={{ paddingTop: "clamp(3rem,8vh,6rem)", paddingBottom: "clamp(3rem,8vh,6rem)" }}
       >
         <DocsPanel />
       </section>
