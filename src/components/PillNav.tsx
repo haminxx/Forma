@@ -81,10 +81,11 @@ export const PillNav: React.FC = () => {
     // otherwise mid-scroll sections would temporarily flip the label.
     userScrollLockUntil.current = Date.now() + 800;
 
-    // Scroll to anchor — sections carry scroll-margin-top so the pill doesn't
-    // overlap their content.
+    // Scroll so the section's vertical centre lands at the viewport
+    // centre — every page's content sits in the middle of its section,
+    // so this puts the heading / hero / panel directly behind the pill.
     const node = document.getElementById(sectionId);
-    node?.scrollIntoView({ behavior: "smooth", block: "start" });
+    node?.scrollIntoView({ behavior: "smooth", block: "center" });
 
     // Reset transition state after animation completes
     setTimeout(() => {

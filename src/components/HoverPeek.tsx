@@ -125,6 +125,13 @@ export function HoverPeek({
 
   useEffect(() => {
     setImageLoadFailed(false);
+    // Prefetch the preview into the browser cache the moment the trigger
+    // mounts (or the URL changes), so the first hover paints from cache
+    // instead of waiting on a Microlink screenshot round-trip.
+    if (typeof window === "undefined" || !finalImageSrc) return;
+    const img = new Image();
+    img.decoding = "async";
+    img.src = finalImageSrc;
   }, [finalImageSrc]);
 
   useEffect(() => {
@@ -229,7 +236,7 @@ export function HoverPeek({
                       className="pointer-events-none block rounded-[5px] bg-neutral-800 align-top"
                       alt={`Link preview for ${url}`}
                       onError={() => setImageLoadFailed(true)}
-                      loading="lazy"
+                      loading="eager"
                     />
                   )}
 

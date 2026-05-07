@@ -15,7 +15,7 @@ const SECTION_DESCRIPTIONS: Record<string, string> = {
 const handleNavClick = (sectionId: string) => (e: React.MouseEvent) => {
   e.preventDefault();
   const node = document.getElementById(sectionId);
-  node?.scrollIntoView({ behavior: "smooth", block: "start" });
+  node?.scrollIntoView({ behavior: "smooth", block: "center" });
 };
 
 /**

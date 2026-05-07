@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { PromptInput } from "./PromptInput";
 
-// Long, chatty, vague — the kind of prompt every model has to play "what
-// did they actually mean" with for a few rounds before producing usable
-// UI. Concrete intent buried in connective tissue.
+// Rough, rambling, vague — typed the way someone describes a thing when
+// they don't yet know the words for what they mean. No component vocab,
+// no motion spec, no library — just vibes.
 const VIBE_PROMPT =
-  "ok so can you make me one of those little popup notification things that show up at the top right corner of the page when something good happens, like maybe slides in from the side or kinda fades in or whatever feels nice, and it should have a green check icon and some text saying it worked, and then it goes away on its own after a few seconds but also has a small x button so people can close it manually, and yeah make it look modern and clean and not janky and like the close thing should be smooth not a hard cut";
+  "yo so like can u make me one of those lil popup thingys that pops up in the corner when smth good happens?? like top right ish, kinda slides in or fades or whatever looks clean, with a green check and a msg like 'nice it worked', and it should poof away by itself after a sec but also have a lil x to close, oh and the close shouldnt feel snappy/janky, more like smooth y'know";
 
-// Short(er) and surgical: real component names, anchor, motion specs,
-// duration in ms, plus the exact React libs the AI should reach for.
+// Same intent, written as a precise English sentence that names real UI
+// component terminology, motion language, and the libraries an LLM
+// should reach for. No JSX-as-prose, no shorthand: a sentence a senior
+// designer-engineer would actually write.
 const FORMA_PROMPT =
-  '<Toast variant="success" anchor="top-right" />: 220ms slide-in from the right (ease-out), 4s auto-dismiss. CheckCircle icon, bold Title, muted Description, trailing IconButton(X) for manual close. Wrap with <AnimatePresence>+<motion.div> (Framer Motion) so exit eases out.';
+  "Render a success Toast notification anchored to the top-right corner of the viewport. On mount, slide in from the right with a 220 ms ease-out transition; auto-dismiss after 4 seconds, and on exit ease out with a fade and 8 px upward offset. Compose it with a leading CheckCircle status icon, a semibold Title row, a muted Description row, and a trailing IconButton with an X glyph for manual close. Implement using a Framer Motion AnimatePresence wrapper around a motion.div, expose accessible role=\"status\" and aria-live=\"polite\", and ensure it stacks safely with up to three concurrent toasts in a top-right region.";
 
 /**
  * Side-by-side demo of the same intent expressed two different ways:

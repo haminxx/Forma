@@ -5,17 +5,18 @@ import { Download, ExternalLink } from "lucide-react";
 type Step = {
   label: string;
   icon?: ComponentType<SVGProps<SVGSVGElement>>;
+  /** Fires when the user clicks anywhere in the step row (label or icon). */
   onAction?: (e: MouseEvent<HTMLButtonElement>) => void;
-  iconLabel?: string;
+  ariaLabel?: string;
 };
 
 const STEPS: Step[] = [
   {
     label: "Download Forma",
     icon: Download,
-    iconLabel: "Download Forma extension (coming soon)",
+    ariaLabel: "Download Forma extension (coming soon)",
     onAction: (e) => {
-      // Placeholder — the .crx / zip isn't shipped yet. Keep the button
+      // Placeholder — the .crx / zip isn't shipped yet. Keep the row
       // clickable so the affordance is real, but no-op until then.
       e.preventDefault();
     },
@@ -23,7 +24,7 @@ const STEPS: Step[] = [
   {
     label: "Visit Chrome Extensions",
     icon: ExternalLink,
-    iconLabel: "Open chrome://extensions/ in a new tab",
+    ariaLabel: "Open chrome://extensions/ in a new tab",
     onAction: () => {
       // Chrome blocks direct `chrome://` navigation from a regular link, so
       // we hand the user the URL via the clipboard and open a tab they can
@@ -68,21 +69,19 @@ export function InstallSteps() {
                   {String(index + 1).padStart(2, "0")}
                 </span>
                 <Steps.Trigger
-                  aria-label={step.label}
-                  className="flex w-full flex-col items-start gap-2 text-left"
+                  aria-label={step.ariaLabel ?? step.label}
+                  onClick={step.onAction}
+                  className="flex w-full flex-col items-start gap-2 rounded text-left transition-colors hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4b87a]/60"
                 >
                   <div className="h-[3px] w-full rounded-full bg-white/15 transition-colors group-data-[state=complete]:bg-[#d4b87a] group-data-[state=current]:bg-[#d4b87a]" />
                   <span className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-white/65 transition-colors group-data-[state=current]:text-white">
                     {step.label}
                     {Icon ? (
-                      <button
-                        type="button"
-                        aria-label={step.iconLabel ?? step.label}
-                        onClick={step.onAction}
-                        className="-mr-1 inline-flex h-5 w-5 items-center justify-center rounded text-white/45 transition-colors hover:bg-white/10 hover:text-white"
-                      >
-                        <Icon className="h-3.5 w-3.5" strokeWidth={2} />
-                      </button>
+                      <Icon
+                        aria-hidden="true"
+                        className="h-3.5 w-3.5 text-white/55 transition-colors group-hover:text-white"
+                        strokeWidth={2}
+                      />
                     ) : null}
                   </span>
                 </Steps.Trigger>

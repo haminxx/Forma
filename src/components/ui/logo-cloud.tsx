@@ -78,11 +78,11 @@ export function LogoCloud({ className, ...props }: LogoCloudProps) {
         const checker = (i + Math.floor(i / 4)) % 2 === 0;
         const cellBg = checker ? "bg-white/[0.025]" : "bg-transparent";
 
-        // PlusIcon at the bottom-right of internal grid intersections.
-        const showPlusBR =
-          // bottom-right of cell 1 / 2 / 3 (md row 1) coincides with
-          // intersections; on mobile only cell 1, 3, 5 hit one.
-          (i === 0 || i === 2 || i === 4 || i === 6);
+        // PlusIcon at the centre horizontal line ONLY — the bottom-right
+        // of top-row cells (i = 0, 2) sits on the divider between rows.
+        // The bottom-row pluses (i = 4, 6) used to anchor the LOWER edge
+        // and have been removed; only the inter-row centre pluses remain.
+        const showPlusBR = i === 0 || i === 2;
 
         return (
           <LogoCard

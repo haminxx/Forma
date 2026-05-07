@@ -1,6 +1,6 @@
 import type { HTMLAttributes, SVGProps } from "react";
 import { forwardRef, useRef } from "react";
-import { LayoutGroup, motion } from "framer-motion";
+import { AnimatePresence, LayoutGroup, motion, useInView } from "framer-motion";
 import { cn } from "../lib/cn";
 import { DotPattern } from "./ui/dot-pattern";
 import { TextRotate, type TextRotateRef } from "./ui/text-rotate";
@@ -21,16 +21,35 @@ const ROTATION_MS = 5000;
 export const ProblemTestimonial = forwardRef<HTMLDivElement, ProblemTestimonialProps>(
   ({ className, quotes, attributions, ...props }, ref) => {
     const attributionRef = useRef<TextRotateRef>(null);
+    // Track viewport entry so the testimonial "types" in on enter and
+    // "untypes" out on exit. `amount: 0.4` means 40 % of the block must be
+    // visible to be considered in view — keeps the toggle from flickering
+    // at the edges of the section.
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const inView = useInView(containerRef, { amount: 0.4 });
 
     return (
       <div
-        ref={ref}
+        ref={(node) => {
+          containerRef.current = node;
+          if (typeof ref === "function") ref(node);
+          else if (ref) (ref as { current: HTMLDivElement | null }).current = node;
+        }}
         className={cn("relative isolate w-full max-w-5xl px-4 sm:px-6", className)}
         {...props}
       >
         <DotPattern className="fill-white/15 md:fill-white/20" />
 
-        <div className="relative z-10">
+        <AnimatePresence mode="wait">
+          {inView ? (
+            <motion.div
+              key="problem-typo"
+              className="relative z-10"
+              initial={{ opacity: 0, y: 20, filter: "blur(6px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              exit={{ opacity: 0, y: -10, filter: "blur(6px)" }}
+              transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
+            >
           <QuoteGlyph
             aria-hidden="true"
             className="mb-6 h-10 w-10 text-white/85 sm:h-12 sm:w-12"
@@ -81,7 +100,9 @@ export const ProblemTestimonial = forwardRef<HTMLDivElement, ProblemTestimonialP
               mainClassName="text-sm text-white/75 sm:text-base"
             />
           </LayoutGroup>
-        </div>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
       </div>
     );
   },

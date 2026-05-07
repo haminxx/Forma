@@ -488,6 +488,7 @@ export function DitheringShader({
           frontRgba[3],
         );
       }
+      if (locations.u_shape) context.uniform1f(locations.u_shape, DitheringShapes[p.shape]);
       if (locations.u_type) context.uniform1f(locations.u_type, DitheringTypes[p.type]);
       if (locations.u_pxSize) context.uniform1f(locations.u_pxSize, p.pxSize);
 
