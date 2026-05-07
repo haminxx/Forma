@@ -257,3 +257,14 @@ def api_documentation():
     docs_path = os.path.join(os.path.dirname(__file__), "api_docs.html")
     return FileResponse(docs_path, media_type="text/html")
 
+
+# ============================================================
+# INVESTOR PITCH DECK — Public-facing pitch deck page
+# ============================================================
+
+@app.get("/pitch")
+def pitch_deck():
+    """Serve the investor pitch deck page."""
+    pitch_path = os.path.join(os.path.dirname(__file__), "pitch.html")
+    return FileResponse(pitch_path, media_type="text/html")
+
