@@ -19,6 +19,8 @@ from events import (
     get_average_forma_score,
 )
 
+from pro_templates import get_pro_expansion, has_pro_template
+
 app = FastAPI(title="Forma Backend", docs_url=None, redoc_url=None, openapi_url=None)
 
 @app.on_event("startup")
@@ -95,6 +97,26 @@ def translate(request: PhraseRequest):
 # ============================================================
 # AI MODE — Sentence-Level Analysis Endpoint
 # ============================================================
+
+class TranslateProRequest(BaseModel):
+    canonical_term: str
+
+
+@app.post("/translate-pro")
+def translate_pro(request: TranslateProRequest):
+    """Forma Pro Mode — return engineered prompt fragment for a canonical term.
+    
+    Pre-written templates with motion specs, position anchors, and library hints.
+    Deterministic, sub-millisecond response. No LLM call.
+    """
+    expansion = get_pro_expansion(request.canonical_term)
+    has_template = has_pro_template(request.canonical_term)
+    return {
+        "canonical_term": request.canonical_term,
+        "pro_expansion": expansion,
+        "has_pro_template": has_template
+    }
+
 
 class AnalyzeRequest(BaseModel):
     text: str
