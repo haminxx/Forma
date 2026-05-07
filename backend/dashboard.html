@@ -355,6 +355,11 @@ body {
     <div class="stat-sublabel">of canonical suggestions</div>
   </div>
   <div class="stat-card">
+    <div class="stat-label">Avg Forma Score</div>
+    <div class="stat-value" id="stat-forma-score">—<span class="stat-suffix">/100</span></div>
+    <div class="stat-sublabel" id="stat-forma-score-sub">across all prompts</div>
+  </div>
+  <div class="stat-card">
     <div class="stat-label">Active Sites</div>
     <div class="stat-value" id="stat-sites">—</div>
     <div class="stat-sublabel">unique platforms</div>
@@ -452,6 +457,21 @@ async function fetchSummary() {
     document.getElementById('stat-today').textContent = data.events_today.toLocaleString();
   } catch (err) {
     console.error('Failed to fetch summary:', err);
+  }
+  
+  try {
+    const res = await fetch(`${API_BASE}/stats/forma-score`);
+    const data = await res.json();
+    const scoreEl = document.getElementById('stat-forma-score');
+    const subEl = document.getElementById('stat-forma-score-sub');
+    if (scoreEl) {
+      scoreEl.innerHTML = `<span style="color:${data.color};">${data.average_score}</span><span class="stat-suffix">/100</span>`;
+    }
+    if (subEl) {
+      subEl.textContent = `${data.label} · ${data.sample_size.toLocaleString()} prompts`;
+    }
+  } catch (err) {
+    console.error('Failed to fetch Forma Score:', err);
   }
 }
 
