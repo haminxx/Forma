@@ -1,6 +1,7 @@
 import type { ComponentType, MouseEvent, SVGProps } from "react";
 import { Steps } from "@ark-ui/react/steps";
 import { Download, ExternalLink } from "lucide-react";
+import { HoverPeek } from "./HoverPeek";
 
 type Step = {
   label: string;
@@ -8,6 +9,13 @@ type Step = {
   /** Fires when the user clicks anywhere in the step row (label or icon). */
   onAction?: (e: MouseEvent<HTMLButtonElement>) => void;
   ariaLabel?: string;
+  /**
+   * If provided, hovering the step row pops the same Microlink-style
+   * preview card as the LogoCloud cells, but driven by a local image
+   * instead of a URL. The user supplies the file in /public/preview/…;
+   * if it's missing, HoverPeek falls back to "Preview unavailable".
+   */
+  previewImage?: string;
 };
 
 const STEPS: Step[] = [
@@ -39,8 +47,14 @@ const STEPS: Step[] = [
       window.open(url, "_blank", "noopener,noreferrer");
     },
   },
-  { label: "Enable Developer Mode" },
-  { label: "Load unpacked Forma" },
+  {
+    label: "Enable Developer Mode",
+    previewImage: "/preview/enable-developer-mode.png",
+  },
+  {
+    label: "Load unpacked Forma",
+    previewImage: "/preview/load-unpacked-forma.png",
+  },
 ];
 
 /**
@@ -59,6 +73,26 @@ export function InstallSteps() {
         <Steps.List className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-4">
           {STEPS.map((step, index) => {
             const Icon = step.icon;
+            const trigger = (
+              <Steps.Trigger
+                aria-label={step.ariaLabel ?? step.label}
+                onClick={step.onAction}
+                className="flex w-full flex-col items-start gap-2 rounded text-left transition-colors hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4b87a]/60"
+              >
+                <div className="h-[3px] w-full rounded-full bg-white/15 transition-colors group-data-[state=complete]:bg-[#d4b87a] group-data-[state=current]:bg-[#d4b87a]" />
+                <span className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-white/65 transition-colors group-data-[state=current]:text-white">
+                  {step.label}
+                  {Icon ? (
+                    <Icon
+                      aria-hidden="true"
+                      className="h-3.5 w-3.5 text-white/55 transition-colors group-hover:text-white"
+                      strokeWidth={2}
+                    />
+                  ) : null}
+                </span>
+              </Steps.Trigger>
+            );
+
             return (
               <Steps.Item
                 key={step.label}
@@ -68,23 +102,20 @@ export function InstallSteps() {
                 <span className="text-[11px] font-semibold tracking-[0.18em] text-white/40 group-data-[state=current]:text-white/80 group-data-[state=complete]:text-white/80">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                <Steps.Trigger
-                  aria-label={step.ariaLabel ?? step.label}
-                  onClick={step.onAction}
-                  className="flex w-full flex-col items-start gap-2 rounded text-left transition-colors hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4b87a]/60"
-                >
-                  <div className="h-[3px] w-full rounded-full bg-white/15 transition-colors group-data-[state=complete]:bg-[#d4b87a] group-data-[state=current]:bg-[#d4b87a]" />
-                  <span className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-white/65 transition-colors group-data-[state=current]:text-white">
-                    {step.label}
-                    {Icon ? (
-                      <Icon
-                        aria-hidden="true"
-                        className="h-3.5 w-3.5 text-white/55 transition-colors group-hover:text-white"
-                        strokeWidth={2}
-                      />
-                    ) : null}
-                  </span>
-                </Steps.Trigger>
+                {step.previewImage ? (
+                  <HoverPeek
+                    isStatic
+                    imageSrc={step.previewImage}
+                    url={step.previewImage}
+                    enableLensEffect={false}
+                    peekWidth={260}
+                    peekHeight={160}
+                  >
+                    {trigger}
+                  </HoverPeek>
+                ) : (
+                  trigger
+                )}
               </Steps.Item>
             );
           })}

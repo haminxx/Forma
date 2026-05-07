@@ -77,9 +77,14 @@ export const PromptInput = React.forwardRef<HTMLTextAreaElement, PromptInputProp
         transition={{ duration: 0.4, ease: "easeOut" }}
         className={cn(promptInputVariants({ variant }), className)}
       >
-        <div className="relative flex h-full w-full flex-col rounded-[15px] bg-[#0c0c0c]">
+        {/* Fixed box height (260 px) with the textarea region taking the
+            remaining space and the action button row pinned to the
+            bottom. The textarea uses overflow-hidden + scrollbar-none so
+            no scrollbar ever appears inside the box; with the new short
+            prompts the content fits comfortably. */}
+        <div className="relative flex h-[260px] w-full flex-col rounded-[15px] bg-[#0c0c0c]">
           {label ? (
-            <div className="flex items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-3 text-xs font-medium uppercase tracking-[0.18em] text-white/60">
+            <div className="flex flex-shrink-0 items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-3 text-xs font-medium uppercase tracking-[0.18em] text-white/60">
               <span>{label}</span>
               {caption ? (
                 <span className="normal-case tracking-normal text-white/40">
@@ -89,16 +94,25 @@ export const PromptInput = React.forwardRef<HTMLTextAreaElement, PromptInputProp
             </div>
           ) : null}
 
-          <div className="flex flex-col p-3 sm:p-4">
-            <TextareaAutosize
-              ref={ref}
-              className="w-full resize-none bg-transparent text-sm leading-relaxed text-white placeholder:text-white/40 focus:outline-none disabled:cursor-not-allowed"
-              minRows={3}
-              maxRows={12}
-              {...props}
-            />
+          <div className="flex flex-1 flex-col overflow-hidden p-3 sm:p-4">
+            <div
+              className="flex-1 overflow-hidden"
+              style={{
+                scrollbarWidth: "none",
+                msOverflowStyle: "none",
+              } as React.CSSProperties}
+            >
+              <TextareaAutosize
+                ref={ref}
+                className="block h-full w-full resize-none overflow-hidden bg-transparent text-sm leading-relaxed text-white placeholder:text-white/40 focus:outline-none disabled:cursor-not-allowed [&::-webkit-scrollbar]:hidden"
+                style={{ scrollbarWidth: "none" }}
+                minRows={3}
+                maxRows={6}
+                {...props}
+              />
+            </div>
 
-            <div className="mt-3 flex items-center justify-between">
+            <div className="mt-3 flex flex-shrink-0 items-center justify-between">
               <div className="flex items-center gap-3 text-white/55">
                 {actionButtons.map((Button) => (
                   <button
