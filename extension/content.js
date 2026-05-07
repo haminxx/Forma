@@ -28,6 +28,65 @@ function initForma() {
   console.log('[Forma] Detection mode:', DETECTION_MODE.toUpperCase());
 
   // ============================================================
+  // FORMA SCORE — Local prompt quality scoring (0-100)
+  // No AMD needed. Pure JS heuristic.
+  // ============================================================
+  
+  const FORMA_SCORE_VAGUE_WORDS = [
+    'nice', 'cool', 'modern', 'clean', 'simple', 'pretty', 'beautiful',
+    'something', 'thing', 'stuff', 'kind of', 'sort of', 'like a',
+    'good', 'great', 'awesome', 'fancy', 'normal', 'regular'
+  ];
+
+  const FORMA_SCORE_SPECIFICITY_WORDS = [
+    'sticky', 'fixed', 'floating', 'blurry', 'frosted', 'glass',
+    'animated', 'sliding', 'rotating', 'expanding', 'collapsing',
+    'with', 'when', 'after', 'before', 'using', 'showing',
+    'mobile', 'desktop', 'responsive', 'compact', 'minimal'
+  ];
+
+  function computeFormaScore(text, detectedTerms) {
+    if (!text || text.trim().length < 3) {
+      return { score: 0, label: 'Empty', color: '#6b6560' };
+    }
+    
+    const lower = text.toLowerCase();
+    let score = 30;
+    
+    const componentBonus = Math.min((detectedTerms || []).length * 20, 60);
+    score += componentBonus;
+    
+    let specificityCount = 0;
+    for (const word of FORMA_SCORE_SPECIFICITY_WORDS) {
+      if (lower.includes(word)) specificityCount++;
+    }
+    const specificityBonus = Math.min(specificityCount * 5, 15);
+    score += specificityBonus;
+    
+    let vagueCount = 0;
+    for (const word of FORMA_SCORE_VAGUE_WORDS) {
+      if (lower.includes(word)) vagueCount++;
+    }
+    score -= vagueCount * 5;
+    
+    score = Math.max(0, Math.min(100, score));
+    
+    let label, color;
+    if (score < 40) {
+      label = 'Vague';
+      color = '#ef4444';
+    } else if (score < 70) {
+      label = 'Decent';
+      color = '#f59e0b';
+    } else {
+      label = 'Precise';
+      color = '#4ade80';
+    }
+    
+    return { score, label, color };
+  }
+
+  // ============================================================
   // DESIGN INTELLIGENCE LAYER — Event Logging
   // Fire and forget. Never blocks user experience.
   // ============================================================
@@ -556,6 +615,70 @@ function initForma() {
     if (aiIndicator) aiIndicator.style.display = 'none';
   }
 
+  // ============================================================
+  // FORMA SCORE BADGE — Floating score display near textarea
+  // Updates locally as user types. No AMD calls.
+  // ============================================================
+  
+  let formaScoreBadge = null;
+
+  function showFormaScoreBadge(score, label, color) {
+    if (!targetTextarea) return;
+    
+    if (!formaScoreBadge) {
+      formaScoreBadge = document.createElement('div');
+      formaScoreBadge.id = 'forma-score-badge';
+      Object.assign(formaScoreBadge.style, {
+        position: 'absolute',
+        zIndex: '9998',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        padding: '6px 12px',
+        background: '#1c1a17',
+        border: '0.5px solid rgba(200,184,154,0.3)',
+        borderRadius: '8px',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+        pointerEvents: 'none',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+        transition: 'border-color 0.2s ease'
+      });
+      document.body.appendChild(formaScoreBadge);
+    }
+    
+    formaScoreBadge.innerHTML = `
+      <div style="font-size:8px;color:#6b6560;letter-spacing:0.12em;text-transform:uppercase;">FORMA</div>
+      <div style="font-size:18px;font-family:Georgia,serif;color:${color};line-height:1;font-weight:600;">${score}</div>
+      <div style="font-size:9px;color:#6b6560;font-family:monospace;">/100</div>
+      <div style="font-size:10px;color:${color};letter-spacing:0.03em;font-weight:500;">${label}</div>
+    `;
+    formaScoreBadge.style.borderColor = color === '#6b6560' ? 'rgba(200,184,154,0.3)' : color;
+    formaScoreBadge.style.display = 'flex';
+    positionFormaScoreBadge();
+  }
+
+  function positionFormaScoreBadge() {
+    if (!formaScoreBadge || !targetTextarea) return;
+    const rect = targetTextarea.getBoundingClientRect();
+    formaScoreBadge.style.top = (rect.bottom + window.scrollY + 8) + 'px';
+    // Position to the right side of the textarea
+    formaScoreBadge.style.right = 'auto';
+    formaScoreBadge.style.left = (rect.right + window.scrollX - 200) + 'px';
+  }
+
+  function hideFormaScoreBadge() {
+    if (formaScoreBadge) formaScoreBadge.style.display = 'none';
+  }
+
+  function updateFormaScoreBadge(text, detectedTerms) {
+    if (!text || text.trim().length < 3) {
+      hideFormaScoreBadge();
+      return;
+    }
+    const result = computeFormaScore(text, detectedTerms || []);
+    showFormaScoreBadge(result.score, result.label, result.color);
+  }
+
   // Debounce timer for AI mode
   let aiDebounceTimer = null;
   function scheduleAIAnalysis(text, onComplete) {
@@ -943,6 +1066,12 @@ function initForma() {
     targetTextarea.addEventListener('input', () => {
       positionOverlay(targetTextarea);
       renderOverlay(targetTextarea);
+      // Update Forma Score badge based on current text
+      const currentText = targetTextarea.value;
+      const detectedTerms = lastAIResponse 
+        ? [...new Set(lastAIResponse.map(p => p.term).filter(Boolean))]
+        : [];
+      updateFormaScoreBadge(currentText, detectedTerms);
     });
     targetTextarea.addEventListener('scroll', () => {
       if (overlay) overlay.scrollTop = targetTextarea.scrollTop;
@@ -970,6 +1099,11 @@ function initForma() {
         targetTextarea.addEventListener('input', () => {
           positionOverlay(targetTextarea);
           renderOverlay(targetTextarea);
+          const currentText = targetTextarea.value;
+          const detectedTerms = lastAIResponse 
+            ? [...new Set(lastAIResponse.map(p => p.term).filter(Boolean))]
+            : [];
+          updateFormaScoreBadge(currentText, detectedTerms);
         });
       }
     });
