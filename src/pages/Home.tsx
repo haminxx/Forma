@@ -29,14 +29,14 @@ export function HomePage() {
         id="home"
         className="relative isolate flex min-h-screen scroll-mt-20 flex-col items-center overflow-hidden px-6"
         style={{
-          paddingTop: "clamp(2.5rem, 6vh, 4.5rem)",
+          // Just enough top padding to clear the sticky top bar (88 px),
+          // no extra "empty band". Dots fill from the very top edge.
+          paddingTop: "5.5rem",
           paddingBottom: "clamp(2rem, 6vh, 5rem)",
           justifyContent: "flex-start",
         }}
       >
-        {/* Wave is anchored to the BOTTOM half of the home screen only —
-            it rises from the bottom edge instead of filling the entire
-            section. */}
+        {/* Wave is anchored to the BOTTOM half of the home screen. */}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 top-1/2 z-0">
           <PixelWave />
         </div>
@@ -44,12 +44,8 @@ export function HomePage() {
           <InteractiveCanvas />
         </div>
 
-        {/* Hero content lifted above the horizontal midline. Two columns:
-            HomeHero on the left, LoopingWords on the right. */}
-        <div
-          className="relative z-20 mx-auto grid w-full max-w-6xl gap-12 md:grid-cols-[1.2fr_1fr] md:items-center md:gap-12"
-          style={{ marginTop: "clamp(0.5rem, 4vh, 3rem)" }}
-        >
+        {/* Hero content sits flush below the top bar, no inner top margin. */}
+        <div className="relative z-20 mx-auto grid w-full max-w-6xl gap-12 md:grid-cols-[1.2fr_1fr] md:items-center md:gap-12">
           <HomeHero />
           <div className="md:justify-self-end">
             <LoopingWords />
@@ -138,12 +134,20 @@ export function HomePage() {
         <LogoCloud />
       </section>
 
+      {/* Docs section sticks for 100 vh of scroll, then a 100 vh "lock"
+          buffer must be cleared before the footer arrives — gives the
+          deliberate "scroll once more to reach footer" feel. */}
       <section
         id="docs"
-        className="flex min-h-screen scroll-mt-20 items-center justify-center px-6"
-        style={{ paddingTop: "clamp(3rem,8vh,6rem)", paddingBottom: "clamp(3rem,8vh,6rem)" }}
+        className="relative scroll-mt-20"
+        style={{ height: "200vh" }}
       >
-        <DocsPanel />
+        <div
+          className="sticky top-0 flex h-screen items-center justify-center px-6"
+          style={{ paddingTop: "clamp(3rem,8vh,6rem)", paddingBottom: "clamp(3rem,8vh,6rem)" }}
+        >
+          <DocsPanel />
+        </div>
       </section>
     </div>
   );

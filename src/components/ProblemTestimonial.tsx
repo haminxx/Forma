@@ -1,12 +1,19 @@
 import type { HTMLAttributes, SVGProps } from "react";
 import { forwardRef, useRef } from "react";
-import { AnimatePresence, LayoutGroup, motion, useInView } from "framer-motion";
+import { LayoutGroup, motion, useInView } from "framer-motion";
 import { cn } from "../lib/cn";
 import { DotPattern } from "./ui/dot-pattern";
-import { TextRotate, type TextRotateRef } from "./ui/text-rotate";
+import { TextRotate } from "./ui/text-rotate";
 
 /**
- * Problem-screen statement with dot-pattern frame and rotating quote / attribution.
+ * Problem-screen statement with dot-pattern frame and a single quote +
+ * attribution. Per spec:
+ *   - On first scroll-into-view, the per-character stagger animation
+ *     plays once.
+ *   - No outer fade-in / blur entry on the wrapper itself.
+ *   - No auto-rotation through quotes.
+ *   - When the user scrolls out and back in, the in-view key changes so
+ *     the stagger replays from its initial state ("animation reverts").
  */
 type ProblemTestimonialProps = HTMLAttributes<HTMLDivElement> & {
   quotes: string[];
@@ -16,17 +23,18 @@ type ProblemTestimonialProps = HTMLAttributes<HTMLDivElement> & {
 const SF_DISPLAY_STACK =
   '"SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter", "Helvetica Neue", system-ui, sans-serif';
 
-const ROTATION_MS = 5000;
-
 export const ProblemTestimonial = forwardRef<HTMLDivElement, ProblemTestimonialProps>(
   ({ className, quotes, attributions, ...props }, ref) => {
-    const attributionRef = useRef<TextRotateRef>(null);
-    // Track viewport entry so the testimonial "types" in on enter and
-    // "untypes" out on exit. `amount: 0.4` means 40 % of the block must be
-    // visible to be considered in view — keeps the toggle from flickering
-    // at the edges of the section.
     const containerRef = useRef<HTMLDivElement | null>(null);
     const inView = useInView(containerRef, { amount: 0.4 });
+
+    const quote = quotes[0] ?? "";
+    const attribution = attributions[0] ?? "";
+
+    // Toggling `inView` forces a remount of the inner animated block so
+    // the per-character stagger replays from initial each time the user
+    // re-enters the section.
+    const animKey = inView ? "in" : "out";
 
     return (
       <div
@@ -40,44 +48,34 @@ export const ProblemTestimonial = forwardRef<HTMLDivElement, ProblemTestimonialP
       >
         <DotPattern className="fill-white/15 md:fill-white/20" />
 
-        <AnimatePresence mode="wait">
-          {inView ? (
-            <motion.div
-              key="problem-typo"
-              className="relative z-10"
-              initial={{ opacity: 0, y: 20, filter: "blur(6px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              exit={{ opacity: 0, y: -10, filter: "blur(6px)" }}
-              transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
-            >
+        <div key={animKey} className="relative z-10">
           <QuoteGlyph
             aria-hidden="true"
             className="mb-6 h-10 w-10 text-white/85 sm:h-12 sm:w-12"
           />
 
           <LayoutGroup>
-            <TextRotate
-              texts={quotes}
-              auto
-              rotationInterval={ROTATION_MS}
-              onNext={(index) => attributionRef.current?.jumpTo(index)}
-              splitBy="words"
-              staggerFrom="first"
-              staggerDuration={0.01}
-              initial={{ opacity: 0, x: 10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              transition={{ type: "spring", damping: 30, stiffness: 400 }}
-              animatePresenceMode="wait"
-              mainClassName={cn(
-                "text-balance text-3xl font-black leading-[1.05] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-[5rem]",
-              )}
-              style={{
-                fontFamily: SF_DISPLAY_STACK,
-                fontWeight: 900,
-                letterSpacing: "-0.02em",
-              }}
-            />
+            {inView ? (
+              <TextRotate
+                texts={[quote]}
+                auto={false}
+                splitBy="words"
+                staggerFrom="first"
+                staggerDuration={0.04}
+                initial={{ y: "60%", opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ type: "spring", damping: 28, stiffness: 320 }}
+                animatePresenceMode="wait"
+                animatePresenceInitial
+                mainClassName="text-balance text-3xl font-black leading-[1.05] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-[5rem]"
+                style={{
+                  fontFamily: SF_DISPLAY_STACK,
+                  fontWeight: 900,
+                  letterSpacing: "-0.02em",
+                }}
+              />
+            ) : null}
 
             <motion.div
               layout
@@ -85,24 +83,24 @@ export const ProblemTestimonial = forwardRef<HTMLDivElement, ProblemTestimonialP
               aria-hidden="true"
             />
 
-            <TextRotate
-              ref={attributionRef}
-              texts={attributions}
-              auto={false}
-              splitBy="characters"
-              staggerFrom="first"
-              staggerDuration={0.025}
-              initial={{ opacity: 0, x: 10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              transition={{ type: "spring", damping: 30, stiffness: 400 }}
-              animatePresenceMode="wait"
-              mainClassName="text-sm text-white/75 sm:text-base"
-            />
+            {inView ? (
+              <TextRotate
+                texts={[attribution]}
+                auto={false}
+                splitBy="characters"
+                staggerFrom="first"
+                staggerDuration={0.018}
+                initial={{ y: "60%", opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ type: "spring", damping: 28, stiffness: 360, delay: 0.25 }}
+                animatePresenceMode="wait"
+                animatePresenceInitial
+                mainClassName="text-sm text-white/75 sm:text-base"
+              />
+            ) : null}
           </LayoutGroup>
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
+        </div>
       </div>
     );
   },

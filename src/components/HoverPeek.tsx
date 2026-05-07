@@ -96,21 +96,29 @@ type HoverPeekBase = {
 };
 
 type HoverPeekProps = HoverPeekBase &
-  ({ isStatic: true; imageSrc: string } | { isStatic?: false; imageSrc?: never });
+  (
+    | { isStatic: true; imageSrc: string; imageSrcs?: never }
+    | { isStatic: true; imageSrcs: string[]; imageSrc?: never }
+    | { isStatic?: false; imageSrc?: never; imageSrcs?: never }
+  );
 
-export function HoverPeek({
-  children,
-  url,
-  className,
-  peekWidth = 220,
-  peekHeight = 138,
-  isStatic = false,
-  imageSrc = "",
-  enableMouseFollow = true,
-  enableLensEffect = true,
-  lensZoomFactor = 1.75,
-  lensSize = 100,
-}: HoverPeekProps) {
+export function HoverPeek(props: HoverPeekProps) {
+  const {
+    children,
+    url,
+    className,
+    peekWidth = 220,
+    peekHeight = 138,
+    isStatic = false,
+    enableMouseFollow = true,
+    enableLensEffect = true,
+    lensZoomFactor = 1.75,
+    lensSize = 100,
+  } = props;
+  const imageSrc = "imageSrc" in props ? props.imageSrc ?? "" : "";
+  const imageSrcs = "imageSrcs" in props ? props.imageSrcs : undefined;
+  const isStack = Boolean(imageSrcs && imageSrcs.length > 0);
+
   const [imageLoadFailed, setImageLoadFailed] = useState(false);
   const finalImageSrc = useMemo(
     () => buildMicrolinkSrc(url, peekWidth, peekHeight, isStatic, imageSrc),
@@ -125,14 +133,14 @@ export function HoverPeek({
 
   useEffect(() => {
     setImageLoadFailed(false);
-    // Prefetch the preview into the browser cache the moment the trigger
-    // mounts (or the URL changes), so the first hover paints from cache
-    // instead of waiting on a Microlink screenshot round-trip.
-    if (typeof window === "undefined" || !finalImageSrc) return;
-    const img = new Image();
-    img.decoding = "async";
-    img.src = finalImageSrc;
-  }, [finalImageSrc]);
+    if (typeof window === "undefined") return;
+    const sources = isStack ? imageSrcs ?? [] : [finalImageSrc];
+    sources.filter(Boolean).forEach((src) => {
+      const img = new Image();
+      img.decoding = "async";
+      img.src = src;
+    });
+  }, [finalImageSrc, imageSrcs, isStack]);
 
   useEffect(() => {
     if (!isPeeking) {
@@ -228,6 +236,22 @@ export function HoverPeek({
                     >
                       Preview unavailable
                     </div>
+                  ) : isStack ? (
+                    <div
+                      className="pointer-events-none flex flex-col gap-2 rounded-[5px] bg-neutral-800 p-2 align-top"
+                      style={{ width: peekWidth }}
+                    >
+                      {(imageSrcs ?? []).map((src, idx) => (
+                        <img
+                          key={`${src}-${idx}`}
+                          src={src}
+                          className="block w-full rounded bg-neutral-900 object-contain"
+                          alt={`Step ${idx + 1} preview`}
+                          loading="eager"
+                          onError={() => setImageLoadFailed(true)}
+                        />
+                      ))}
+                    </div>
                   ) : (
                     <img
                       src={finalImageSrc}
@@ -241,7 +265,7 @@ export function HoverPeek({
                   )}
 
                   <AnimatePresence>
-                    {enableLensEffect && isHoveringLens && !imageLoadFailed && (
+                    {enableLensEffect && !isStack && isHoveringLens && !imageLoadFailed && (
                       <motion.div
                         className="pointer-events-none absolute inset-0 overflow-hidden rounded-lg"
                         variants={lensMotionVariants}

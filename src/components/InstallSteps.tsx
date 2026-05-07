@@ -12,10 +12,11 @@ type Step = {
   /**
    * If provided, hovering the step row pops the same Microlink-style
    * preview card as the LogoCloud cells, but driven by a local image
-   * instead of a URL. The user supplies the file in /public/preview/…;
-   * if it's missing, HoverPeek falls back to "Preview unavailable".
+   * instead of a URL.
    */
   previewImage?: string;
+  /** Multi-image preview — vertical stack inside the same hover card. */
+  previewImages?: string[];
 };
 
 const STEPS: Step[] = [
@@ -33,11 +34,11 @@ const STEPS: Step[] = [
     label: "Visit Chrome Extensions",
     icon: ExternalLink,
     ariaLabel: "Open chrome://extensions/ in a new tab",
+    previewImages: [
+      "/preview/chrome-step-1-puzzle.png",
+      "/preview/chrome-step-2-manage.png",
+    ],
     onAction: () => {
-      // Chrome blocks direct `chrome://` navigation from a regular link, so
-      // we hand the user the URL via the clipboard and open a tab they can
-      // paste into. Most modern browsers honour `window.open` for chrome://
-      // when invoked from a user gesture; if blocked we still copy.
       const url = "chrome://extensions/";
       try {
         navigator.clipboard?.writeText(url);
@@ -102,7 +103,18 @@ export function InstallSteps() {
                 <span className="text-[11px] font-semibold tracking-[0.18em] text-white/40 group-data-[state=current]:text-white/80 group-data-[state=complete]:text-white/80">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                {step.previewImage ? (
+                {step.previewImages ? (
+                  <HoverPeek
+                    isStatic
+                    imageSrcs={step.previewImages}
+                    url={step.previewImages[0] ?? ""}
+                    enableLensEffect={false}
+                    peekWidth={260}
+                    peekHeight={220}
+                  >
+                    {trigger}
+                  </HoverPeek>
+                ) : step.previewImage ? (
                   <HoverPeek
                     isStatic
                     imageSrc={step.previewImage}
