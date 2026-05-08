@@ -8,16 +8,21 @@ import { LoopingWords } from "../components/LoopingWords";
 import { PixelWave } from "../components/PixelWave";
 import { ProblemTestimonial } from "../components/ProblemTestimonial";
 import { LogoCloud } from "../components/ui/logo-cloud";
+import { Reveal } from "../components/ui/reveal";
 import { TeamShowcase } from "../components/ui/team-showcase";
 import { TextRevealByWord } from "../components/ui/text-reveal";
+import { TypingHeading } from "../components/ui/typing-heading";
 
 /**
- * Each section is a full-screen page chunk that snaps into the viewport
- * (see `index.css` → scroll-snap). `scroll-mt-24` keeps section content
- * from sliding under the sticky top bar when an anchor is clicked.
- *
  * Section order:
  *   home → demo → sandbox → problem → solution → about → docs
+ *
+ * Animation choreography per non-hero section:
+ *   - Eyebrow chip (where present) fades in.
+ *   - Heading wipes left → right with a clip-path "typing" reveal,
+ *     then a gold flourish underline draws below it.
+ *   - Subtitle / body / interactive content fade in after the heading
+ *     finishes (delay ≈ wipe·0.85 + underlineDuration).
  *
  * Home stacking (back → front):
  *   z-0  PixelWave        WebGL dithered gold wave covering the whole hero
@@ -26,6 +31,13 @@ import { TextRevealByWord } from "../components/ui/text-reveal";
  *   z-20 HomeHero + LoopingWords (text content)
  *   z-30 bottom-edge gradient fade (no backdrop-filter)
  */
+
+// Heading wipe + flourish timings reused across non-hero sections so the
+// fade-ins below each heading land at a consistent beat.
+const SECTION_WIPE = 1.1;
+const SECTION_UL = 0.55;
+const POST_HEADING = SECTION_WIPE * 0.85 + SECTION_UL + 0.1;
+
 export function HomePage() {
   return (
     <div>
@@ -76,22 +88,32 @@ export function HomePage() {
         }}
       >
         <div className="w-full max-w-6xl px-4">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-white/55">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#d4b87a]" />
-            Demo · same intent, two prompts
-          </span>
-          <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
-            Watch the same idea land twice — once vague, once precise.
-          </h2>
+          <Reveal duration={0.5}>
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-white/55">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#d4b87a]" />
+              Demo · same intent, two prompts
+            </span>
+          </Reveal>
+          <div className="mt-4">
+            <TypingHeading
+              duration={SECTION_WIPE}
+              underlineDuration={SECTION_UL}
+              underlineWidth="min(18rem, 65%)"
+              className="text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl"
+            >
+              Watch the same idea land twice — once vague, once precise.
+            </TypingHeading>
+          </div>
         </div>
-        <DemoSplit />
+        <Reveal delay={POST_HEADING} duration={0.6}>
+          <DemoSplit />
+        </Reveal>
       </section>
 
-      {/* Sandbox — gold gradient stage behind the install steps + prompt
-          textbox so the section reads as a warm "atelier" against the
-          rest of the dark page. The gradient is layered radials with low
-          alpha, so the background bg-[#191a1f] still dominates at the
-          edges. */}
+      {/* Sandbox — moon-image base from sandbox.md, layered with a dark
+          tint and the existing gold radial gradients so the "atelier"
+          feel survives. Background is fixed-attachment for a subtle
+          parallax. */}
       <section
         id="sandbox"
         className="relative flex min-h-screen scroll-mt-20 flex-col items-center justify-center overflow-hidden px-6"
@@ -99,8 +121,21 @@ export function HomePage() {
           paddingTop: "clamp(3rem,8vh,6rem)",
           paddingBottom: "clamp(3rem,8vh,6rem)",
           gap: "clamp(1rem,2.5vh,2rem)",
+          backgroundImage:
+            "url('https://pub-940ccf6255b54fa799a9b01050e6c227.r2.dev/ruixen_moon_2.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundAttachment: "fixed",
         }}
       >
+        {/* Dark tint so text and the gold gradients still read clearly
+            on top of the photographic background. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-0"
+          style={{ background: "rgba(15, 16, 20, 0.65)" }}
+        />
+
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 z-0"
@@ -117,22 +152,39 @@ export function HomePage() {
           className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-40"
           style={{
             background:
-              "linear-gradient(180deg, rgba(25,26,31,0) 0%, rgba(25,26,31,0.6) 100%)",
+              "linear-gradient(180deg, rgba(25,26,31,0) 0%, rgba(25,26,31,0.7) 100%)",
           }}
         />
 
         <div className="relative z-10 flex flex-col items-center text-center">
-          <h2 className="text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
+          <TypingHeading
+            align="center"
+            duration={SECTION_WIPE}
+            underlineDuration={SECTION_UL}
+            underlineWidth="min(10rem, 50%)"
+            className="text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl"
+          >
             Define the form.
-          </h2>
-          <p className="mt-3 text-base text-white/55 sm:text-lg">
-            Test it on every web vibe-coding platform.
-          </p>
+          </TypingHeading>
+          <Reveal delay={POST_HEADING} duration={0.6}>
+            <p className="mt-3 text-base text-white/65 sm:text-lg">
+              Test it on every web vibe-coding platform.
+            </p>
+          </Reveal>
         </div>
-        <div className="relative z-10 flex w-full flex-col items-center" style={{ gap: "clamp(1rem,2.5vh,2rem)" }}>
-          <InstallSteps />
-          <GlassTextarea />
-          <LogoCloud />
+        <div
+          className="relative z-10 flex w-full flex-col items-center"
+          style={{ gap: "clamp(1rem,2.5vh,2rem)" }}
+        >
+          <Reveal delay={POST_HEADING + 0.2} duration={0.6}>
+            <InstallSteps />
+          </Reveal>
+          <Reveal delay={POST_HEADING + 0.4} duration={0.6}>
+            <GlassTextarea />
+          </Reveal>
+          <Reveal delay={POST_HEADING + 0.6} duration={0.6}>
+            <LogoCloud />
+          </Reveal>
         </div>
       </section>
 
@@ -155,13 +207,19 @@ export function HomePage() {
         />
       </section>
 
+      {/* Solution — long vague sentence brightens word-by-word, gold
+          underline draws, then the long sentence shrinks/blurs out and
+          a clean short tagline morphs in over the same area. */}
       <section id="solution" data-snap-start className="scroll-mt-20">
-        <TextRevealByWord text="Forma turns vague text into precise visual UI components." />
+        <TextRevealByWord
+          text="Forma is some kind of helpful smart tool thing that maybe sorta turns those random kinda vague description-y prompt words you type into something that's like, more clear and proper for getting back the UI components you actually wanted in the first place, hopefully."
+          shortText="Forma turns vague prompts into precise UI."
+        />
       </section>
 
-      {/* About — TeamShowcase with placeholder cards. Adopting the
-          aboutpage.md design (staggered photo grid + member name list);
-          real team data is intentionally empty for now. */}
+      {/* About — eyebrow removed, content centered, only the heading +
+          subtitle + TeamShowcase. Heading uses the same typing wipe +
+          gold underline pattern as the rest of the site. */}
       <section
         id="about"
         className="relative flex min-h-screen scroll-mt-20 flex-col items-center justify-center px-6"
@@ -171,21 +229,27 @@ export function HomePage() {
           gap: "clamp(1.5rem,3vh,2.5rem)",
         }}
       >
-        <div className="w-full max-w-5xl">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-white/55">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#d4b87a]" />
-            About · Forma
-          </span>
-          <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl">
+        <div className="flex w-full max-w-5xl flex-col items-center text-center">
+          <TypingHeading
+            align="center"
+            duration={SECTION_WIPE}
+            underlineDuration={SECTION_UL}
+            underlineWidth="min(16rem, 55%)"
+            className="text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl"
+          >
             Design-language research, shipped as a tool.
-          </h2>
-          <p className="mt-3 max-w-2xl text-base text-white/55 sm:text-lg">
-            Forma is a translation layer between human intent and the AI
-            tools that build UI — opinionated, open, pointed at the
-            precision frontier of generative interfaces.
-          </p>
+          </TypingHeading>
+          <Reveal delay={POST_HEADING} duration={0.6}>
+            <p className="mt-4 max-w-2xl text-base text-white/55 sm:text-lg">
+              Forma is a translation layer between human intent and the AI
+              tools that build UI — opinionated, open, pointed at the
+              precision frontier of generative interfaces.
+            </p>
+          </Reveal>
         </div>
-        <TeamShowcase />
+        <Reveal delay={POST_HEADING + 0.2} duration={0.6}>
+          <TeamShowcase />
+        </Reveal>
       </section>
 
       {/* Docs section sticks for 100 vh of scroll, then a 100 vh "lock"

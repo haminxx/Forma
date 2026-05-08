@@ -4,44 +4,51 @@ import { type MotionValue, motion, useScroll, useTransform } from "framer-motion
 import { cn } from "../../lib/cn";
 
 interface TextRevealByWordProps {
+  /** The long vague version that reveals first, word by word. */
   text: string;
+  /** Optional short, clean version that morphs IN after the underline draws. */
+  shortText?: string;
   className?: string;
-  /**
-   * Fraction of scroll progress consumed by the per-word brighten pass.
-   * Words finish lighting up at this point; underline draws after.
-   * Default: 0.72 (≈72 % of the 200vh scroll spent on words).
-   */
+  /** Fraction of scroll consumed by the per-word brighten pass. Default 0.55. */
   wordsEnd?: number;
-  /** When the dashed underline begins to draw. */
+  /** When the dashed gold underline begins to draw. Default `wordsEnd`. */
   underlineStart?: number;
+  /** When the underline reaches full width. Default 0.72. */
+  underlineEnd?: number;
+  /** When the long sentence begins fading out. Default 0.74. */
+  morphStart?: number;
+  /** When the short sentence is fully present. Default 0.92. */
+  morphEnd?: number;
 }
 
 /**
- * Scroll-driven sentence reveal.
+ * Scroll-driven sentence reveal with an optional "vague → precise" morph.
  *
- * Layout: a 200vh outer block; the visible "stage" is a `sticky top-0`,
- * full-screen flex centre. As the user scrolls the 200vh, framer-motion's
- * `useScroll({ target })` returns a `0 → 1` `scrollYProgress` MotionValue.
+ * Layout: a 200vh outer block; the visible "stage" is a `sticky top-0`
+ * full-screen flex centre. Framer-motion's `useScroll({ target })`
+ * returns a `0 → 1` MotionValue that drives every animation phase.
  *
- * Animation phases (driven by that single MotionValue):
- *   - 0   → wordsEnd        : each word interpolates from dim → bright in
- *                             order, left → right.
- *   - underlineStart → 1    : a dashed gold underline grows from `0%` to
- *                             `100%` width below the sentence.
+ * Phases:
+ *   0           → wordsEnd        each word interpolates dim → bright
+ *   underlineStart → underlineEnd dashed gold underline grows 0% → 100%
+ *   morphStart  → morphEnd        long sentence fades + scales out;
+ *                                  short sentence fades in over the top.
  *
- * This is a fresh approach vs. the earlier two-span overlay: each word is
- * a single `motion.span` whose `color` MotionValue interpolates from a
- * muted token to white. Because the value drives `color` directly, the
- * brighten always runs in scroll order — there's no "pop on" because the
- * baseline already shows the word at low contrast.
+ * If `shortText` is omitted the morph layer is skipped entirely and the
+ * component behaves like the original word-brighten + underline reveal.
  */
 const TextRevealByWord: FC<TextRevealByWordProps> = ({
   text,
+  shortText,
   className,
-  wordsEnd = 0.72,
-  underlineStart = 0.78,
+  wordsEnd = 0.55,
+  underlineStart,
+  underlineEnd = 0.72,
+  morphStart = 0.74,
+  morphEnd = 0.92,
 }) => {
   const targetRef = useRef<HTMLDivElement | null>(null);
+  const ulStart = underlineStart ?? wordsEnd;
 
   const { scrollYProgress } = useScroll({
     target: targetRef,
@@ -49,27 +56,75 @@ const TextRevealByWord: FC<TextRevealByWordProps> = ({
   });
 
   const words = text.split(" ");
-  const underlineWidth = useTransform(scrollYProgress, [underlineStart, 1], ["0%", "100%"]);
+  const underlineWidth = useTransform(scrollYProgress, [ulStart, underlineEnd], ["0%", "100%"]);
+
+  const longOpacity = useTransform(scrollYProgress, [morphStart, morphEnd], [1, 0]);
+  const longScale = useTransform(scrollYProgress, [morphStart, morphEnd], [1, 0.92]);
+  const longBlur = useTransform(scrollYProgress, [morphStart, morphEnd], ["blur(0px)", "blur(8px)"]);
+
+  const shortOpacity = useTransform(
+    scrollYProgress,
+    [morphStart + (morphEnd - morphStart) * 0.25, morphEnd],
+    [0, 1],
+  );
+  const shortScale = useTransform(
+    scrollYProgress,
+    [morphStart + (morphEnd - morphStart) * 0.25, morphEnd],
+    [1.08, 1],
+  );
+
+  const headingClass =
+    "flex flex-wrap items-center justify-center text-balance text-center font-semibold tracking-tight text-2xl md:text-4xl lg:text-5xl xl:text-6xl";
 
   return (
-    <div
-      ref={targetRef}
-      className={cn("relative z-0 h-[200vh] w-full", className)}
-    >
+    <div ref={targetRef} className={cn("relative z-0 h-[220vh] w-full", className)}>
       <div className="sticky top-0 mx-auto flex h-screen max-w-5xl flex-col items-center justify-center px-6">
-        <p className="flex flex-wrap items-center justify-center text-balance text-center font-semibold tracking-tight text-2xl md:text-4xl lg:text-5xl xl:text-6xl">
-          {words.map((word, i) => {
-            const start = (i / words.length) * wordsEnd;
-            const end = ((i + 1) / words.length) * wordsEnd;
-            return (
-              <Word key={`${word}-${i}`} progress={scrollYProgress} range={[start, end]}>
-                {word}
-              </Word>
-            );
-          })}
-        </p>
+        {/* Stage: long + short occupy the same area so the morph cross-fades
+            in place. minHeight reserves vertical space so the underline
+            below doesn't jump when the short sentence collapses to one line. */}
+        <div
+          className="relative flex w-full items-center justify-center"
+          style={{ minHeight: "clamp(180px, 32vh, 320px)" }}
+        >
+          <motion.p
+            className={cn("absolute inset-0 m-0 flex items-center justify-center", headingClass)}
+            style={
+              shortText
+                ? { opacity: longOpacity, scale: longScale, filter: longBlur }
+                : undefined
+            }
+          >
+            {words.map((word, i) => {
+              const start = (i / words.length) * wordsEnd;
+              const end = ((i + 1) / words.length) * wordsEnd;
+              return (
+                <Word
+                  key={`${word}-${i}`}
+                  progress={scrollYProgress}
+                  range={[start, end]}
+                >
+                  {word}
+                </Word>
+              );
+            })}
+          </motion.p>
 
-        {/* Dashed gold underline grows from the LEFT after all words light. */}
+          {shortText ? (
+            <motion.p
+              className={cn(
+                "absolute inset-0 m-0 flex items-center justify-center text-white",
+                headingClass,
+              )}
+              style={{ opacity: shortOpacity, scale: shortScale }}
+            >
+              {shortText}
+            </motion.p>
+          ) : null}
+        </div>
+
+        {/* Dashed gold underline grows from the LEFT after all words light.
+            Stays visible through the morph so the short sentence inherits
+            the same flourish. */}
         <div
           aria-hidden="true"
           className="mt-4 w-full"

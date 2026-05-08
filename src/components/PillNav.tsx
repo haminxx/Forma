@@ -178,76 +178,26 @@ export const PillNav: React.FC = () => {
         style={{
           width: pillWidth,
           height: "44px",
-          // Dark charcoal glass — Forma's #191a1f bg with a subtle tonal
-          // shift so the pill reads as raised against the page rather
-          // than the previous silver/light look that fought the theme.
-          background: `
-          linear-gradient(135deg,
-            #2c2e35 0%,
-            #25272d 30%,
-            #1d1f24 65%,
-            #2a2c33 100%
-          )
-        `,
-          boxShadow: expanded
-            ? `
-            0 2px 4px rgba(0, 0, 0, 0.45),
-            0 8px 18px rgba(0, 0, 0, 0.40),
-            0 18px 36px rgba(0, 0, 0, 0.30),
-            inset 0 1px 0 rgba(255, 255, 255, 0.08),
-            inset 0 -1px 0 rgba(0, 0, 0, 0.45),
-            inset 0 0 0 0.5px rgba(255, 255, 255, 0.10)
-          `
+          // Match the GitHub button: hairline border + subtle frosted
+          // glass surface. The gold accent only shows on the active
+          // label inside, so the pill itself sits quietly in the bar.
+          background: hovering || expanded
+            ? "rgba(255, 255, 255, 0.08)"
+            : "rgba(255, 255, 255, 0.04)",
+          border: "1px solid",
+          borderColor: hovering || expanded
+            ? "rgba(255, 255, 255, 0.25)"
             : isTransitioning
-              ? `
-            0 3px 8px rgba(0, 0, 0, 0.45),
-            0 8px 18px rgba(0, 0, 0, 0.32),
-            inset 0 1px 0 rgba(255, 255, 255, 0.07),
-            inset 0 -1px 0 rgba(0, 0, 0, 0.4),
-            inset 0 0 0 0.5px rgba(212, 184, 122, 0.18)
-          `
-              : `
-            0 3px 8px rgba(0, 0, 0, 0.40),
-            0 8px 18px rgba(0, 0, 0, 0.28),
-            inset 0 1px 0 rgba(255, 255, 255, 0.06),
-            inset 0 -1px 0 rgba(0, 0, 0, 0.4),
-            inset 0 0 0 0.5px rgba(255, 255, 255, 0.08)
-          `,
+              ? "rgba(212, 184, 122, 0.35)"
+              : "rgba(255, 255, 255, 0.15)",
+          backdropFilter: "blur(12px) saturate(140%)",
+          WebkitBackdropFilter: "blur(12px) saturate(140%)",
           x: pillShift,
           overflow: "hidden",
-          transition: "box-shadow 0.3s ease-out",
+          transition:
+            "background-color 0.3s ease-out, border-color 0.3s ease-out",
         }}
       >
-        {/* Top edge highlight — narrow gold-tinted ridge so the pill
-            reads as part of Forma's accent palette without screaming. */}
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 rounded-t-full"
-          style={{
-            height: "1px",
-            background:
-              "linear-gradient(90deg, rgba(212,184,122,0) 0%, rgba(212,184,122,0.18) 18%, rgba(255,255,255,0.20) 50%, rgba(212,184,122,0.18) 82%, rgba(212,184,122,0) 100%)",
-          }}
-        />
-
-        {/* Subtle top-hemisphere light catch */}
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 rounded-full"
-          style={{
-            height: "55%",
-            background:
-              "linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 60%, rgba(255, 255, 255, 0) 100%)",
-          }}
-        />
-
-        {/* Bottom inner shadow for depth */}
-        <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 rounded-b-full"
-          style={{
-            height: "55%",
-            background:
-              "linear-gradient(0deg, rgba(0, 0, 0, 0.32) 0%, rgba(0, 0, 0, 0.16) 35%, rgba(0, 0, 0, 0) 100%)",
-          }}
-        />
 
         {/* Navigation items container */}
         <div
