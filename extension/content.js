@@ -500,6 +500,8 @@ function initForma() {
   // Last analyzed text and timestamp for debouncing
   let lastAnalyzedText = '';
   let analyzeInFlight = false;
+  let analyzeRequestSeq = 0;
+  let activeAnalyzeController = null;
   let lastAIResponse = []; // most recent phrases array from AMD
   
   function detectPhrasesAI(text) {
@@ -532,11 +534,15 @@ function initForma() {
       return;
     }
     
-    if (analyzeInFlight) {
-      console.log('[Forma AI] Already in-flight, skipping');
-      return;
+    // Latest request should win: cancel previous in-flight request.
+    if (activeAnalyzeController) {
+      activeAnalyzeController.abort();
+      activeAnalyzeController = null;
     }
-    
+
+    const requestSeq = ++analyzeRequestSeq;
+    const controller = new AbortController();
+    activeAnalyzeController = controller;
     analyzeInFlight = true;
     lastAnalyzedText = text;
     console.log('[Forma AI] Calling /analyze for:', text.substring(0, 60) + '...');
@@ -546,11 +552,14 @@ function initForma() {
     fetch(ANALYZE_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: text })
+      body: JSON.stringify({ text: text }),
+      signal: controller.signal
     })
     .then(res => res.json())
     .then(data => {
+      if (requestSeq !== analyzeRequestSeq) return;
       analyzeInFlight = false;
+      activeAnalyzeController = null;
       hideAIIndicator();
       console.log('[Forma AI] Response:', data);
 
@@ -580,7 +589,10 @@ function initForma() {
       }
     })
     .catch(err => {
+      if (requestSeq !== analyzeRequestSeq) return;
+      if (err && err.name === 'AbortError') return;
       analyzeInFlight = false;
+      activeAnalyzeController = null;
       hideAIIndicator();
       console.error('[Forma AI] Error:', err);
     });
