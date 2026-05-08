@@ -407,19 +407,50 @@ async def run_fast_critic_agent(prompt: str) -> Dict[str, Any]:
     Fast-tier Critic Agent on 8B model for realtime usage.
     Targets sub-1.5s end-to-end latency with terse instructions.
     """
-    system_message = """You are Forma's fast critic. Score prompt quality for AI UI builders from 0-100 using clarity, concrete component vocabulary, motion/position specificity, and implementation hints; return only JSON with keys score, tier (Vague/Decent/Precise), weaknesses (array), suggestions (array)."""
+    start_time = time.time()
+    system_message = """You are Forma's fast critic for AI UI builder prompts. Return JSON with keys: score (integer 0-100), tier ("Vague"|"Decent"|"Precise"), weaknesses (array of strings), suggestions (array of strings). Keep arrays to 2 items max. Keep each item under 60 characters. Return valid JSON only."""
     payload = {
+        "model": FAST_MODEL,
         "messages": [
             {"role": "system", "content": system_message},
             {"role": "user", "content": f"Score this prompt: {prompt}"}
         ],
         "temperature": 0.2,
-        "max_tokens": 200,
+        "max_tokens": 400,
         "response_format": {"type": "json_object"}
     }
-    result = await _call_vllm(payload, url=VLLM_FAST_URL, model=FAST_MODEL)
-    result["metadata"] = {"tier": "fast"}
-    return result
+    try:
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            response = await client.post(VLLM_FAST_URL, json=payload)
+            response.raise_for_status()
+            data = response.json()
+            content = data["choices"][0]["message"]["content"]
+        try:
+            result = json.loads(content)
+            result["metadata"] = {
+                "tier": "fast",
+                "latency_ms": int((time.time() - start_time) * 1000),
+            }
+            return result
+        except Exception:
+            return {
+                "agent": "fast-critic",
+                "error": "JSON parse failure",
+                "raw_response": content,
+                "metadata": {
+                    "latency_ms": int((time.time() - start_time) * 1000),
+                    "tier": "fast",
+                },
+            }
+    except Exception as e:
+        return {
+            "agent": "fast-critic",
+            "error": str(e),
+            "metadata": {
+                "latency_ms": int((time.time() - start_time) * 1000),
+                "tier": "fast",
+            },
+        }
 
 
 async def run_reformulator_agent(prompt_text: str) -> Dict[str, Any]:
