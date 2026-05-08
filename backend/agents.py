@@ -1,4 +1,8 @@
 import os
+import json
+from typing import Dict, Any
+
+import httpx
 from dotenv import load_dotenv
 from crewai import Agent, Task, Crew, Process, LLM
 
@@ -328,3 +332,52 @@ Return only the JSON array."""
     except Exception as e:
         print(f"Error in analyze_sentence: {e}")
         return "ERROR"
+
+
+VLLM_URL = os.getenv("VLLM_URL", "http://165.245.128.5:8000/v1/chat/completions")
+VLLM_MODEL = os.getenv("VLLM_MODEL", "hugging-quants/Meta-Llama-3.1-70B-Instruct-AWQ-INT4")
+
+
+async def run_critic_agent(prompt_text: str) -> Dict[str, Any]:
+    """
+    Critic Agent: Evaluates prompt quality for AI UI builders.
+    Returns score 0-100 with weaknesses and suggestions.
+    """
+    system_message = """You are the Critic Agent in Forma, a system that helps users write better prompts for AI UI builders like v0 and Lovable.
+
+Score the user's prompt on these dimensions:
+- Component clarity (uses canonical UI vocabulary like "Toast", "Modal Dialog", "Sticky Navbar")
+- Motion specifications (timing, easing, duration)
+- Position anchoring (top-right, fixed, sticky)
+- Library hints (Framer Motion, shadcn/ui, Radix)
+- Accessibility considerations
+
+Return ONLY valid JSON in this exact format:
+{
+  "score": <integer 0-100>,
+  "tier": "<Vague|Decent|Precise>",
+  "weaknesses": ["<weakness 1>", "<weakness 2>"],
+  "suggestions": ["<suggestion 1>", "<suggestion 2>"]
+}
+
+Tier rules: 0-39 = Vague, 40-69 = Decent, 70-100 = Precise."""
+
+    user_message = f"Score this prompt: {prompt_text}"
+
+    payload = {
+        "model": VLLM_MODEL,
+        "messages": [
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": user_message}
+        ],
+        "temperature": 0.3,
+        "max_tokens": 400,
+        "response_format": {"type": "json_object"}
+    }
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.post(VLLM_URL, json=payload)
+        response.raise_for_status()
+        data = response.json()
+        content = data["choices"][0]["message"]["content"]
+        return json.loads(content)

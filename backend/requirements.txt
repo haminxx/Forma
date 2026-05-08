@@ -7,3 +7,4 @@ python-multipart
 requests
 python-dotenv
 sqlalchemy
+httpx==0.27.0
