@@ -802,11 +802,14 @@ function initForma() {
   function initializeDeepAnalysisSession(prompt) {
     deepAnalysisSession = {
       prompt,
+      clickStartTime: Date.now(),
       timerIds: [],
       abortController: null,
       responseData: null,
-      timelineDone: false,
       responseDone: false,
+      consensusStarted: false,
+      consensusCompleted: false,
+      realLatencyMs: 0,
       cancelled: false,
       errorMessage: '',
       rows: DEEP_AGENT_TIMELINE.map((item) => ({
@@ -846,26 +849,34 @@ function initForma() {
     }
   }
 
-  function setDeepRowState(rowId, nextState) {
+  function setDeepRowState(rowId, nextState, timingOverride) {
     if (!deepAnalysisSession || deepAnalysisSession.cancelled) return;
     const row = deepAnalysisSession.rows.find((r) => r.id === rowId);
     if (!row) return;
     row.state = nextState;
-    if (nextState === 'complete') row.timing = (row.endMs / 1000).toFixed(1) + 's';
+    if (nextState === 'complete') {
+      row.timing = timingOverride || (row.endMs / 1000).toFixed(1) + 's';
+    }
     updateDeepRowDom(row);
   }
 
-  function maybeFinalizeDeepAnalysis() {
+  function completeConsensusAndFinalize() {
     if (!deepAnalysisSession || deepAnalysisSession.cancelled) return;
-    if (!deepAnalysisSession.timelineDone || !deepAnalysisSession.responseDone) return;
+    if (!deepAnalysisSession.responseDone || !deepAnalysisSession.consensusStarted || deepAnalysisSession.consensusCompleted) return;
+    deepAnalysisSession.consensusCompleted = true;
+    const realSeconds = (deepAnalysisSession.realLatencyMs / 1000).toFixed(1) + 's';
+    setDeepRowState('consensus', 'complete', realSeconds);
     const responseData = deepAnalysisSession.responseData;
     const promptText = deepAnalysisSession.prompt;
-    hideDeepProgressPanel(() => {
-      deepAnalysisLoading = false;
-      deepAnalysisSession = null;
-      updateFormaScoreBadge(targetTextarea ? targetTextarea.value : '', lastAIResponse || []);
-      showAgentPanel(responseData, promptText);
-    });
+    const finalizeId = setTimeout(() => {
+      hideDeepProgressPanel(() => {
+        deepAnalysisLoading = false;
+        deepAnalysisSession = null;
+        updateFormaScoreBadge(targetTextarea ? targetTextarea.value : '', lastAIResponse || []);
+        showAgentPanel(responseData, promptText);
+      });
+    }, 600);
+    deepAnalysisSession.timerIds.push(finalizeId);
   }
 
   function startSimulatedDeepTimeline() {
@@ -873,15 +884,21 @@ function initForma() {
     clearDeepAnalysisTimers();
     deepAnalysisSession.rows.forEach((row) => {
       const startId = setTimeout(() => setDeepRowState(row.id, 'running'), row.startMs);
-      const endId = setTimeout(() => setDeepRowState(row.id, 'complete'), row.endMs);
-      deepAnalysisSession.timerIds.push(startId, endId);
+      deepAnalysisSession.timerIds.push(startId);
+      if (row.id !== 'consensus') {
+        const endId = setTimeout(() => setDeepRowState(row.id, 'complete'), row.endMs);
+        deepAnalysisSession.timerIds.push(endId);
+      } else {
+        const consensusStartId = setTimeout(() => {
+          if (!deepAnalysisSession || deepAnalysisSession.cancelled) return;
+          deepAnalysisSession.consensusStarted = true;
+          if (deepAnalysisSession.responseDone) {
+            completeConsensusAndFinalize();
+          }
+        }, row.startMs);
+        deepAnalysisSession.timerIds.push(consensusStartId);
+      }
     });
-    const timelineDoneId = setTimeout(() => {
-      if (!deepAnalysisSession || deepAnalysisSession.cancelled) return;
-      deepAnalysisSession.timelineDone = true;
-      maybeFinalizeDeepAnalysis();
-    }, 41000);
-    deepAnalysisSession.timerIds.push(timelineDoneId);
   }
 
   function hideDeepProgressPanel(onDone) {
@@ -1136,9 +1153,12 @@ function initForma() {
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
       if (!deepAnalysisSession || deepAnalysisSession.cancelled) return;
+      deepAnalysisSession.realLatencyMs = Date.now() - deepAnalysisSession.clickStartTime;
       deepAnalysisSession.responseData = data;
       deepAnalysisSession.responseDone = true;
-      maybeFinalizeDeepAnalysis();
+      if (deepAnalysisSession.consensusStarted) {
+        completeConsensusAndFinalize();
+      }
     } catch (err) {
       if (err && err.name === 'AbortError') return;
       console.error('[Forma Deep] Analysis failed:', err);
