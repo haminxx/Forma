@@ -45,12 +45,11 @@ export function DemoSplit() {
   return (
     <div
       ref={containerRef}
-      className="w-full max-w-[min(94vw,76rem)] px-[clamp(0.5rem,2vw,1rem)]"
+      className="w-full max-w-[min(98vw,92rem)] px-[clamp(0rem,1.2vw,0.5rem)]"
     >
-      {/* Slightly roomier grid + fluid max width so prompt + output
-          cards read larger on desktop while still fitting one viewport
-          on laptops (heights stay fluid via PromptInput + aspect). */}
-      <div className="grid w-full gap-3 sm:gap-4 md:grid-cols-2 md:gap-6">
+      {/* Full-bleed row: two prompt rails side‑to‑side on md+ (matches the
+          user's “long horizontal box” ask). */}
+      <div className="grid w-full gap-4 sm:gap-5 md:grid-cols-2 md:gap-8 lg:gap-10">
         <PromptInput
           variant="default"
           label="Vibe Coder"
@@ -83,13 +82,13 @@ export function DemoSplit() {
         <div className="mt-1 h-5 w-px bg-gradient-to-b from-transparent via-white/30 to-white/10" />
       </div>
 
-      <div className="grid w-full gap-3 sm:gap-4 md:grid-cols-2 md:gap-6">
+      <div className="grid w-full gap-4 sm:gap-5 md:grid-cols-2 md:gap-8 lg:gap-10">
         <div
-          className={`relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.02] transition-all duration-700 ${
+          className={`relative overflow-hidden rounded-2xl border border-white/12 bg-white/[0.03] shadow-[0_24px_80px_-48px_rgba(0,0,0,0.55)] transition-all duration-700 ${
             outputsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
           }`}
         >
-          <div className="flex items-center justify-between border-b border-white/5 px-3 py-1.5">
+          <div className="flex items-center justify-between border-b border-white/8 px-4 py-2">
             <div className="text-[10px] uppercase tracking-[0.18em] text-white/40">
               VAGUE OUTPUT
             </div>
@@ -97,9 +96,7 @@ export function DemoSplit() {
               generic spinner
             </div>
           </div>
-          {/* Fixed 16:10 aspect so both output cards have predictable
-              heights regardless of source image dimensions. */}
-          <div className="relative aspect-[16/10] w-full overflow-hidden bg-black/20">
+          <div className="relative aspect-[16/10] min-h-[min(42vw,340px)] w-full overflow-hidden bg-black/25 md:min-h-[300px]">
             <img
               src="/vague-output.png"
               alt="v0 output from vague prompt — generic loading state"
@@ -110,12 +107,12 @@ export function DemoSplit() {
         </div>
 
         <div
-          className={`relative overflow-hidden rounded-xl border border-[#d4b87a]/20 bg-[#d4b87a]/[0.02] transition-all duration-700 ${
+          className={`relative overflow-hidden rounded-2xl border border-[#d4b87a]/25 bg-[#d4b87a]/[0.04] shadow-[0_24px_80px_-48px_rgba(212,184,122,0.12)] transition-all duration-700 ${
             outputsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
           }`}
           style={{ transitionDelay: outputsVisible ? "300ms" : "0ms" }}
         >
-          <div className="flex items-center justify-between border-b border-[#d4b87a]/10 px-3 py-1.5">
+          <div className="flex items-center justify-between border-b border-[#d4b87a]/12 px-4 py-2">
             <div className="text-[10px] uppercase tracking-[0.18em] text-[#d4b87a]/80">
               PRECISE OUTPUT
             </div>
@@ -123,7 +120,7 @@ export function DemoSplit() {
               skeleton with shimmer
             </div>
           </div>
-          <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#d4b87a]/[0.04]">
+          <div className="relative aspect-[16/10] min-h-[min(42vw,340px)] w-full overflow-hidden bg-[#d4b87a]/[0.06] md:min-h-[300px]">
             <img
               src="/precise-output.png"
               alt="v0 output from precise prompt — skeleton loader components"

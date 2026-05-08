@@ -93,7 +93,7 @@ export function InstallSteps() {
   };
 
   return (
-    <div className="w-full max-w-3xl px-4 py-2">
+    <div className="w-full max-w-[min(98vw,88rem)] px-2 py-2 sm:px-4">
       <div
         className="rounded-2xl border border-white/18 p-4 sm:p-5"
         style={{

@@ -18,9 +18,9 @@ export function GlassTextarea() {
   const canSend = message.trim().length > 0;
 
   return (
-    <div className="relative w-full max-w-[min(100%,42rem)] px-[clamp(0.5rem,2vw,1.25rem)]">
+    <div className="relative w-full max-w-[min(98vw,88rem)]">
       <div
-        className="relative overflow-hidden rounded-xl border border-white/12 sm:rounded-2xl"
+        className="relative overflow-hidden rounded-2xl border border-white/14 sm:rounded-[1.35rem]"
         style={{
           background: "rgba(18, 19, 24, 0.78)",
           backdropFilter: "blur(24px) saturate(150%)",
@@ -42,10 +42,10 @@ export function GlassTextarea() {
           maxRows={7}
           placeholder="Describe your UI component and animation"
           aria-label="Forma sandbox prompt"
-          className="relative block w-full resize-none border-0 bg-transparent px-[clamp(0.85rem,3vw,1.5rem)] pt-[clamp(0.65rem,2.2vw,1rem)] pb-1 text-[clamp(0.875rem,2.1vw,1rem)] leading-relaxed text-white placeholder:text-white/45 focus:outline-none focus:ring-0"
+          className="relative block w-full resize-none border-0 bg-transparent px-[clamp(1rem,3.5vw,2rem)] pt-[clamp(0.75rem,2.5vw,1.25rem)] pb-1 text-[clamp(0.9rem,2.2vw,1.05rem)] leading-relaxed text-white placeholder:text-white/45 focus:outline-none focus:ring-0"
         />
 
-        <div className="relative flex items-center justify-between px-[clamp(0.75rem,2.5vw,1.15rem)] pb-[clamp(0.5rem,1.8vw,0.75rem)] pt-0.5">
+        <div className="relative flex items-center justify-between px-[clamp(0.9rem,3vw,1.75rem)] pb-[clamp(0.65rem,2vw,0.85rem)] pt-0.5">
           <button
             type="button"
             aria-label="Attach reference"

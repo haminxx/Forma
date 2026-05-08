@@ -20,7 +20,7 @@ import { AnimatePresence, motion } from "framer-motion";
  *     with a zero-duration step.
  */
 
-const ROW_HEIGHT = 64;
+const ROW_HEIGHT = 72;
 const WORD_INTERVAL_MS = 2400;
 
 const COMPONENT_WORDS = [
@@ -85,19 +85,23 @@ export function LoopingWords() {
 
   return (
     <div
-      className="relative w-full max-w-sm"
+      className="relative w-full max-w-lg"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <p className="mb-3 text-[10px] font-medium uppercase tracking-[0.32em] text-white/40">
-        UI vocabulary
-      </p>
+      <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-5 shadow-[0_20px_60px_-40px_rgba(0,0,0,0.55)] sm:p-6">
+        <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.32em] text-white/45">
+          UI vocabulary
+        </p>
+        <p className="mb-4 text-xs text-white/50">
+          Canonical component names — the words models reach for first.
+        </p>
 
-      <div
-        className="relative overflow-hidden"
-        style={{ height: ROW_HEIGHT }}
-        aria-live="off"
-      >
+        <div
+          className="relative overflow-hidden"
+          style={{ height: ROW_HEIGHT }}
+          aria-live="off"
+        >
         <motion.ul
           className="m-0 list-none p-0"
           animate={{ y: -index * ROW_HEIGHT }}
@@ -139,7 +143,7 @@ export function LoopingWords() {
           aria-hidden="true"
           className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2"
           style={{ height: ROW_HEIGHT }}
-          animate={{ width: edgeWidth + 16 }}
+          animate={{ width: edgeWidth + 20 }}
           transition={{ type: "spring", stiffness: 220, damping: 26 }}
         >
           <span className="absolute left-0 top-1 h-2.5 w-2.5 border-l-[1.5px] border-t-[1.5px] border-[#d4b87a]" />
@@ -147,6 +151,7 @@ export function LoopingWords() {
           <span className="absolute bottom-1 left-0 h-2.5 w-2.5 border-b-[1.5px] border-l-[1.5px] border-[#d4b87a]" />
           <span className="absolute bottom-1 right-0 h-2.5 w-2.5 border-b-[1.5px] border-r-[1.5px] border-[#d4b87a]" />
         </motion.div>
+      </div>
       </div>
 
       <AnimatePresence>
@@ -169,7 +174,7 @@ export function LoopingWords() {
 
 function WordPreviewCard({ word }: { word: ComponentWord }) {
   return (
-    <div className="w-64 rounded-xl border border-white/10 bg-[#1a1a1f]/95 p-5 shadow-[0_18px_50px_-24px_rgba(0,0,0,0.7)] backdrop-blur-md">
+    <div className="w-[17.5rem] rounded-xl border border-white/12 bg-[#1a1a1f]/95 p-5 shadow-[0_22px_55px_-28px_rgba(0,0,0,0.75)] backdrop-blur-md">
       <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-white/40">
         Component
       </p>
