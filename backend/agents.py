@@ -371,11 +371,11 @@ Tier rules: 0-39 = Vague, 40-69 = Decent, 70-100 = Precise."""
             {"role": "user", "content": user_message}
         ],
         "temperature": 0.3,
-        "max_tokens": 400,
+        "max_tokens": 300,
         "response_format": {"type": "json_object"}
     }
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=120.0) as client:
         response = await client.post(VLLM_URL, json=payload)
         response.raise_for_status()
         data = response.json()
@@ -414,11 +414,11 @@ Return ONLY valid JSON in this exact format:
             {"role": "user", "content": user_message}
         ],
         "temperature": 0.4,
-        "max_tokens": 600,
+        "max_tokens": 400,
         "response_format": {"type": "json_object"}
     }
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=120.0) as client:
         response = await client.post(VLLM_URL, json=payload)
         response.raise_for_status()
         data = response.json()
@@ -478,11 +478,11 @@ Return ONLY valid JSON in this exact format:
             {"role": "user", "content": user_message}
         ],
         "temperature": 0.4,
-        "max_tokens": 500,
+        "max_tokens": 350,
         "response_format": {"type": "json_object"}
     }
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=120.0) as client:
         response = await client.post(VLLM_URL, json=payload)
         response.raise_for_status()
         data = response.json()
@@ -539,11 +539,11 @@ Return ONLY valid JSON in this exact format:
             {"role": "user", "content": user_message}
         ],
         "temperature": 0.4,
-        "max_tokens": 500,
+        "max_tokens": 350,
         "response_format": {"type": "json_object"}
     }
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=120.0) as client:
         response = await client.post(VLLM_URL, json=payload)
         response.raise_for_status()
         data = response.json()
@@ -595,11 +595,11 @@ Return ONLY valid JSON in this exact format:
             {"role": "user", "content": user_message}
         ],
         "temperature": 0.4,
-        "max_tokens": 600,
+        "max_tokens": 400,
         "response_format": {"type": "json_object"}
     }
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=120.0) as client:
         response = await client.post(VLLM_URL, json=payload)
         response.raise_for_status()
         data = response.json()
@@ -669,11 +669,11 @@ Return ONLY valid JSON in this exact format:
             {"role": "user", "content": user_message}
         ],
         "temperature": 0.3,
-        "max_tokens": 600,
+        "max_tokens": 450,
         "response_format": {"type": "json_object"}
     }
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with httpx.AsyncClient(timeout=120.0) as client:
         response = await client.post(VLLM_URL, json=payload)
         response.raise_for_status()
         data = response.json()
