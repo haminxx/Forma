@@ -624,6 +624,10 @@ async def run_detect_vague_agent(text: str) -> Dict[str, Any]:
         if overlaps(start, end):
             continue
 
+        # Drop self-match: phrase already contains its canonical term (e.g. "Sticky Navbar" → "Sticky Navbar")
+        if canonical.lower() in phrase.lower():
+            continue
+
         alt_terms = item.get("alternatives", [])
         if not isinstance(alt_terms, list):
             alt_terms = []
