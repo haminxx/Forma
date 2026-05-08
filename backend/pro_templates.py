@@ -93,15 +93,148 @@ PRO_TEMPLATES = {
 }
 
 
+# Variant aliases — map common alternative names to canonical templates
+VARIANT_ALIASES = {
+    "Modal Overlay": "Modal Dialog",
+    "Modal": "Modal Dialog",
+    "Dialog": "Modal Dialog",
+    "Popover": "Glassmorphic Popover",
+    "Drawer": "Off-Canvas Drawer",
+    "Side Drawer": "Off-Canvas Drawer",
+    "Slide-out Menu": "Off-Canvas Drawer",
+    "Sheet": "Bottom Sheet",
+    "Toast": "Toast Notification",
+    "Snackbar": "Toast Notification",
+    "Notification": "Toast Notification",
+    "Alert": "Banner Alert",
+    "Banner": "Banner Alert",
+    "Spinner": "Loading Spinner",
+    "Loader": "Loading Spinner",
+    "Avatar": "Avatar",
+    "Badge": "Status Badge",
+    "Chip": "Tag Group",
+    "Tag": "Tag Group",
+    "Pill": "Tag Group",
+    "Tooltip Hint": "Tooltip",
+    "Dropdown": "Multi-Select Combobox",
+    "Select": "Multi-Select Combobox",
+    "Select Menu": "Multi-Select Combobox",
+    "Combobox": "Multi-Select Combobox",
+    "Autocomplete": "Multi-Select Combobox",
+    "Carousel": "Image Carousel",
+    "Slideshow": "Image Carousel",
+    "Image Slider": "Image Carousel",
+    "Navbar": "Sticky Navbar",
+    "Header": "Sticky Navbar",
+    "Top Bar": "Sticky Navbar",
+    "Sidebar": "Side Navigation",
+    "Side Menu": "Side Navigation",
+    "Tab": "Tab Bar",
+    "Tabs": "Tab Bar",
+    "Stepper Bar": "Stepper",
+    "Progress Indicator": "Progress Bar",
+    "Loading Bar": "Progress Bar",
+    "Skeleton": "Skeleton Loader",
+    "Empty": "Empty State",
+    "Hero": "Hero Section",
+    "Banner Hero": "Hero Section",
+    "Pricing": "Pricing Table",
+    "Pricing Tier": "Pricing Table",
+    "Bento": "Bento Grid",
+    "Grid": "Card Grid",
+    "Cards": "Card Grid",
+    "Breadcrumbs": "Breadcrumb",
+    "Crumbs": "Breadcrumb",
+    "Hamburger": "Hamburger Menu",
+    "Menu Toggle": "Hamburger Menu",
+    "Search": "Search Bar",
+    "Search Input": "Search Bar",
+    "Toggle": "Toggle Switch",
+    "Switch": "Toggle Switch",
+    "Range": "Slider",
+    "Date Input": "Date Picker",
+    "Calendar": "Date Picker",
+    "Time Input": "Time Picker",
+    "Color Input": "Color Picker",
+    "Color Swatch": "Color Picker",
+    "Upload": "File Uploader",
+    "Drop Zone": "File Uploader",
+    "Dropzone": "File Uploader",
+    "FAB": "Floating Action Button",
+    "Action Button": "Floating Action Button",
+    "Reaction": "Reaction Picker",
+    "Like": "Like Button",
+    "Follow": "Follow Button",
+    "Share": "Share Sheet",
+    "Notifications Panel": "Notification Center",
+    "Bell": "Notification Center",
+    "Comments": "Comment Thread",
+    "Replies": "Comment Thread",
+    "Image Viewer": "Lightbox",
+    "Photo Grid": "Image Gallery",
+    "Table": "Data Table",
+    "Grid Table": "Data Table",
+    "Spreadsheet": "Data Table",
+    "Stats": "Stat Card",
+    "Metric": "Stat Card",
+    "KPI": "Stat Card",
+    "Stat": "Stat Card",
+    "Avatar Group": "Avatar Stack",
+    "User Group": "Avatar Stack",
+    "Tree": "Tree View",
+    "Tree Navigation": "Tree View",
+    "Kanban": "Kanban Board",
+    "Board": "Kanban Board",
+    "Floating Label": "Floating Label Input",
+    "Material Input": "Floating Label Input",
+    "Progress Steps": "Stepper",
+    "OTP": "OTP Input",
+    "Verification Code": "OTP Input",
+    "PIN Input": "OTP Input",
+    "Multi-Select": "Multi-Select Combobox",
+    "Tag Input": "Multi-Select Combobox",
+    "Password Strength": "Password Strength Indicator",
+    "Strength Meter": "Password Strength Indicator",
+    "Confirmation": "Confirmation Dialog",
+    "Confirm Dialog": "Confirmation Dialog",
+    "Hint": "Tooltip",
+    "Right-Click Menu": "Context Menu",
+    "Cmd K": "Command Palette",
+    "Spotlight": "Command Palette",
+    "Drag Drop": "Drag and Drop List",
+    "Sortable List": "Drag and Drop List",
+    "Reorderable List": "Drag and Drop List",
+    "Collapsible": "Collapsible Panel",
+    "Expandable Panel": "Collapsible Panel",
+    "Resizable Panel": "Split Pane",
+}
+
+
 def get_pro_expansion(canonical_term: str) -> str:
     """Get the Pro Mode expansion for a canonical term.
     
     Returns the engineered prompt fragment if a template exists,
-    otherwise returns the term itself unchanged.
+    otherwise tries variant aliases, otherwise returns the term itself.
     """
-    return PRO_TEMPLATES.get(canonical_term, canonical_term)
+    # Direct match
+    if canonical_term in PRO_TEMPLATES:
+        return PRO_TEMPLATES[canonical_term]
+    # Try variant alias
+    canonical = VARIANT_ALIASES.get(canonical_term)
+    if canonical and canonical in PRO_TEMPLATES:
+        # Use the canonical template but keep the user-selected term name
+        template = PRO_TEMPLATES[canonical]
+        # Templates start with the term name followed by " (specs..."
+        if " (" in template:
+            specs = template[template.index(" ("):]
+            return canonical_term + specs
+        return template
+    return canonical_term
 
 
 def has_pro_template(canonical_term: str) -> bool:
-    """Check if a canonical term has a Pro template available."""
-    return canonical_term in PRO_TEMPLATES
+    """Check if a canonical term has a Pro template available (direct or variant)."""
+    if canonical_term in PRO_TEMPLATES:
+        return True
+    canonical = VARIANT_ALIASES.get(canonical_term)
+    return canonical is not None and canonical in PRO_TEMPLATES

@@ -20,6 +20,13 @@ function initForma() {
   
   const RAILWAY_URL = 'https://forma-production-c800.up.railway.app/translate';
   const ANALYZE_URL = 'https://forma-production-c800.up.railway.app/analyze';
+  const TRANSLATE_PRO_URL = 'https://forma-production-c800.up.railway.app/translate-pro';
+  let proMode = false;  // Pro Mode toggle state
+  const proExpansionCache = new Map();  // canonical_term -> expansion
+  // Tracks text spans that were just accepted, so we don't re-detect them.
+  // Each entry: { start: number, end: number, text: string }
+  let acceptedSpans = [];
+  let lastTextValue = '';  // For detecting major edits
   const LOG_DETECTION_URL = 'https://forma-production-c800.up.railway.app/log/detection';
   const LOG_ACCEPTANCE_URL = 'https://forma-production-c800.up.railway.app/log/acceptance';
   const LOG_SKIP_URL = 'https://forma-production-c800.up.railway.app/log/skip';
@@ -572,6 +579,25 @@ function initForma() {
     });
   }
 
+  async function fetchProExpansion(canonicalTerm) {
+    if (proExpansionCache.has(canonicalTerm)) {
+      return proExpansionCache.get(canonicalTerm);
+    }
+    try {
+      const res = await fetch(TRANSLATE_PRO_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ canonical_term: canonicalTerm })
+      });
+      const data = await res.json();
+      proExpansionCache.set(canonicalTerm, data);
+      return data;
+    } catch (err) {
+      console.error('[Forma Pro] Fetch failed:', err);
+      return { canonical_term: canonicalTerm, pro_expansion: canonicalTerm, has_pro_template: false };
+    }
+  }
+
   let aiIndicator = null;
 
   function showAIIndicator() {
@@ -660,10 +686,11 @@ function initForma() {
   function positionFormaScoreBadge() {
     if (!formaScoreBadge || !targetTextarea) return;
     const rect = targetTextarea.getBoundingClientRect();
+    // Position below the textarea, anchored to LEFT edge so it never
+    // overlaps with the host site's send button (typically right side).
     formaScoreBadge.style.top = (rect.bottom + window.scrollY + 8) + 'px';
-    // Position to the right side of the textarea
     formaScoreBadge.style.right = 'auto';
-    formaScoreBadge.style.left = (rect.right + window.scrollX - 200) + 'px';
+    formaScoreBadge.style.left = (rect.left + window.scrollX) + 'px';
   }
 
   function hideFormaScoreBadge() {
@@ -741,6 +768,30 @@ function initForma() {
   function renderOverlayWithPhrases(textarea, matches) {
     if (!overlay) return;
     const text = textarea.value;
+
+    // Detect MASSIVE edit (paste/delete-all): if text length changed by 200+ chars, clear.
+    // Smaller changes (including Pro Mode insertions which add ~80 chars) preserve spans.
+    if (Math.abs(text.length - lastTextValue.length) > 200) {
+      acceptedSpans = [];
+    }
+    lastTextValue = text;
+    
+    // Validate accepted spans against current text (they're stale if text shifted)
+    acceptedSpans = acceptedSpans.filter(span => {
+      const currentSlice = text.substring(span.start, span.end);
+      return currentSlice === span.text;
+    });
+    
+    // Filter out matches that fall inside an accepted span
+    matches = matches.filter(match => {
+      for (const span of acceptedSpans) {
+        // Match overlaps with accepted span — skip it
+        if (match.start < span.end && match.end > span.start) {
+          return false;
+        }
+      }
+      return true;
+    });
 
     if (matches.length === 0) {
       overlay.innerHTML = '';
@@ -863,11 +914,24 @@ function initForma() {
     renderTooltipContent(data);
   }
 
-  function renderTooltipContent(data) {
+  let renderToken = 0;
+  async function renderTooltipContent(data) {
+    const myToken = ++renderToken;
     // If an alternative is selected, show that as the primary term
     const displayTerm = selectedAlternative ? selectedAlternative.term : data.term;
     const displayDefinition = selectedAlternative ? selectedAlternative.description : data.definition;
     const animation = findAnimation(displayTerm);
+    
+    // Fetch Pro expansion for the current display term
+    let proData = { pro_expansion: displayTerm, has_pro_template: false };
+    if (proMode) {
+      proData = await fetchProExpansion(displayTerm);
+      // Bail if another render started while we were awaiting
+      if (myToken !== renderToken) return;
+    }
+    
+    // The text that gets inserted on Accept
+    const insertionText = proMode && proData.has_pro_template ? proData.pro_expansion : displayTerm;
     
     const altsHtml = (data.alternatives || []).map((alt, i) => {
       const isSelected = selectedAlternative && selectedAlternative.term === alt.term;
@@ -888,10 +952,35 @@ function initForma() {
       ? `<div style="margin:0 14px 10px;border-radius:7px;overflow:hidden;">${animation}</div>`
       : '';
     
+    // Pro Mode toggle pills
+    const toggleHtml = `
+      <div style="display:inline-flex;align-items:center;background:#141412;border:0.5px solid #2a2825;border-radius:6px;padding:2px;gap:2px;">
+        <div id="forma-mode-quick" style="padding:3px 10px;border-radius:4px;font-size:10px;cursor:pointer;letter-spacing:0.03em;font-weight:500;${!proMode ? 'background:#c8b89a;color:#0a0a09;' : 'color:#6b6560;'}">QUICK</div>
+        <div id="forma-mode-pro" style="padding:3px 10px;border-radius:4px;font-size:10px;cursor:pointer;letter-spacing:0.03em;font-weight:500;${proMode ? 'background:#c8b89a;color:#0a0a09;' : 'color:#6b6560;'}">PRO</div>
+      </div>
+    `;
+    
+    // Pro expansion preview (only shown in Pro mode)
+    const proPreviewHtml = (proMode && proData.has_pro_template)
+      ? `<div style="margin:0 14px 10px;padding:10px 12px;background:rgba(200,184,154,0.06);border:0.5px solid rgba(200,184,154,0.2);border-radius:6px;">
+          <div style="font-size:9px;color:#c8b89a;letter-spacing:0.08em;margin-bottom:4px;font-weight:600;">PRO EXPANSION</div>
+          <div style="font-size:11px;color:#f0ece4;line-height:1.45;font-family:'JetBrains Mono', monospace;">${escapeHtml(proData.pro_expansion)}</div>
+        </div>`
+      : (proMode && !proData.has_pro_template)
+      ? `<div style="margin:0 14px 10px;padding:8px 12px;background:rgba(239,68,68,0.04);border:0.5px solid rgba(239,68,68,0.15);border-radius:6px;">
+          <div style="font-size:10px;color:#a0998c;line-height:1.4;">No Pro template available for this term yet. Quick mode will be used.</div>
+        </div>`
+      : '';
+    
+    // Truncate insertion text for button label
+    const buttonLabel = insertionText.length > 35 
+      ? `Accept "${escapeHtml(insertionText.substring(0, 32))}..."` 
+      : `Accept "${escapeHtml(insertionText)}"`;
+    
     tooltip.innerHTML = `
       <div style="padding:10px 14px;border-bottom:0.5px solid #2a2825;display:flex;justify-content:space-between;align-items:center;">
         <div style="font-size:10px;color:#c8b89a;letter-spacing:0.05em;font-weight:500;">FORMA SUGGESTS</div>
-        <div style="font-size:10px;color:#6b6560;">${selectedAlternative ? 'Alternative selected' : 'Click accept'}</div>
+        ${toggleHtml}
       </div>
       <div style="padding:12px 14px 8px;">
         <div style="font-size:18px;font-weight:600;color:#f5f3ef;margin-bottom:4px;line-height:1.2;">${escapeHtml(displayTerm)}</div>
@@ -899,16 +988,40 @@ function initForma() {
         ${resetPillHtml}
       </div>
       ${animationHtml}
+      ${proPreviewHtml}
       <div style="padding:8px 14px;display:flex;gap:6px;">${altsHtml}</div>
       <div style="padding:10px 14px;display:flex;gap:8px;border-top:0.5px solid #2a2825;">
-        <button id="forma-accept" style="flex:1;padding:8px;background:#c8b89a;color:#0a0a09;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">Accept "${escapeHtml(displayTerm)}"</button>
+        <button id="forma-accept" style="flex:1;padding:8px;background:#c8b89a;color:#0a0a09;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">${buttonLabel}</button>
         <button id="forma-skip" style="padding:8px 14px;background:transparent;color:#6b6560;border:0.5px solid #2a2825;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;">Skip</button>
       </div>
       <div style="padding:8px 14px;background:rgba(74,222,128,0.04);border-top:0.5px solid rgba(74,222,128,0.1);display:flex;align-items:center;gap:6px;">
         <div style="width:5px;height:5px;border-radius:50%;background:#4ade80;animation:forma-pulse 1.5s ease-in-out infinite;"></div>
-        <div style="font-size:10px;color:#4ade80;font-family:monospace;">Llama 3.1 8B · AMD MI300X · ${data.latency || '?'}ms · Mode: ${DETECTION_MODE}</div>
+        <div style="font-size:10px;color:#4ade80;font-family:monospace;">Llama 3.1 8B · AMD MI300X · ${data.latency || '?'}ms · Mode: ${proMode ? 'PRO' : 'QUICK'}</div>
       </div>
     `;
+    
+    // Store insertion text on tooltip for handleAccept to use
+    tooltip.dataset.insertionText = insertionText;
+    
+    // Wire up Pro mode toggle
+    const quickBtn = tooltip.querySelector('#forma-mode-quick');
+    const proBtn = tooltip.querySelector('#forma-mode-pro');
+    if (quickBtn) {
+      quickBtn.addEventListener('click', () => {
+        if (proMode) {
+          proMode = false;
+          renderTooltipContent(currentResponse);
+        }
+      });
+    }
+    if (proBtn) {
+      proBtn.addEventListener('click', () => {
+        if (!proMode) {
+          proMode = true;
+          renderTooltipContent(currentResponse);
+        }
+      });
+    }
     
     // Wire up alternative thumbnails
     tooltip.querySelectorAll('.forma-alt').forEach(altDiv => {
@@ -933,9 +1046,16 @@ function initForma() {
       });
     }
     
-    // Wire up accept and skip
+    // Wire up accept — capture span + text at render time so they can't go stale
     const acceptBtn = tooltip.querySelector('#forma-accept');
-    if (acceptBtn) acceptBtn.addEventListener('click', handleAccept);
+    const capturedSpan = currentSpan;
+    const capturedInsertionText = insertionText;
+    const capturedPhrase = currentSpan ? currentSpan.dataset.phrase : null;
+    if (acceptBtn) {
+      acceptBtn.addEventListener('click', () => {
+        handleAcceptWithCapture(capturedSpan, capturedInsertionText, capturedPhrase);
+      });
+    }
     const skipBtn = tooltip.querySelector('#forma-skip');
     if (skipBtn) skipBtn.addEventListener('click', handleSkip);
   }
@@ -1009,32 +1129,93 @@ function initForma() {
   }
 
   function handleAccept() {
-    if (!currentSpan || !currentResponse || !targetTextarea) return;
-    const start = parseInt(currentSpan.dataset.start);
-    const end = parseInt(currentSpan.dataset.end);
-    if (isNaN(start) || isNaN(end)) return;
+    // Legacy path — delegates to capture-aware version using current state
+    handleAcceptWithCapture(
+      currentSpan,
+      tooltip.dataset.insertionText || (selectedAlternative ? selectedAlternative.term : currentResponse.term),
+      currentSpan ? currentSpan.dataset.phrase : null
+    );
+  }
+
+  function handleAcceptWithCapture(span, replacement, expectedPhrase) {
+    if (!span || !targetTextarea || !replacement) {
+      console.warn('[Forma] Accept aborted: missing span/textarea/replacement');
+      return;
+    }
+    let start = parseInt(span.dataset.start);
+    let end = parseInt(span.dataset.end);
+    if (isNaN(start) || isNaN(end)) {
+      console.warn('[Forma] Accept aborted: bad start/end');
+      return;
+    }
     
-    const replacement = selectedAlternative ? selectedAlternative.term : currentResponse.term;
     const text = targetTextarea.value;
-    const newText = text.substring(0, start) + replacement + text.substring(end);
     
+    // VALIDATE: text at [start, end) must match the expected phrase.
+    const actualSlice = text.substring(start, end);
+    if (expectedPhrase && actualSlice !== expectedPhrase) {
+      console.warn('[Forma] Accept aborted: position drift. Expected "' + expectedPhrase + '" at [' + start + ',' + end + '), found "' + actualSlice + '"');
+      hideTooltip();
+      return;
+    }
+    
+    // CHECK: Is this acceptance happening INSIDE an existing Pro span?
+    // If yes, expand replacement to cover the entire Pro span (term + specs).
+    let enclosingSpanIndex = -1;
+    for (let i = 0; i < acceptedSpans.length; i++) {
+      const aSpan = acceptedSpans[i];
+      // Verify the accepted span is still valid in current text
+      const sliceCheck = text.substring(aSpan.start, aSpan.end);
+      if (sliceCheck !== aSpan.text) continue;
+      
+      // Is the new accept's range INSIDE this acceptedSpan?
+      if (start >= aSpan.start && end <= aSpan.end) {
+        enclosingSpanIndex = i;
+        // Expand the replacement range to cover the entire Pro span
+        start = aSpan.start;
+        end = aSpan.end;
+        console.log('[Forma] Accept replaces entire Pro span [' + start + ',' + end + ')');
+        break;
+      }
+    }
+    
+    const newText = text.substring(0, start) + replacement + text.substring(end);
     targetTextarea.value = newText;
+    
+    // Update acceptedSpans
+    const newEnd = start + replacement.length;
+    const lengthDiff = replacement.length - (end - start);
+    
+    // Remove the enclosing span (we replaced it) and adjust positions of others
+    acceptedSpans = acceptedSpans
+      .filter((_, i) => i !== enclosingSpanIndex)
+      .map(s => {
+        if (s.start >= end) {
+          return { ...s, start: s.start + lengthDiff, end: s.end + lengthDiff };
+        }
+        return s;
+      });
+    
+    // Add the new accepted span
+    acceptedSpans.push({ start: start, end: newEnd, text: replacement });
+    
     targetTextarea.dispatchEvent(new Event('input', { bubbles: true }));
     targetTextarea.dispatchEvent(new Event('change', { bubbles: true }));
     
     // Log acceptance to Design Intelligence Layer
-    const phraseText = currentSpan.dataset.phrase;
-    logAcceptance(
-      phraseText,
-      currentResponse.term,
-      selectedAlternative ? selectedAlternative.term : null
-    );
+    if (currentResponse) {
+      logAcceptance(
+        expectedPhrase || (span.dataset.phrase),
+        currentResponse.term,
+        selectedAlternative ? selectedAlternative.term : null
+      );
+    }
     
     hideTooltip();
     positionOverlay(targetTextarea);
     renderOverlay(targetTextarea);
     
-    console.log('[Forma] Accepted:', replacement);
+    console.log('[Forma] Accepted: "' + replacement + '" at [' + start + ',' + newEnd + ')');
   }
 
   function handleSkip() {
