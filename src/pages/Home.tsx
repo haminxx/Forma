@@ -11,6 +11,7 @@ import { BlurText } from "../components/ui/blur-text";
 import { FeatureShowcase } from "../components/ui/feature-showcase";
 import { LogoCloud } from "../components/ui/logo-cloud";
 import { Reveal } from "../components/ui/reveal";
+import { EdgeGlow, SectionFade } from "../components/ui/section-fade";
 
 /**
  * Section order:
@@ -29,6 +30,18 @@ import { Reveal } from "../components/ui/reveal";
  *   - The About section uses `FeatureShowcase` (left-column accordion
  *     + right-column tab images, gold theme).
  *   - The Docs section uses gold `GlowCard` spotlights for each card.
+ *
+ * Section boundaries are softened with two helpers from
+ * `ui/section-fade`:
+ *   - `SectionFade` paints a vertical page-bg gradient (with optional
+ *     backdrop-blur) at section edges so distinctive backgrounds —
+ *     primarily the Sandbox's gold radial — bleed into the page bg
+ *     instead of ending at a hard horizontal line.
+ *   - `EdgeGlow` paints a low-opacity gold radial bloom at the section
+ *     edge with `mix-blend-mode: screen`. When two adjacent sections
+ *     both place an `EdgeGlow` at the boundary, the blooms overlap and
+ *     create the illusion of warmth flowing continuously across the
+ *     divide. Used everywhere the bg is flat dark on both sides.
  */
 
 // Common per-word blur stagger values — used to compute the right
@@ -81,6 +94,10 @@ export function HomePage() {
               "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 60%)",
           }}
         />
+        {/* Gold bloom at the home → demo seam — pairs with the
+            EdgeGlow at demo's top so the warmth of the wave reads as
+            continuous instead of cutting off at the fade. */}
+        <EdgeGlow position="bottom" />
       </section>
 
       {/* Demo — compact stage so the prompts row + outputs row both
@@ -88,13 +105,15 @@ export function HomePage() {
           DemoSplit, with output cards on a fixed 16:10 aspect. */}
       <section
         id="demo"
-        className="flex min-h-screen scroll-mt-20 flex-col items-center justify-center overflow-hidden px-6"
+        className="relative flex min-h-screen scroll-mt-20 flex-col items-center justify-center overflow-hidden px-6"
         style={{
           paddingTop: "clamp(2rem,5vh,4rem)",
           paddingBottom: "clamp(2rem,5vh,4rem)",
           gap: "clamp(0.75rem,1.5vh,1.5rem)",
         }}
       >
+        <EdgeGlow position="top" />
+        <EdgeGlow position="bottom" />
         <div className="w-full max-w-6xl px-4">
           <Reveal duration={0.5}>
             <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-white/55">
@@ -139,6 +158,13 @@ export function HomePage() {
           className="pointer-events-none absolute inset-0 -z-10 h-full w-full items-center px-5 py-24 [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#d4b87a_100%)]"
         />
 
+        {/* Soft frosted fade at top + bottom — bleeds the gold radial
+            into the page bg over a clamp(4rem..8rem) strip and frosts
+            content scrolling past the boundary so the Demo→Sandbox
+            and Sandbox→Problem transitions don't read as hard edges. */}
+        <SectionFade position="top" blur={6} />
+        <SectionFade position="bottom" blur={6} />
+
         <div className="relative z-10 flex flex-col items-center text-center">
           <BlurText
             as="h2"
@@ -182,12 +208,14 @@ export function HomePage() {
           and a per-line stagger reveal. */}
       <section
         id="problem"
-        className="flex min-h-screen scroll-mt-20 items-center justify-center px-6"
+        className="relative flex min-h-screen scroll-mt-20 items-center justify-center px-6"
         style={{
           paddingTop: "clamp(3rem,8vh,6rem)",
           paddingBottom: "clamp(3rem,8vh,6rem)",
         }}
       >
+        <EdgeGlow position="top" />
+        <EdgeGlow position="bottom" />
         <ProblemQuote />
       </section>
 
@@ -196,8 +224,11 @@ export function HomePage() {
       <section
         id="solution"
         aria-hidden="true"
-        className="min-h-screen scroll-mt-20"
-      />
+        className="relative min-h-screen scroll-mt-20"
+      >
+        <EdgeGlow position="top" />
+        <EdgeGlow position="bottom" />
+      </section>
 
       {/* About — FeatureShowcase. Eyebrow + headline + accordion on
           the left, image-tab panel on the right. */}
@@ -209,6 +240,8 @@ export function HomePage() {
           paddingBottom: "clamp(3rem,8vh,6rem)",
         }}
       >
+        <EdgeGlow position="top" />
+        <EdgeGlow position="bottom" />
         <FeatureShowcase
           eyebrow="About Forma"
           title="Design-language research, shipped as a tool."
@@ -271,6 +304,13 @@ export function HomePage() {
           className="sticky top-0 flex h-screen items-center justify-center px-6"
           style={{ paddingTop: "clamp(3rem,8vh,6rem)", paddingBottom: "clamp(3rem,8vh,6rem)" }}
         >
+          {/* EdgeGlow lives inside the sticky panel so the bloom moves
+              with the visible viewport as the panel sticks during the
+              200 vh scroll buffer. The top bloom bleeds the warm
+              About→Docs transition into Docs; the bottom bloom warms
+              the lock-buffer area before the footer arrives. */}
+          <EdgeGlow position="top" />
+          <EdgeGlow position="bottom" />
           <DocsPanel />
         </div>
       </section>
