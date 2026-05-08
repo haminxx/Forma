@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from agents import translate_phrase, analyze_sentence, run_critic_agent, run_reformulator_agent, run_style_agent
+from agents import translate_phrase, analyze_sentence, run_critic_agent, run_reformulator_agent, run_style_agent, run_memory_agent
 from patterns import contains_vague_phrase
 from parser import parse_response, parse_analyze_response
 from db import init_db, get_db
@@ -73,6 +73,10 @@ class StyleRequest(BaseModel):
     text: str
 
 
+class MemoryRequest(BaseModel):
+    text: str
+
+
 @app.get("/")
 def health_check():
     return {
@@ -134,6 +138,16 @@ async def style_endpoint(request: StyleRequest):
         return {"agent": "style", "result": result}
     except Exception as e:
         return {"agent": "style", "error": str(e)}
+
+
+@app.post("/agents/memory")
+async def memory_endpoint(request: MemoryRequest):
+    """Memory Agent: analyzes user's accumulated cross-builder design history."""
+    try:
+        result = await run_memory_agent(request.text)
+        return {"agent": "memory", "result": result}
+    except Exception as e:
+        return {"agent": "memory", "error": str(e)}
 
 
 # ============================================================

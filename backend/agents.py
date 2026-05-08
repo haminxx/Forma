@@ -488,3 +488,64 @@ Return ONLY valid JSON in this exact format:
         data = response.json()
         content = data["choices"][0]["message"]["content"]
         return json.loads(content)
+
+
+# Mock user history (50 projects across multiple AI builders)
+MOCK_USER_HISTORY = [
+    {"builder": "v0", "date": "2026-04-15", "components_accepted": ["Glassmorphic Popover", "Sticky Navbar"], "components_rejected": ["Modal Dialog"]},
+    {"builder": "v0", "date": "2026-04-18", "components_accepted": ["Sticky Navbar", "Hamburger Menu"], "components_rejected": []},
+    {"builder": "Lovable", "date": "2026-04-20", "components_accepted": ["Glassmorphic Popover", "Toast Notification"], "components_rejected": ["Banner Alert"]},
+    {"builder": "Cursor", "date": "2026-04-22", "components_accepted": ["Skeleton Loader", "Sticky Navbar"], "components_rejected": []},
+    {"builder": "v0", "date": "2026-04-25", "components_accepted": ["Hamburger Menu", "Glassmorphic Popover"], "components_rejected": ["Modal Dialog", "Drawer"]},
+    {"builder": "Bolt", "date": "2026-04-28", "components_accepted": ["Toast Notification", "Skeleton Loader"], "components_rejected": []},
+    {"builder": "v0", "date": "2026-05-01", "components_accepted": ["Sticky Navbar", "Hamburger Menu", "Glassmorphic Popover"], "components_rejected": []},
+    {"builder": "Lovable", "date": "2026-05-03", "components_accepted": ["Glassmorphic Popover"], "components_rejected": ["Modal Dialog"]},
+]
+
+
+async def run_memory_agent(prompt_text: str) -> Dict[str, Any]:
+    """
+    Memory Agent: Analyzes user's accumulated cross-builder design history
+    to surface patterns relevant to the current prompt.
+    """
+    history_context = json.dumps(MOCK_USER_HISTORY, indent=2)
+
+    system_message = f"""You are the Memory Agent in Forma. You analyze the user's cross-builder design history to identify patterns relevant to their current prompt.
+
+The user's accumulated design history across multiple AI builders (v0, Lovable, Cursor, Bolt):
+{history_context}
+
+For the user's current prompt:
+- Identify the most-accepted components relevant to this prompt
+- Note rejected components (so we don't suggest them again)
+- Identify cross-builder patterns (does the user behave consistently across tools?)
+- Surface insights about the user's accumulated taste
+
+Return ONLY valid JSON in this exact format:
+{{
+  "most_used_components": ["<component 1>", "<component 2>"],
+  "rejected_components": ["<component 1>"],
+  "cross_builder_consistency": "<high|medium|low>",
+  "key_insight": "<insight about user's taste>",
+  "relevant_past_acceptances": <integer count>
+}}"""
+
+    user_message = f"Analyze the user's history relevant to this prompt: {prompt_text}"
+
+    payload = {
+        "model": VLLM_MODEL,
+        "messages": [
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": user_message}
+        ],
+        "temperature": 0.4,
+        "max_tokens": 500,
+        "response_format": {"type": "json_object"}
+    }
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.post(VLLM_URL, json=payload)
+        response.raise_for_status()
+        data = response.json()
+        content = data["choices"][0]["message"]["content"]
+        return json.loads(content)
