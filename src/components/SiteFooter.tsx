@@ -1,20 +1,6 @@
 import { NAV_ITEMS } from "./PillNav";
 import { Reveal } from "./ui/reveal";
 
-const SECTION_DESCRIPTIONS: Record<string, string> = {
-  home: "Brand-level intro with a dithered gold wave and a cursor-reactive halo of pixels.",
-  problem:
-    "The vibecoder failure mode in one sentence — vague prompts, six different cards.",
-  solution:
-    "How Forma turns vague text into precise visual UI components, one scroll at a time.",
-  about:
-    "Two-person team, one tool, a lot of opinions about modals.",
-  demo: "Side-by-side prompts that show the same intent before and after a vocab pass.",
-  sandbox:
-    "Install path, a real prompt textbox, and the eight platforms you can drop Forma into today.",
-  docs: "Quickstart, vocabulary packs, and the brain CLI — the engineering surface area.",
-};
-
 const handleNavClick = (sectionId: string) => (e: React.MouseEvent) => {
   e.preventDefault();
   const node = document.getElementById(sectionId);
@@ -22,19 +8,15 @@ const handleNavClick = (sectionId: string) => (e: React.MouseEvent) => {
 };
 
 /**
- * Footer with three columns:
- *   1. Brand block (Forma word-mark + tagline + copyright).
- *   2. Section nav — same six anchors as the PillNav, with a one-line
- *      description per item (random Forma-ish copy for now).
- *   3. Author credit row at the bottom: "Forma by [Christian Lee] and
- *      [Ryan Zhang]" linking each name to LinkedIn.
+ * Footer with two columns:
+ *   1. Brand block (Forma word-mark + tagline + copyright + author
+ *      credits to LinkedIn).
+ *   2. Section nav — same anchors as the PillNav, names only (no
+ *      per-section description copy).
  *
- * Animation: brand block + each section link fade in as the footer
+ * Animation: brand block + each section name fade in as the footer
  * scrolls into view, with a small stagger so the eye lands on the
  * brand first and walks across the section grid.
- *
- * No social icons (per spec) — the only outbound link in the brand
- * column is GitHub, which is already represented in the top bar.
  */
 export function SiteFooter() {
   return (
@@ -81,24 +63,20 @@ export function SiteFooter() {
           </div>
         </Reveal>
 
-        <div className="grid gap-x-8 gap-y-6 sm:grid-cols-2 md:grid-cols-3">
+        <div className="flex flex-wrap gap-x-8 gap-y-3 md:items-start md:justify-end">
           {NAV_ITEMS.map((item, index) => (
             <Reveal
               key={item.id}
-              delay={0.15 + index * 0.07}
-              duration={0.5}
+              delay={0.15 + index * 0.06}
+              duration={0.45}
+              as="span"
             >
               <a
                 href={`#${item.id}`}
                 onClick={handleNavClick(item.id)}
-                className="group flex flex-col gap-1.5"
+                className="text-sm font-semibold text-white/80 transition-colors hover:text-[#d4b87a]"
               >
-                <span className="text-sm font-semibold text-white transition-colors group-hover:text-[#d4b87a]">
-                  {item.label}
-                </span>
-                <span className="text-xs leading-relaxed text-white/45 transition-colors group-hover:text-white/70">
-                  {SECTION_DESCRIPTIONS[item.id]}
-                </span>
+                {item.label}
               </a>
             </Reveal>
           ))}

@@ -7,36 +7,37 @@ import { InteractiveCanvas } from "../components/InteractiveCanvas";
 import { LoopingWords } from "../components/LoopingWords";
 import { PixelWave } from "../components/PixelWave";
 import { ProblemTestimonial } from "../components/ProblemTestimonial";
+import { BlurText } from "../components/ui/blur-text";
 import { LogoCloud } from "../components/ui/logo-cloud";
 import { Reveal } from "../components/ui/reveal";
 import { TeamShowcase } from "../components/ui/team-showcase";
 import { TextRevealByWord } from "../components/ui/text-reveal";
-import { TypingHeading } from "../components/ui/typing-heading";
 
 /**
  * Section order:
  *   home → demo → sandbox → problem → solution → about → docs
  *
- * Animation choreography per non-hero section:
- *   - Eyebrow chip (where present) fades in.
- *   - Heading wipes left → right with a clip-path "typing" reveal,
- *     then a gold flourish underline draws below it.
- *   - Subtitle / body / interactive content fade in after the heading
- *     finishes (delay ≈ wipe·0.85 + underlineDuration).
- *
- * Home stacking (back → front):
- *   z-0  PixelWave        WebGL dithered gold wave covering the whole hero
- *   z-10 InteractiveCanvas cursor halo with `mix-blend-mode: difference`,
- *                          so dots invert against the wave AND text
- *   z-20 HomeHero + LoopingWords (text content)
- *   z-30 bottom-edge gradient fade (no backdrop-filter)
+ * Animation choreography:
+ *   - All headings + subtitles use `BlurText` (per-word blur-in adopted
+ *     from `animations/blurText.md`). Headings get a gold flourish
+ *     underline that draws after the last word lands.
+ *   - Cards / grids / interactive blocks use `Reveal` (one observer per
+ *     block, fade-up).
+ *   - The Solution section uses `TextRevealByWord` — a 220 vh sticky
+ *     stage with scroll-driven word brightening, per-line gold
+ *     underlines, then a shrink-morph to a short clean tagline.
  */
 
-// Heading wipe + flourish timings reused across non-hero sections so the
-// fade-ins below each heading land at a consistent beat.
-const SECTION_WIPE = 1.1;
-const SECTION_UL = 0.55;
-const POST_HEADING = SECTION_WIPE * 0.85 + SECTION_UL + 0.1;
+// Common per-word blur stagger values, used to compute the right post-
+// heading delay so subtitles/content land AFTER the underline draws.
+const HEADING_BASE_DELAY = 0.07;
+const HEADING_DURATION = 0.85;
+
+function postHeadingDelay(tokenCount: number) {
+  return (
+    Math.max(0, tokenCount - 1) * HEADING_BASE_DELAY + HEADING_DURATION + 0.1
+  );
+}
 
 export function HomePage() {
   return (
@@ -95,25 +96,25 @@ export function HomePage() {
             </span>
           </Reveal>
           <div className="mt-4">
-            <TypingHeading
-              duration={SECTION_WIPE}
-              underlineDuration={SECTION_UL}
+            <BlurText
+              as="h2"
+              baseDelay={HEADING_BASE_DELAY}
+              duration={HEADING_DURATION}
+              underline
               underlineWidth="min(18rem, 65%)"
               className="text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl"
-            >
-              Watch the same idea land twice — once vague, once precise.
-            </TypingHeading>
+              content="Watch the same idea land twice — once vague, once precise."
+            />
           </div>
         </div>
-        <Reveal delay={POST_HEADING} duration={0.6}>
+        <Reveal delay={postHeadingDelay(11)} duration={0.6}>
           <DemoSplit />
         </Reveal>
       </section>
 
-      {/* Sandbox — moon-image base from sandbox.md, layered with a dark
-          tint and the existing gold radial gradients so the "atelier"
-          feel survives. Background is fixed-attachment for a subtle
-          parallax. */}
+      {/* Sandbox — gold radial gradient stage that SCROLLS with the
+          section (no fixed-attachment image), so the bg moves naturally
+          with the content. Pure CSS so there are no external assets. */}
       <section
         id="sandbox"
         className="relative flex min-h-screen scroll-mt-20 flex-col items-center justify-center overflow-hidden px-6"
@@ -121,29 +122,20 @@ export function HomePage() {
           paddingTop: "clamp(3rem,8vh,6rem)",
           paddingBottom: "clamp(3rem,8vh,6rem)",
           gap: "clamp(1rem,2.5vh,2rem)",
-          backgroundImage:
-            "url('https://pub-940ccf6255b54fa799a9b01050e6c227.r2.dev/ruixen_moon_2.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundAttachment: "fixed",
         }}
       >
-        {/* Dark tint so text and the gold gradients still read clearly
-            on top of the photographic background. */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-0"
-          style={{ background: "rgba(15, 16, 20, 0.65)" }}
-        />
-
+        {/* Layered gold radials + a subtle warm base — anchored to the
+            section box, so they scroll with it instead of staying
+            pinned to the viewport. */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 z-0"
           style={{
             background:
-              "radial-gradient(ellipse 80% 60% at 50% 65%, rgba(212, 184, 122, 0.20) 0%, rgba(212, 184, 122, 0.09) 35%, transparent 72%), " +
-              "radial-gradient(ellipse 55% 45% at 18% 28%, rgba(212, 184, 122, 0.10) 0%, transparent 60%), " +
-              "radial-gradient(ellipse 55% 45% at 82% 18%, rgba(212, 184, 122, 0.07) 0%, transparent 60%)",
+              "radial-gradient(ellipse 90% 65% at 50% 55%, rgba(212, 184, 122, 0.32) 0%, rgba(212, 184, 122, 0.16) 38%, rgba(212, 184, 122, 0.04) 65%, transparent 80%), " +
+              "radial-gradient(ellipse 55% 45% at 18% 25%, rgba(231, 207, 149, 0.18) 0%, transparent 65%), " +
+              "radial-gradient(ellipse 55% 45% at 82% 18%, rgba(212, 184, 122, 0.14) 0%, transparent 65%), " +
+              "linear-gradient(180deg, rgba(35, 30, 20, 0.45) 0%, rgba(20, 18, 14, 0.35) 100%)",
           }}
         />
 
@@ -152,37 +144,44 @@ export function HomePage() {
           className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-40"
           style={{
             background:
-              "linear-gradient(180deg, rgba(25,26,31,0) 0%, rgba(25,26,31,0.7) 100%)",
+              "linear-gradient(180deg, rgba(25,26,31,0) 0%, rgba(25,26,31,0.85) 100%)",
           }}
         />
 
         <div className="relative z-10 flex flex-col items-center text-center">
-          <TypingHeading
+          <BlurText
+            as="h2"
             align="center"
-            duration={SECTION_WIPE}
-            underlineDuration={SECTION_UL}
+            baseDelay={HEADING_BASE_DELAY}
+            duration={HEADING_DURATION}
+            underline
             underlineWidth="min(10rem, 50%)"
             className="text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl"
-          >
-            Define the form.
-          </TypingHeading>
-          <Reveal delay={POST_HEADING} duration={0.6}>
-            <p className="mt-3 text-base text-white/65 sm:text-lg">
-              Test it on every web vibe-coding platform.
-            </p>
-          </Reveal>
+            content="Define the form."
+          />
+          <BlurText
+            as="p"
+            align="center"
+            startDelay={postHeadingDelay(3)}
+            baseDelay={0.04}
+            duration={0.65}
+            blur={8}
+            y={10}
+            className="mt-3 text-base text-white/65 sm:text-lg"
+            content="Test it on every web vibe-coding platform."
+          />
         </div>
         <div
           className="relative z-10 flex w-full flex-col items-center"
           style={{ gap: "clamp(1rem,2.5vh,2rem)" }}
         >
-          <Reveal delay={POST_HEADING + 0.2} duration={0.6}>
+          <Reveal delay={postHeadingDelay(3) + 0.5} duration={0.6}>
             <InstallSteps />
           </Reveal>
-          <Reveal delay={POST_HEADING + 0.4} duration={0.6}>
+          <Reveal delay={postHeadingDelay(3) + 0.7} duration={0.6}>
             <GlassTextarea />
           </Reveal>
-          <Reveal delay={POST_HEADING + 0.6} duration={0.6}>
+          <Reveal delay={postHeadingDelay(3) + 0.9} duration={0.6}>
             <LogoCloud />
           </Reveal>
         </div>
@@ -208,18 +207,18 @@ export function HomePage() {
       </section>
 
       {/* Solution — long vague sentence brightens word-by-word, gold
-          underline draws, then the long sentence shrinks/blurs out and
-          a clean short tagline morphs in over the same area. */}
+          per-line underlines draw under every wrapped line, then the
+          long sentence shrinks/blurs out and the short clean tagline
+          morphs in over the same area. */}
       <section id="solution" data-snap-start className="scroll-mt-20">
         <TextRevealByWord
           text="Forma is some kind of helpful smart tool thing that maybe sorta turns those random kinda vague description-y prompt words you type into something that's like, more clear and proper for getting back the UI components you actually wanted in the first place, hopefully."
-          shortText="Forma turns vague prompts into precise UI."
+          shortText="Forma is a behavioral data layer that teaches AI models how to build highly engaging interfaces."
         />
       </section>
 
-      {/* About — eyebrow removed, content centered, only the heading +
-          subtitle + TeamShowcase. Heading uses the same typing wipe +
-          gold underline pattern as the rest of the site. */}
+      {/* About — eyebrow removed, content centered vertically and
+          horizontally. Heading + subtitle blur-words in. */}
       <section
         id="about"
         className="relative flex min-h-screen scroll-mt-20 flex-col items-center justify-center px-6"
@@ -230,24 +229,29 @@ export function HomePage() {
         }}
       >
         <div className="flex w-full max-w-5xl flex-col items-center text-center">
-          <TypingHeading
+          <BlurText
+            as="h2"
             align="center"
-            duration={SECTION_WIPE}
-            underlineDuration={SECTION_UL}
+            baseDelay={HEADING_BASE_DELAY}
+            duration={HEADING_DURATION}
+            underline
             underlineWidth="min(16rem, 55%)"
             className="text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl"
-          >
-            Design-language research, shipped as a tool.
-          </TypingHeading>
-          <Reveal delay={POST_HEADING} duration={0.6}>
-            <p className="mt-4 max-w-2xl text-base text-white/55 sm:text-lg">
-              Forma is a translation layer between human intent and the AI
-              tools that build UI — opinionated, open, pointed at the
-              precision frontier of generative interfaces.
-            </p>
-          </Reveal>
+            content="Design-language research, shipped as a tool."
+          />
+          <BlurText
+            as="p"
+            align="center"
+            startDelay={postHeadingDelay(6)}
+            baseDelay={0.035}
+            duration={0.7}
+            blur={8}
+            y={10}
+            className="mt-4 max-w-2xl text-base text-white/55 sm:text-lg"
+            content="Forma is a translation layer between human intent and the AI tools that build UI — opinionated, open, pointed at the precision frontier of generative interfaces."
+          />
         </div>
-        <Reveal delay={POST_HEADING + 0.2} duration={0.6}>
+        <Reveal delay={postHeadingDelay(6) + 0.6} duration={0.6}>
           <TeamShowcase />
         </Reveal>
       </section>

@@ -1,16 +1,14 @@
 import { ArrowUpRight, BookOpen, GitBranch, Terminal } from "lucide-react";
+import { BlurText } from "./ui/blur-text";
 import { Reveal } from "./ui/reveal";
-import { TypingHeading } from "./ui/typing-heading";
 
 /**
  * Docs section placeholder. Three "starting point" cards (Quickstart,
  * Vocabulary packs, Brain CLI) plus a small "version" pill above the
- * heading. Pure copy + visual scaffolding for now — the underlying docs
- * site is not built yet, so each card is a real link only when the
- * corresponding page exists; otherwise it falls back to GitHub.
+ * heading. Pure copy + visual scaffolding for now.
  *
- * Animation: eyebrow + heading wipe + subtitle + cards stagger in when
- * the section enters view.
+ * Animation: eyebrow + heading + subtitle blur-words in (per the
+ * `animations/blurText.md` pattern), then cards stagger-Reveal in.
  */
 type DocCard = {
   title: string;
@@ -47,9 +45,11 @@ const DOC_CARDS: DocCard[] = [
   },
 ];
 
-const HEADING_WIPE = 1.2;
-const HEADING_UL = 0.6;
-const POST_HEADING = HEADING_WIPE * 0.85 + HEADING_UL + 0.1;
+const HEADING_BASE_DELAY = 0.07;
+const HEADING_DURATION = 0.85;
+const HEADING_TOKENS = 8;
+const POST_HEADING =
+  (HEADING_TOKENS - 1) * HEADING_BASE_DELAY + HEADING_DURATION + 0.1;
 
 export function DocsPanel() {
   return (
@@ -62,28 +62,32 @@ export function DocsPanel() {
           </span>
         </Reveal>
 
-        <TypingHeading
-          duration={HEADING_WIPE}
-          underlineDuration={HEADING_UL}
+        <BlurText
+          as="h2"
+          baseDelay={HEADING_BASE_DELAY}
+          duration={HEADING_DURATION}
+          blur={12}
+          underline
           underlineWidth="min(16rem, 60%)"
           className="text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl"
-        >
-          Read the source. Then teach Forma your stack.
-        </TypingHeading>
+          content="Read the source. Then teach Forma your stack."
+        />
 
-        <Reveal delay={POST_HEADING} duration={0.6}>
-          <p className="max-w-2xl text-base leading-relaxed text-white/60 sm:text-lg">
-            Forma's vocabulary lives in plain YAML, the matcher is a Rust crate
-            you can call from a CLI, and every part of the pipeline can be
-            replaced with one of your own. The pages below are the places
-            most teams start.
-          </p>
-        </Reveal>
+        <BlurText
+          as="p"
+          startDelay={POST_HEADING}
+          baseDelay={0.035}
+          duration={0.7}
+          blur={8}
+          y={10}
+          className="max-w-2xl text-base leading-relaxed text-white/60 sm:text-lg"
+          content="Forma's vocabulary lives in plain YAML, the matcher is a Rust crate you can call from a CLI, and every part of the pipeline can be replaced with one of your own. The pages below are the places most teams start."
+        />
       </div>
 
       <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
         {DOC_CARDS.map(({ title, description, href, Icon, meta }, index) => (
-          <Reveal key={title} delay={POST_HEADING + 0.2 + index * 0.12} duration={0.55}>
+          <Reveal key={title} delay={POST_HEADING + 0.4 + index * 0.12} duration={0.55}>
             <a
               href={href}
               target="_blank"
