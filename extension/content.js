@@ -590,7 +590,8 @@ function initForma() {
 
       // Keep overlay behavior unchanged; /analyze now drives badge score only.
       onComplete(lastAIResponse);
-      if (!(deepAnalysisLoading && deepAnalysisSession && !deepAnalysisSession.errorMessage)) {
+      const isDeepLoading = deepAnalysisLoading && deepAnalysisSession && !deepAnalysisSession.errorMessage;
+      if (!isDeepLoading && !panelOwnsBadge) {
         showFormaScoreBadge(result.score, label, color);
       }
     })
@@ -742,6 +743,7 @@ function initForma() {
   
   let formaScoreBadge = null;
   let deepAnalysisLoading = false;
+  let panelOwnsBadge = false;
   let deepAnalysisError = '';
   let agentPanel = null;
   let agentPanelEscListener = null;
@@ -1042,7 +1044,7 @@ function initForma() {
       hideDeepProgressPanel(() => {
         deepAnalysisLoading = false;
         deepAnalysisSession = null;
-        updateFormaScoreBadge(targetTextarea ? targetTextarea.value : '', lastAIResponse || []);
+        // Do NOT update badge here — showAgentPanel will take ownership and set 70B critic score.
         showAgentPanel(responseData, promptText);
       });
     }, 600);
@@ -1114,6 +1116,7 @@ function initForma() {
 
   function closeAgentPanel(onDone) {
     if (!agentPanel) return;
+    panelOwnsBadge = false;
     const panelToRemove = agentPanel;
     panelToRemove.classList.remove('forma-open');
     setTimeout(() => {
@@ -1160,6 +1163,10 @@ function initForma() {
     const confidenceColor = getTierColor(confidence);
     const criticScore = Number(critic.score || 0);
     const criticColor = getTierColor(criticScore);
+    // Claim badge ownership: while panel is open, badge shows 70B critic score, not 8B.
+    panelOwnsBadge = true;
+    const criticTier = String(critic.tier || (criticScore >= 70 ? 'Precise' : criticScore >= 40 ? 'Decent' : 'Vague'));
+    showFormaScoreBadge(criticScore, criticTier, criticColor);
     const totalLatency = Number(meta.total_latency_ms || 0);
     const aligned = Number(consensus.agents_aligned || 0);
     const canonicalTerms = Array.isArray(reformulator.canonical_terms_added) ? reformulator.canonical_terms_added : [];
