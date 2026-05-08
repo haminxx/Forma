@@ -1,5 +1,7 @@
 import os
 import json
+import asyncio
+import time
 from typing import Dict, Any
 
 import httpx
@@ -334,8 +336,29 @@ Return only the JSON array."""
         return "ERROR"
 
 
-VLLM_URL = os.getenv("VLLM_URL", "http://165.245.128.5:8000/v1/chat/completions")
+VLLM_BASE_URL = os.getenv("VLLM_URL", "http://165.245.128.5:8000/v1/chat/completions")
+VLLM_URL = VLLM_BASE_URL
+VLLM_FAST_URL = os.getenv("VLLM_FAST_URL", "http://165.245.128.5:30000/v1/chat/completions")
+FAST_MODEL = "meta-llama/Meta-Llama-3.1-8B-Instruct"
 VLLM_MODEL = os.getenv("VLLM_MODEL", "hugging-quants/Meta-Llama-3.1-70B-Instruct-AWQ-INT4")
+
+
+async def _call_vllm(payload: Dict[str, Any], url: str = VLLM_BASE_URL, model: str = VLLM_MODEL) -> Dict[str, Any]:
+    """
+    Shared vLLM caller for both fast (8B) and deep (70B) tiers.
+    Keeps async httpx client, 120s timeout, and JSON response_format support.
+    """
+    payload = dict(payload)
+    payload["model"] = model
+    if "response_format" not in payload:
+        payload["response_format"] = {"type": "json_object"}
+
+    async with httpx.AsyncClient(timeout=120.0) as client:
+        response = await client.post(url, json=payload)
+        response.raise_for_status()
+        data = response.json()
+        content = data["choices"][0]["message"]["content"]
+        return json.loads(content)
 
 
 async def run_critic_agent(prompt_text: str) -> Dict[str, Any]:
@@ -365,7 +388,6 @@ Tier rules: 0-39 = Vague, 40-69 = Decent, 70-100 = Precise."""
     user_message = f"Score this prompt: {prompt_text}"
 
     payload = {
-        "model": VLLM_MODEL,
         "messages": [
             {"role": "system", "content": system_message},
             {"role": "user", "content": user_message}
@@ -375,12 +397,29 @@ Tier rules: 0-39 = Vague, 40-69 = Decent, 70-100 = Precise."""
         "response_format": {"type": "json_object"}
     }
 
-    async with httpx.AsyncClient(timeout=120.0) as client:
-        response = await client.post(VLLM_URL, json=payload)
-        response.raise_for_status()
-        data = response.json()
-        content = data["choices"][0]["message"]["content"]
-        return json.loads(content)
+    result = await _call_vllm(payload, url=VLLM_BASE_URL, model=VLLM_MODEL)
+    result["metadata"] = {"tier": "deep"}
+    return result
+
+
+async def run_fast_critic_agent(prompt: str) -> Dict[str, Any]:
+    """
+    Fast-tier Critic Agent on 8B model for realtime usage.
+    Targets sub-1.5s end-to-end latency with terse instructions.
+    """
+    system_message = """You are Forma's fast critic. Score prompt quality for AI UI builders from 0-100 using clarity, concrete component vocabulary, motion/position specificity, and implementation hints; return only JSON with keys score, tier (Vague/Decent/Precise), weaknesses (array), suggestions (array)."""
+    payload = {
+        "messages": [
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": f"Score this prompt: {prompt}"}
+        ],
+        "temperature": 0.2,
+        "max_tokens": 200,
+        "response_format": {"type": "json_object"}
+    }
+    result = await _call_vllm(payload, url=VLLM_FAST_URL, model=FAST_MODEL)
+    result["metadata"] = {"tier": "fast"}
+    return result
 
 
 async def run_reformulator_agent(prompt_text: str) -> Dict[str, Any]:
@@ -408,7 +447,6 @@ Return ONLY valid JSON in this exact format:
     user_message = f"Reformulate this prompt: {prompt_text}"
 
     payload = {
-        "model": VLLM_MODEL,
         "messages": [
             {"role": "system", "content": system_message},
             {"role": "user", "content": user_message}
@@ -418,12 +456,9 @@ Return ONLY valid JSON in this exact format:
         "response_format": {"type": "json_object"}
     }
 
-    async with httpx.AsyncClient(timeout=120.0) as client:
-        response = await client.post(VLLM_URL, json=payload)
-        response.raise_for_status()
-        data = response.json()
-        content = data["choices"][0]["message"]["content"]
-        return json.loads(content)
+    result = await _call_vllm(payload, url=VLLM_BASE_URL, model=VLLM_MODEL)
+    result["metadata"] = {"tier": "deep"}
+    return result
 
 
 # Mock user style profile (will be derived from real user history later)
@@ -472,7 +507,6 @@ Return ONLY valid JSON in this exact format:
     user_message = f"Analyze this prompt against the user's style: {prompt_text}"
 
     payload = {
-        "model": VLLM_MODEL,
         "messages": [
             {"role": "system", "content": system_message},
             {"role": "user", "content": user_message}
@@ -482,12 +516,9 @@ Return ONLY valid JSON in this exact format:
         "response_format": {"type": "json_object"}
     }
 
-    async with httpx.AsyncClient(timeout=120.0) as client:
-        response = await client.post(VLLM_URL, json=payload)
-        response.raise_for_status()
-        data = response.json()
-        content = data["choices"][0]["message"]["content"]
-        return json.loads(content)
+    result = await _call_vllm(payload, url=VLLM_BASE_URL, model=VLLM_MODEL)
+    result["metadata"] = {"tier": "deep"}
+    return result
 
 
 # Mock user history (50 projects across multiple AI builders)
@@ -533,7 +564,6 @@ Return ONLY valid JSON in this exact format:
     user_message = f"Analyze the user's history relevant to this prompt: {prompt_text}"
 
     payload = {
-        "model": VLLM_MODEL,
         "messages": [
             {"role": "system", "content": system_message},
             {"role": "user", "content": user_message}
@@ -543,12 +573,9 @@ Return ONLY valid JSON in this exact format:
         "response_format": {"type": "json_object"}
     }
 
-    async with httpx.AsyncClient(timeout=120.0) as client:
-        response = await client.post(VLLM_URL, json=payload)
-        response.raise_for_status()
-        data = response.json()
-        content = data["choices"][0]["message"]["content"]
-        return json.loads(content)
+    result = await _call_vllm(payload, url=VLLM_BASE_URL, model=VLLM_MODEL)
+    result["metadata"] = {"tier": "deep"}
+    return result
 
 
 async def run_coach_agent(prompt_text: str, current_output_description: str = None) -> Dict[str, Any]:
@@ -589,7 +616,6 @@ Return ONLY valid JSON in this exact format:
     user_message = f"Original prompt: {prompt_text}\n\nCurrent output context: {output_context}"
 
     payload = {
-        "model": VLLM_MODEL,
         "messages": [
             {"role": "system", "content": system_message},
             {"role": "user", "content": user_message}
@@ -599,12 +625,9 @@ Return ONLY valid JSON in this exact format:
         "response_format": {"type": "json_object"}
     }
 
-    async with httpx.AsyncClient(timeout=120.0) as client:
-        response = await client.post(VLLM_URL, json=payload)
-        response.raise_for_status()
-        data = response.json()
-        content = data["choices"][0]["message"]["content"]
-        return json.loads(content)
+    result = await _call_vllm(payload, url=VLLM_BASE_URL, model=VLLM_MODEL)
+    result["metadata"] = {"tier": "deep"}
+    return result
 
 
 async def run_consensus_agent(
@@ -663,7 +686,6 @@ Return ONLY valid JSON in this exact format:
     user_message = f"Original prompt: {prompt_text}\n\nAgent outputs to synthesize:\n{outputs_context}"
 
     payload = {
-        "model": VLLM_MODEL,
         "messages": [
             {"role": "system", "content": system_message},
             {"role": "user", "content": user_message}
@@ -673,16 +695,9 @@ Return ONLY valid JSON in this exact format:
         "response_format": {"type": "json_object"}
     }
 
-    async with httpx.AsyncClient(timeout=120.0) as client:
-        response = await client.post(VLLM_URL, json=payload)
-        response.raise_for_status()
-        data = response.json()
-        content = data["choices"][0]["message"]["content"]
-        return json.loads(content)
-
-
-import asyncio
-import time
+    result = await _call_vllm(payload, url=VLLM_BASE_URL, model=VLLM_MODEL)
+    result["metadata"] = {"tier": "deep"}
+    return result
 
 try:
     # existing detector
@@ -701,10 +716,11 @@ async def run_detector_agent_async(prompt_text: str) -> Dict[str, Any]:
         return {
             "phrases_found": [p.get("phrase", "") for p in phrases] if phrases else [],
             "count": len(phrases) if phrases else 0,
-            "detections": phrases or []
+            "detections": phrases or [],
+            "metadata": {"tier": "deep"}
         }
     except Exception as e:
-        return {"error": str(e), "phrases_found": [], "count": 0}
+        return {"error": str(e), "phrases_found": [], "count": 0, "metadata": {"tier": "deep"}}
 
 
 async def run_all_agents_parallel(prompt_text: str) -> Dict[str, Any]:

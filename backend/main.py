@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from agents import translate_phrase, analyze_sentence, run_critic_agent, run_reformulator_agent, run_style_agent, run_memory_agent, run_coach_agent, run_consensus_agent, run_all_agents_parallel
+from agents import translate_phrase, analyze_sentence, run_critic_agent, run_reformulator_agent, run_style_agent, run_memory_agent, run_coach_agent, run_consensus_agent, run_all_agents_parallel, run_fast_critic_agent
 from patterns import contains_vague_phrase
 from parser import parse_response, parse_analyze_response
 from db import init_db, get_db
@@ -94,6 +94,10 @@ class ConsensusRequest(BaseModel):
 
 class RunAllRequest(BaseModel):
     text: str
+
+
+class FastCriticRequest(BaseModel):
+    prompt: str
 
 
 @app.get("/")
@@ -210,6 +214,22 @@ async def run_all_endpoint(request: RunAllRequest):
         return {"error": str(e)}
 
 
+@app.post("/agents/fast-critic")
+async def fast_critic_endpoint(request: FastCriticRequest):
+    """Fast critic endpoint (8B tier) for realtime quality scoring."""
+    start = time.time()
+    try:
+        result = await run_fast_critic_agent(request.prompt)
+        latency_ms = int((time.time() - start) * 1000)
+        metadata = result.get("metadata", {})
+        metadata["latency_ms"] = latency_ms
+        result["metadata"] = metadata
+        return {"agent": "fast-critic", "result": result}
+    except Exception as e:
+        latency_ms = int((time.time() - start) * 1000)
+        return {"agent": "fast-critic", "error": str(e), "metadata": {"latency_ms": latency_ms}}
+
+
 # ============================================================
 # AI MODE — Sentence-Level Analysis Endpoint
 # ============================================================
@@ -239,35 +259,23 @@ class AnalyzeRequest(BaseModel):
 
 @app.post("/analyze")
 async def analyze(request: AnalyzeRequest):
-    """Analyze full text and return all detected vague UI phrases with translations."""
-    import time
+    """Realtime fast-tier analysis endpoint using 8B critic."""
     start_time = time.time()
-    
     text = request.text.strip()
-    
-    if not text or len(text) < 3:
-        return {"phrases": [], "latency": 0}
-    
-    # Limit text length to prevent abuse
-    if len(text) > 2000:
-        text = text[:2000]
-    
+
+    if not text:
+        return {"agent": "fast-critic", "result": {"score": 0, "tier": "Vague", "weaknesses": [], "suggestions": [], "metadata": {"tier": "fast", "latency_ms": 0}}}
+
     try:
-        raw_response = analyze_sentence(text)
-        print(f"[DEBUG /analyze] Input text: {text}")
-        print(f"[DEBUG /analyze] Raw AMD response: {raw_response}")
-        phrases = parse_analyze_response(raw_response, text)
-        print(f"[DEBUG /analyze] Parsed phrases count: {len(phrases)}")
-        
+        result = await run_fast_critic_agent(text)
         latency = int((time.time() - start_time) * 1000)
-        
-        return {
-            "phrases": phrases,
-            "latency": latency
-        }
+        metadata = result.get("metadata", {})
+        metadata["latency_ms"] = latency
+        result["metadata"] = metadata
+        return {"agent": "fast-critic", "result": result}
     except Exception as e:
-        print(f"Error in /analyze: {e}")
-        return {"phrases": [], "latency": 0, "error": str(e)}
+        latency = int((time.time() - start_time) * 1000)
+        return {"agent": "fast-critic", "error": str(e), "metadata": {"latency_ms": latency}}
 
 
 # ============================================================
