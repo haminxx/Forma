@@ -4,13 +4,13 @@ import { PromptInput } from "./PromptInput";
 // Rough, vague — two sentences typed the way someone describes a thing
 // when they don't yet know the words for what they mean.
 const VIBE_PROMPT =
-  "make me one of those little popup thingys that slides in from the corner when smth good happens, with a green check and a small close x. should poof away by itself after a sec but smooth, not janky.";
+  "make something that shows up while my app is loading data, just so it doesn't look empty";
 
 // Same intent in ONE sentence using direct UI component terminology, a
 // real anchor, motion spec, and the React library an LLM should reach
 // for.
 const FORMA_PROMPT =
-  "Render a success Toast (top-right anchor, 220 ms slide-in ease-out, 4 s auto-dismiss) with a CheckCircle status icon, semibold Title, muted Description, and trailing IconButton X for manual close, wrapped in a Framer Motion AnimatePresence + motion.div.";
+  "Skeleton Loader with shimmer gradient sweep animation 1.5s infinite, matching the layout shape of the content being loaded, gray-200 base color";
 
 /**
  * Side-by-side demo of the same intent expressed two different ways:
