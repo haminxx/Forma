@@ -533,15 +533,26 @@ async def run_detect_vague_agent(text: str) -> Dict[str, Any]:
         }
 
     text = (text or "")[:4000]
+    canonical_terms_str = ", ".join(CANONICAL_60)
     system_message = (
-        "You detect vague UI phrases and return strict JSON only. "
-        "Return exactly this shape: "
-        '{"phrases":[{"phrase":"...","start":0,"end":0,"canonical":"...","description":"...","alternatives":["...","...","..."]}]}. '
-        "At most 8 phrases. "
-        "canonical and every alternatives item MUST be exactly one of this canonical set (case-sensitive): "
-        + ", ".join(CANONICAL_60)
-        + ". Description must be under 18 words. "
-        "alternatives must be 3 different canonical terms."
+        "You are Forma's vague-phrase detector. You scan a user prompt for AI UI builders "
+        "and identify the SPECIFIC SUBSTRINGS that describe vague UI components. "
+        "You DO NOT return the entire input. You extract only the short span that names a vague component.\n\n"
+        "Return STRICT JSON ONLY in this shape:\n"
+        '{"phrases":[{"phrase":"<exact substring>","start":<int>,"end":<int>,"canonical":"<canonical term>","description":"<one short sentence>","alternatives":["<term1>","<term2>","<term3>"]}]}\n\n'
+        "RULES:\n"
+        "1. The 'phrase' field must be a SHORT exact substring of the input (typically 2 to 8 words). NEVER return the whole input as one phrase.\n"
+        "2. start and end are character indices into the input. text[start:end] MUST equal phrase exactly.\n"
+        "3. canonical MUST be one of these 60 canonical terms (case-sensitive): "
+        + canonical_terms_str + ".\n"
+        "4. alternatives MUST be exactly 3 different canonical terms from the same list. Not 2. Not 4. Exactly 3. None of them may equal the canonical.\n"
+        "5. description must be under 18 words explaining what the canonical component is.\n"
+        "6. Return at most 8 phrases. If no vague phrases, return {\"phrases\":[]}.\n"
+        "7. Skip phrases that already use precise canonical vocabulary.\n\n"
+        "EXAMPLE:\n"
+        'Input: "Build a popup that slides in from the side and a top nav that stays visible"\n'
+        'Output: {"phrases":[{"phrase":"popup that slides in from the side","start":8,"end":42,"canonical":"Off-Canvas Drawer","description":"A panel sliding in from the viewport edge to reveal navigation or content.","alternatives":["Glassmorphic Popover","Bottom Sheet","Modal Overlay"]},{"phrase":"top nav that stays visible","start":51,"end":77,"canonical":"Sticky Navbar","description":"A navigation bar that remains fixed at the top while scrolling.","alternatives":["Sidebar Navigation","Breadcrumb Navigation","Mega Menu"]}]}\n\n'
+        "Return raw JSON only. No preamble. No markdown. No code fences."
     )
     payload = {
         "model": FAST_MODEL,
