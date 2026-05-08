@@ -44,7 +44,9 @@ export function DemoSplit() {
 
   return (
     <div ref={containerRef} className="w-full max-w-6xl px-4">
-      <div className="grid w-full gap-6 md:grid-cols-2 md:gap-8">
+      {/* Tight grid — gap-3 on phones, gap-5 on md+ — so all four
+          cards (2 prompts + 2 outputs) fit in a single viewport. */}
+      <div className="grid w-full gap-3 md:grid-cols-2 md:gap-5">
         <PromptInput
           variant="default"
           label="Vibe Coder"
@@ -63,24 +65,27 @@ export function DemoSplit() {
         />
       </div>
 
+      {/* Compact connector — 12 px stack instead of the old 64 px so
+          the comparison row sits closer to the prompts and the whole
+          demo fits ≈ 600 px tall. */}
       <div
-        className={`my-8 flex flex-col items-center transition-all duration-700 ${
-          outputsVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
+        className={`my-3 flex flex-col items-center transition-all duration-700 ${
+          outputsVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
         }`}
       >
         <div className="text-[10px] font-medium uppercase tracking-[0.22em] text-white/40">
           v0 generates →
         </div>
-        <div className="mt-2 h-8 w-px bg-gradient-to-b from-transparent via-white/30 to-white/10" />
+        <div className="mt-1 h-5 w-px bg-gradient-to-b from-transparent via-white/30 to-white/10" />
       </div>
 
-      <div className="grid w-full gap-6 md:grid-cols-2 md:gap-8">
+      <div className="grid w-full gap-3 md:grid-cols-2 md:gap-5">
         <div
           className={`relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.02] transition-all duration-700 ${
-            outputsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+            outputsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
           }`}
         >
-          <div className="flex items-center justify-between border-b border-white/5 px-4 py-2">
+          <div className="flex items-center justify-between border-b border-white/5 px-3 py-1.5">
             <div className="text-[10px] uppercase tracking-[0.18em] text-white/40">
               VAGUE OUTPUT
             </div>
@@ -88,20 +93,25 @@ export function DemoSplit() {
               generic spinner
             </div>
           </div>
-          <img
-            src="/vague-output.png"
-            alt="v0 output from vague prompt — generic loading state"
-            className="w-full h-auto block"
-          />
+          {/* Fixed 16:10 aspect so both output cards have predictable
+              heights regardless of source image dimensions. */}
+          <div className="relative aspect-[16/10] w-full overflow-hidden bg-black/20">
+            <img
+              src="/vague-output.png"
+              alt="v0 output from vague prompt — generic loading state"
+              className="absolute inset-0 h-full w-full object-cover"
+              loading="lazy"
+            />
+          </div>
         </div>
 
         <div
           className={`relative overflow-hidden rounded-xl border border-[#d4b87a]/20 bg-[#d4b87a]/[0.02] transition-all duration-700 ${
-            outputsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+            outputsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
           }`}
           style={{ transitionDelay: outputsVisible ? "300ms" : "0ms" }}
         >
-          <div className="flex items-center justify-between border-b border-[#d4b87a]/10 px-4 py-2">
+          <div className="flex items-center justify-between border-b border-[#d4b87a]/10 px-3 py-1.5">
             <div className="text-[10px] uppercase tracking-[0.18em] text-[#d4b87a]/80">
               PRECISE OUTPUT
             </div>
@@ -109,16 +119,19 @@ export function DemoSplit() {
               skeleton with shimmer
             </div>
           </div>
-          <img
-            src="/precise-output.png"
-            alt="v0 output from precise prompt — skeleton loader components"
-            className="w-full h-auto block"
-          />
+          <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#d4b87a]/[0.04]">
+            <img
+              src="/precise-output.png"
+              alt="v0 output from precise prompt — skeleton loader components"
+              className="absolute inset-0 h-full w-full object-cover"
+              loading="lazy"
+            />
+          </div>
         </div>
       </div>
 
       <div
-        className={`mt-6 text-center text-xs text-white/40 transition-all duration-700 ${
+        className={`mt-3 text-center text-xs text-white/40 transition-all duration-700 ${
           outputsVisible ? "opacity-100" : "opacity-0"
         }`}
         style={{ transitionDelay: outputsVisible ? "600ms" : "0ms" }}

@@ -77,12 +77,16 @@ export const PromptInput = React.forwardRef<HTMLTextAreaElement, PromptInputProp
         transition={{ duration: 0.4, ease: "easeOut" }}
         className={cn(promptInputVariants({ variant }), className)}
       >
-        {/* Fixed box height (260 px) with the textarea region taking the
-            remaining space and the action button row pinned to the
-            bottom. The textarea uses overflow-hidden + scrollbar-none so
-            no scrollbar ever appears inside the box; with the new short
-            prompts the content fits comfortably. */}
-        <div className="relative flex h-[260px] w-full flex-col rounded-[15px] bg-[#0c0c0c]">
+        {/* Fluid height — `clamp(200px, 22vh, 260px)` — so the demo's
+            two-row (prompts + outputs) layout always fits in one
+            viewport on every screen. Textarea takes the remaining
+            space, action row pinned to the bottom. Overflow-hidden +
+            scrollbar-none keep the chrome clean even on the shortest
+            heights. */}
+        <div
+          className="relative flex w-full flex-col rounded-[15px] bg-[#0c0c0c]"
+          style={{ height: "clamp(200px, 22vh, 260px)" }}
+        >
           {label ? (
             <div className="flex flex-shrink-0 items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-3 text-xs font-medium uppercase tracking-[0.18em] text-white/60">
               <span>{label}</span>

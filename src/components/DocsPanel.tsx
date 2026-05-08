@@ -1,5 +1,6 @@
 import { ArrowUpRight, BookOpen, GitBranch, Terminal } from "lucide-react";
 import { BlurText } from "./ui/blur-text";
+import { GlowCard } from "./ui/spotlight-card";
 import { Reveal } from "./ui/reveal";
 
 /**
@@ -9,6 +10,11 @@ import { Reveal } from "./ui/reveal";
  *
  * Animation: eyebrow + heading + subtitle blur-words in (per the
  * `animations/blurText.md` pattern), then cards stagger-Reveal in.
+ *
+ * Card surface: each card is a gold-tinted `GlowCard` (spotlight-card
+ * snippet adopted from the user request). The cursor anywhere on the
+ * page warms a radial gold spotlight on every card simultaneously,
+ * with a brighter "border ridge" at the cursor's nearest point.
  */
 type DocCard = {
   title: string;
@@ -85,34 +91,49 @@ export function DocsPanel() {
         />
       </div>
 
-      <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-3">
         {DOC_CARDS.map(({ title, description, href, Icon, meta }, index) => (
           <Reveal key={title} delay={POST_HEADING + 0.4 + index * 0.12} duration={0.55}>
             <a
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              className="group relative flex h-full flex-col gap-4 rounded-2xl border border-white/10 bg-white/[0.02] p-6 transition-colors hover:border-white/25 hover:bg-white/[0.05]"
+              className="group block h-full"
+              aria-label={`Open ${title} docs in a new tab`}
             >
-              <div className="flex items-center justify-between">
-                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/[0.05] text-white/80 transition-colors group-hover:bg-[#d4b87a]/20 group-hover:text-[#d4b87a]">
-                  <Icon size={18} strokeWidth={1.8} />
+              <GlowCard
+                glowColor="gold"
+                customSize
+                className="h-full min-h-[220px] w-full p-5 sm:p-6"
+              >
+                {/* Row 1 (1fr) — icon, arrow, title, description. */}
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/[0.06] text-white/85 transition-colors group-hover:bg-[#d4b87a]/20 group-hover:text-[#d4b87a]">
+                      <Icon size={18} strokeWidth={1.8} />
+                    </span>
+                    <ArrowUpRight
+                      size={16}
+                      strokeWidth={1.8}
+                      className="text-white/35 transition-colors group-hover:text-white/85"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <h3 className="text-lg font-semibold text-white">
+                      {title}
+                    </h3>
+                    <p className="text-sm leading-relaxed text-white/60">
+                      {description}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Row 2 (auto) — meta footer pinned to the bottom by
+                    GlowCard's internal `grid-rows-[1fr_auto]`. */}
+                <span className="text-xs font-medium uppercase tracking-[0.18em] text-white/35">
+                  {meta}
                 </span>
-                <ArrowUpRight
-                  size={16}
-                  strokeWidth={1.8}
-                  className="text-white/30 transition-colors group-hover:text-white/80"
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <h3 className="text-lg font-semibold text-white">{title}</h3>
-                <p className="text-sm leading-relaxed text-white/60">
-                  {description}
-                </p>
-              </div>
-              <span className="mt-auto text-xs font-medium uppercase tracking-[0.18em] text-white/35">
-                {meta}
-              </span>
+              </GlowCard>
             </a>
           </Reveal>
         ))}

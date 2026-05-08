@@ -6,31 +6,34 @@ import { InstallSteps } from "../components/InstallSteps";
 import { InteractiveCanvas } from "../components/InteractiveCanvas";
 import { LoopingWords } from "../components/LoopingWords";
 import { PixelWave } from "../components/PixelWave";
-import { ProblemTestimonial } from "../components/ProblemTestimonial";
+import { ProblemQuote } from "../components/ProblemQuote";
 import { BlurText } from "../components/ui/blur-text";
+import { FeatureShowcase } from "../components/ui/feature-showcase";
 import { LogoCloud } from "../components/ui/logo-cloud";
 import { Reveal } from "../components/ui/reveal";
-import { TeamShowcase } from "../components/ui/team-showcase";
-import { TextRevealByWord } from "../components/ui/text-reveal";
 
 /**
  * Section order:
  *   home → demo → sandbox → problem → solution → about → docs
  *
- * Animation choreography:
- *   - All headings + subtitles use `BlurText` (per-word blur-in adopted
- *     from `animations/blurText.md`). Headings get a gold flourish
- *     underline that draws after the last word lands.
- *   - Cards / grids / interactive blocks use `Reveal` (one observer per
- *     block, fade-up).
- *   - The Solution section uses `TextRevealByWord` — a sticky stage
- *     with scroll-driven word brightening + per-line gold underlines.
- *     The sentence stays at its natural fluid size for the whole stage
- *     (no scale morph), so the entire long sentence is visible at once.
+ * Choreography overview:
+ *   - All headings + subtitles use `BlurText` (per-word blur-in,
+ *     adopted from `animations/blurText.md`). Headings get a gold
+ *     flourish underline that draws after the last word lands.
+ *   - Cards / grids / interactive blocks use `Reveal` (one observer
+ *     per block, fade-up).
+ *   - The Problem section uses `ProblemQuote` — a dot-pattern framed
+ *     statement with a per-line stagger reveal.
+ *   - The Solution section is intentionally empty for now (placeholder
+ *     while the new content is being written).
+ *   - The About section uses `FeatureShowcase` (left-column accordion
+ *     + right-column tab images, gold theme).
+ *   - The Docs section uses gold `GlowCard` spotlights for each card.
  */
 
-// Common per-word blur stagger values, used to compute the right post-
-// heading delay so subtitles/content land AFTER the underline draws.
+// Common per-word blur stagger values — used to compute the right
+// post-heading delay so subtitles/content land AFTER the underline
+// finishes drawing.
 const HEADING_BASE_DELAY = 0.07;
 const HEADING_DURATION = 0.85;
 
@@ -80,13 +83,16 @@ export function HomePage() {
         />
       </section>
 
+      {/* Demo — compact stage so the prompts row + outputs row both
+          fit in one viewport. Tighter padding + tighter gap inside
+          DemoSplit, with output cards on a fixed 16:10 aspect. */}
       <section
         id="demo"
-        className="flex min-h-screen scroll-mt-20 flex-col items-center justify-center px-6"
+        className="flex min-h-screen scroll-mt-20 flex-col items-center justify-center overflow-hidden px-6"
         style={{
-          paddingTop: "clamp(3rem,8vh,6rem)",
-          paddingBottom: "clamp(3rem,8vh,6rem)",
-          gap: "clamp(1.5rem,3vh,2.5rem)",
+          paddingTop: "clamp(2rem,5vh,4rem)",
+          paddingBottom: "clamp(2rem,5vh,4rem)",
+          gap: "clamp(0.75rem,1.5vh,1.5rem)",
         }}
       >
         <div className="w-full max-w-6xl px-4">
@@ -96,14 +102,14 @@ export function HomePage() {
               Demo · same intent, two prompts
             </span>
           </Reveal>
-          <div className="mt-4">
+          <div className="mt-3">
             <BlurText
               as="h2"
               baseDelay={HEADING_BASE_DELAY}
               duration={HEADING_DURATION}
               underline
               underlineWidth="min(18rem, 65%)"
-              className="text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl"
+              className="text-balance text-2xl font-semibold tracking-tight text-white sm:text-3xl md:text-4xl"
               content="Watch the same idea land twice — once vague, once precise."
             />
           </div>
@@ -113,11 +119,10 @@ export function HomePage() {
         </Reveal>
       </section>
 
-      {/* Sandbox — moon-image graphic stage (back from the
-          `sandbox.md` reference) tinted with Forma's yellow/gold
-          gradient overlays. The image is anchored to the section box,
-          so it scrolls with the section instead of being pinned to the
-          viewport. */}
+      {/* Sandbox — single radial-gradient backdrop (gold instead of
+          purple, adopted from the user-pasted `tailwind-css-background-snippet`).
+          The graphic + image overlay are gone; we keep the chat-frame
+          GlassTextarea (the "describe your UI component" textbox). */}
       <section
         id="sandbox"
         className="relative flex min-h-screen scroll-mt-20 flex-col items-center justify-center overflow-hidden px-6"
@@ -127,46 +132,11 @@ export function HomePage() {
           gap: "clamp(1rem,2.5vh,2rem)",
         }}
       >
-        {/* Base moon image — sits behind the gold tint so the texture
-            shows through but the section reads as Forma-gold rather
-            than the raw greyscale photo. */}
+        {/* Tailwind arbitrary background — black core fading to gold
+            via a 125% × 125% radial pinned at 50% / 10%. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-0"
-          style={{
-            backgroundImage:
-              "url('https://pub-940ccf6255b54fa799a9b01050e6c227.r2.dev/ruixen_moon_2.png')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            // No `fixed` attachment — the bg moves with the section
-            // as the user scrolls, matching their preference.
-            opacity: 0.55,
-          }}
-        />
-
-        {/* Gold tint pass — three layered radials + a warm base, all
-            anchored to the section so they scroll with it. */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-0"
-          style={{
-            background:
-              "radial-gradient(ellipse 90% 65% at 50% 55%, rgba(212, 184, 122, 0.45) 0%, rgba(212, 184, 122, 0.22) 38%, rgba(212, 184, 122, 0.06) 65%, transparent 80%), " +
-              "radial-gradient(ellipse 55% 45% at 18% 25%, rgba(231, 207, 149, 0.22) 0%, transparent 65%), " +
-              "radial-gradient(ellipse 55% 45% at 82% 18%, rgba(212, 184, 122, 0.18) 0%, transparent 65%), " +
-              "linear-gradient(180deg, rgba(25, 22, 14, 0.55) 0%, rgba(15, 14, 10, 0.5) 100%)",
-            mixBlendMode: "screen",
-          }}
-        />
-
-        {/* Bottom fade into the page bg so the next section blends. */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-40"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(25,26,31,0) 0%, rgba(25,26,31,0.85) 100%)",
-          }}
+          className="pointer-events-none absolute inset-0 -z-10 h-full w-full items-center px-5 py-24 [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#d4b87a_100%)]"
         />
 
         <div className="relative z-10 flex flex-col items-center text-center">
@@ -208,72 +178,85 @@ export function HomePage() {
         </div>
       </section>
 
+      {/* Problem — dot-pattern framed quote with gold pixel corners
+          and a per-line stagger reveal. */}
       <section
         id="problem"
         className="flex min-h-screen scroll-mt-20 items-center justify-center px-6"
-        style={{ paddingTop: "clamp(3rem,8vh,6rem)", paddingBottom: "clamp(3rem,8vh,6rem)" }}
+        style={{
+          paddingTop: "clamp(3rem,8vh,6rem)",
+          paddingBottom: "clamp(3rem,8vh,6rem)",
+        }}
       >
-        <ProblemTestimonial
-          quotes={[
-            "Building UI by prompt feels fast — until 'card' means six different things and you spend an hour clarifying which one you actually meant.",
-            "Every team has a 'modal' that's actually a sheet, a dialog, and a popover all wearing the same name.",
-            "The fastest way to ship the wrong component is to describe it in three vague words.",
-          ]}
-          attributions={[
-            "The vibecoder problem — What we hear from teams every week",
-            "The naming-collision problem — Same word, three implementations",
-            "The vague-prompt problem — Precision beats speed",
-          ]}
-        />
+        <ProblemQuote />
       </section>
 
-      {/* Solution — long vague sentence brightens word-by-word and gold
-          per-line underlines draw under every wrapped line. The font
-          size is fluid (clamp) so the entire sentence stays visible at
-          its natural size on every viewport — no scale/zoom morph. */}
-      <section id="solution" data-snap-start className="scroll-mt-20">
-        <TextRevealByWord
-          text="Forma is some kind of helpful smart tool thing that maybe sorta turns those random kinda vague description-y prompt words you type into something that's like, more clear and proper for getting back the UI components you actually wanted in the first place, hopefully."
-        />
-      </section>
+      {/* Solution — intentionally empty for now. Reserved screen so
+          navigation anchors keep working until new content lands. */}
+      <section
+        id="solution"
+        aria-hidden="true"
+        className="min-h-screen scroll-mt-20"
+      />
 
-      {/* About — eyebrow removed, content centered vertically and
-          horizontally. Heading + subtitle blur-words in. */}
+      {/* About — FeatureShowcase. Eyebrow + headline + accordion on
+          the left, image-tab panel on the right. */}
       <section
         id="about"
         className="relative flex min-h-screen scroll-mt-20 flex-col items-center justify-center px-6"
         style={{
           paddingTop: "clamp(3rem,8vh,6rem)",
           paddingBottom: "clamp(3rem,8vh,6rem)",
-          gap: "clamp(1.5rem,3vh,2.5rem)",
         }}
       >
-        <div className="flex w-full max-w-5xl flex-col items-center text-center">
-          <BlurText
-            as="h2"
-            align="center"
-            baseDelay={HEADING_BASE_DELAY}
-            duration={HEADING_DURATION}
-            underline
-            underlineWidth="min(16rem, 55%)"
-            className="text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl"
-            content="Design-language research, shipped as a tool."
-          />
-          <BlurText
-            as="p"
-            align="center"
-            startDelay={postHeadingDelay(6)}
-            baseDelay={0.035}
-            duration={0.7}
-            blur={8}
-            y={10}
-            className="mt-4 max-w-2xl text-base text-white/55 sm:text-lg"
-            content="Forma is a translation layer between human intent and the AI tools that build UI — opinionated, open, pointed at the precision frontier of generative interfaces."
-          />
-        </div>
-        <Reveal delay={postHeadingDelay(6) + 0.6} duration={0.6}>
-          <TeamShowcase />
-        </Reveal>
+        <FeatureShowcase
+          eyebrow="About Forma"
+          title="Design-language research, shipped as a tool."
+          description="Forma is a translation layer between human intent and the AI tools that build UI — opinionated, open, pointed at the precision frontier of generative interfaces."
+          stats={["Open vocab packs", "Local CLI matcher", "Pro Mode templates"]}
+          steps={[
+            {
+              id: "research",
+              title: "Research the language",
+              text:
+                "We study how teams describe components in natural language and where the words break down — turning that into a precision map of UI vocabulary.",
+            },
+            {
+              id: "vocab",
+              title: "Ship open vocabulary packs",
+              text:
+                "Canonical UI terms, anchors, and motion specs in plain YAML. Start with the defaults, layer your team's pack on top.",
+            },
+            {
+              id: "tooling",
+              title: "Wire it into every surface",
+              text:
+                "A Rust matcher, a Chrome extension, and Pro Mode templates that translate vague prompts into production-ready briefs.",
+            },
+          ]}
+          tabs={[
+            {
+              value: "research",
+              label: "Research",
+              src: "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1280&q=80",
+              alt: "Type specimen and research notes",
+            },
+            {
+              value: "vocab",
+              label: "Vocabulary",
+              src: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1280&q=80",
+              alt: "Source code on screen",
+            },
+            {
+              value: "tooling",
+              label: "Tooling",
+              src: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1280&q=80",
+              alt: "Programming environment with multiple monitors",
+            },
+          ]}
+          defaultTab="research"
+          panelMinHeight={480}
+        />
       </section>
 
       {/* Docs section sticks for 100 vh of scroll, then a 100 vh "lock"
