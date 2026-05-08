@@ -605,3 +605,193 @@ Return ONLY valid JSON in this exact format:
         data = response.json()
         content = data["choices"][0]["message"]["content"]
         return json.loads(content)
+
+
+async def run_consensus_agent(
+    prompt_text: str,
+    detector_result: Dict[str, Any] = None,
+    critic_result: Dict[str, Any] = None,
+    reformulator_result: Dict[str, Any] = None,
+    style_result: Dict[str, Any] = None,
+    memory_result: Dict[str, Any] = None,
+    coach_result: Dict[str, Any] = None
+) -> Dict[str, Any]:
+    """
+    Consensus Agent: Synthesizes outputs from all 6 specialist agents into
+    a final unified recommendation. The arbitrator of the multi-agent system.
+    """
+    agent_outputs = {
+        "detector": detector_result,
+        "critic": critic_result,
+        "reformulator": reformulator_result,
+        "style": style_result,
+        "memory": memory_result,
+        "coach": coach_result
+    }
+    
+    # Filter out None results
+    available_outputs = {k: v for k, v in agent_outputs.items() if v is not None}
+    
+    outputs_context = json.dumps(available_outputs, indent=2)
+
+    system_message = """You are the Consensus Agent in Forma. You are the final arbitrator in a 7-agent system. Your job is to synthesize outputs from 6 specialist agents into a single unified recommendation for the user.
+
+Specialist agents you arbitrate:
+- Detector: finds vague phrases
+- Critic: scores prompt quality 0-100
+- Reformulator: rewrites with canonical vocabulary
+- Style: matches user's design preferences
+- Memory: analyzes cross-builder history
+- Coach: suggests iteration fragments
+
+Your job:
+1. Identify points of agreement across agents
+2. Resolve disagreements (e.g., if Style says "use Glassmorphic Popover" but Memory says user usually rejects modals)
+3. Produce a single recommended action for the user
+4. Explain the reasoning briefly
+
+Return ONLY valid JSON in this exact format:
+{
+  "agents_aligned": <integer count of agreeing agents>,
+  "agents_conflicted": <integer count of conflicting agents>,
+  "primary_recommendation": "<single clear action user should take>",
+  "supporting_evidence": ["<evidence 1>", "<evidence 2>"],
+  "confidence_score": <integer 0-100>,
+  "reasoning": "<brief explanation of how consensus was reached>"
+}"""
+
+    user_message = f"Original prompt: {prompt_text}\n\nAgent outputs to synthesize:\n{outputs_context}"
+
+    payload = {
+        "model": VLLM_MODEL,
+        "messages": [
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": user_message}
+        ],
+        "temperature": 0.3,
+        "max_tokens": 600,
+        "response_format": {"type": "json_object"}
+    }
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.post(VLLM_URL, json=payload)
+        response.raise_for_status()
+        data = response.json()
+        content = data["choices"][0]["message"]["content"]
+        return json.loads(content)
+
+
+import asyncio
+import time
+
+try:
+    # existing detector
+    from parser import detect_vague_phrases
+except ImportError:
+    # Fallback so the orchestrator endpoint still works even if detector is unavailable.
+    def detect_vague_phrases(text: str):
+        return []
+
+
+async def run_detector_agent_async(prompt_text: str) -> Dict[str, Any]:
+    """Async wrapper for the existing detector."""
+    try:
+        # Use the existing detector logic
+        phrases = detect_vague_phrases(prompt_text)
+        return {
+            "phrases_found": [p.get("phrase", "") for p in phrases] if phrases else [],
+            "count": len(phrases) if phrases else 0,
+            "detections": phrases or []
+        }
+    except Exception as e:
+        return {"error": str(e), "phrases_found": [], "count": 0}
+
+
+async def run_all_agents_parallel(prompt_text: str) -> Dict[str, Any]:
+    """
+    Orchestrator: Runs all 7 agents in parallel on Llama 3.1 70B AWQ on AMD MI300X.
+    
+    Specialist agents (run in parallel):
+    - Detector: finds vague phrases
+    - Critic: scores prompt quality
+    - Reformulator: rewrites with canonical vocabulary
+    - Style: matches user's design preferences
+    - Memory: analyzes cross-builder history
+    - Coach: suggests iteration fragments
+    
+    Then Consensus Agent synthesizes all 6 outputs.
+    """
+    start_time = time.time()
+    
+    # Run 6 specialist agents in parallel
+    detector_task = run_detector_agent_async(prompt_text)
+    critic_task = run_critic_agent(prompt_text)
+    reformulator_task = run_reformulator_agent(prompt_text)
+    style_task = run_style_agent(prompt_text)
+    memory_task = run_memory_agent(prompt_text)
+    coach_task = run_coach_agent(prompt_text)
+    
+    # Use asyncio.gather with return_exceptions to prevent one failure from killing all
+    results = await asyncio.gather(
+        detector_task,
+        critic_task,
+        reformulator_task,
+        style_task,
+        memory_task,
+        coach_task,
+        return_exceptions=True
+    )
+    
+    # Extract results, replacing exceptions with error dicts
+    def safe_result(r):
+        if isinstance(r, Exception):
+            return {"error": str(r)}
+        return r
+    
+    detector_result = safe_result(results[0])
+    critic_result = safe_result(results[1])
+    reformulator_result = safe_result(results[2])
+    style_result = safe_result(results[3])
+    memory_result = safe_result(results[4])
+    coach_result = safe_result(results[5])
+    
+    parallel_latency_ms = int((time.time() - start_time) * 1000)
+    
+    # Run Consensus Agent with all results
+    consensus_start = time.time()
+    try:
+        consensus_result = await run_consensus_agent(
+            prompt_text,
+            detector_result=detector_result,
+            critic_result=critic_result,
+            reformulator_result=reformulator_result,
+            style_result=style_result,
+            memory_result=memory_result,
+            coach_result=coach_result
+        )
+    except Exception as e:
+        consensus_result = {"error": str(e)}
+    
+    consensus_latency_ms = int((time.time() - consensus_start) * 1000)
+    total_latency_ms = int((time.time() - start_time) * 1000)
+    
+    return {
+        "agents": {
+            "detector": detector_result,
+            "critic": critic_result,
+            "reformulator": reformulator_result,
+            "style": style_result,
+            "memory": memory_result,
+            "coach": coach_result,
+            "consensus": consensus_result
+        },
+        "metadata": {
+            "parallel_specialists_count": 6,
+            "parallel_latency_ms": parallel_latency_ms,
+            "consensus_latency_ms": consensus_latency_ms,
+            "total_latency_ms": total_latency_ms,
+            "model": "Llama 3.1 70B Instruct AWQ-INT4",
+            "hardware": "AMD MI300X (192GB HBM3)",
+            "runtime": "vLLM 0.17.1 + ROCm 7.0"
+        }
+    }

@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from agents import translate_phrase, analyze_sentence, run_critic_agent, run_reformulator_agent, run_style_agent, run_memory_agent, run_coach_agent
+from agents import translate_phrase, analyze_sentence, run_critic_agent, run_reformulator_agent, run_style_agent, run_memory_agent, run_coach_agent, run_consensus_agent, run_all_agents_parallel
 from patterns import contains_vague_phrase
 from parser import parse_response, parse_analyze_response
 from db import init_db, get_db
@@ -80,6 +80,20 @@ class MemoryRequest(BaseModel):
 class CoachRequest(BaseModel):
     text: str
     current_output: str = None
+
+
+class ConsensusRequest(BaseModel):
+    text: str
+    detector_result: dict = None
+    critic_result: dict = None
+    reformulator_result: dict = None
+    style_result: dict = None
+    memory_result: dict = None
+    coach_result: dict = None
+
+
+class RunAllRequest(BaseModel):
+    text: str
 
 
 @app.get("/")
@@ -163,6 +177,37 @@ async def coach_endpoint(request: CoachRequest):
         return {"agent": "coach", "result": result}
     except Exception as e:
         return {"agent": "coach", "error": str(e)}
+
+
+@app.post("/agents/consensus")
+async def consensus_endpoint(request: ConsensusRequest):
+    """Consensus Agent: synthesizes all 6 specialist agents into a unified recommendation."""
+    try:
+        result = await run_consensus_agent(
+            request.text,
+            request.detector_result,
+            request.critic_result,
+            request.reformulator_result,
+            request.style_result,
+            request.memory_result,
+            request.coach_result
+        )
+        return {"agent": "consensus", "result": result}
+    except Exception as e:
+        return {"agent": "consensus", "error": str(e)}
+
+
+@app.post("/agents/run-all")
+async def run_all_endpoint(request: RunAllRequest):
+    """
+    Orchestrator: runs all 7 agents on Llama 3.1 70B AWQ on AMD MI300X.
+    Returns parallel inference results with latency metrics.
+    """
+    try:
+        result = await run_all_agents_parallel(request.text)
+        return result
+    except Exception as e:
+        return {"error": str(e)}
 
 
 # ============================================================
