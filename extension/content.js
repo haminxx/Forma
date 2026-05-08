@@ -554,25 +554,28 @@ function initForma() {
       hideAIIndicator();
       console.log('[Forma AI] Response:', data);
 
-      if (!data || !Array.isArray(data.phrases)) {
+      if (data && data.error) {
+        console.warn('[Forma AI] Analyze returned error:', data.error);
+        return;
+      }
+
+      if (!data || !data.result || typeof data.result.score !== 'number') {
         console.warn('[Forma AI] Invalid response format');
         return;
       }
-      
-      // Cache the result
-      aiResponseCache.set(text, data.phrases);
-      lastAIResponse = data.phrases;
 
-      // Log each detection to Design Intelligence Layer
-      const latency = data.latency || 0;
-      for (const phrase of data.phrases) {
-        if (phrase.term && phrase.phrase) {
-          logDetection(phrase.phrase, phrase.term, latency);
-        }
-      }
-      
-      // Trigger callback to re-render overlay
-      onComplete(data.phrases);
+      const result = data.result;
+      const tier = (result.tier || '').toLowerCase();
+      const color =
+        tier === 'vague' ? '#ef4444' :
+        tier === 'decent' ? '#f59e0b' :
+        tier === 'precise' ? '#4ade80' :
+        '#6b6560';
+      const label = result.tier || 'Unknown';
+
+      // Keep overlay behavior unchanged; /analyze now drives badge score only.
+      onComplete(lastAIResponse);
+      showFormaScoreBadge(result.score, label, color);
     })
     .catch(err => {
       analyzeInFlight = false;
@@ -942,7 +945,7 @@ function initForma() {
       const res = await fetch(RUN_ALL_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ text: prompt }),
         signal: controller.signal
       });
       if (!res.ok) throw new Error('HTTP ' + res.status);
