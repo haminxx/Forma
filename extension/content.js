@@ -799,6 +799,89 @@ function initForma() {
     document.head.appendChild(style);
   }
 
+  function ensureToastStyles() {
+    if (document.getElementById('forma-toast-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'forma-toast-styles';
+    style.textContent = `
+      #forma-toast {
+        position: fixed;
+        right: 20px;
+        bottom: 36px;
+        z-index: 1000000;
+        opacity: 0;
+        transform: translateY(8px);
+        transition: opacity 250ms ease-out, transform 250ms ease-out;
+      }
+      #forma-toast.forma-open {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      #forma-toast.forma-hide {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function showToast(message, type = 'success') {
+    ensureToastStyles();
+    const borderColor = type === 'error'
+      ? 'rgba(239, 68, 68, 0.3)'
+      : type === 'info'
+      ? 'rgba(200, 184, 154, 0.3)'
+      : 'rgba(74, 222, 128, 0.3)';
+    const textColor = type === 'error'
+      ? '#ef4444'
+      : type === 'info'
+      ? '#c8b89a'
+      : '#4ade80';
+
+    const existing = document.getElementById('forma-toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.id = 'forma-toast';
+    toast.innerHTML = `<div style="background:#1c1a17;border:1px solid ${borderColor};border-radius:10px;padding:12px 16px;font-family:'Outfit',system-ui,-apple-system,sans-serif;font-size:13px;color:${textColor};">${escapeHtml(message)}</div>`;
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('forma-open'));
+
+    setTimeout(() => {
+      toast.classList.remove('forma-open');
+      toast.classList.add('forma-hide');
+      setTimeout(() => {
+        if (toast.parentNode) toast.remove();
+      }, 250);
+    }, 2500);
+  }
+
+  function getActiveTextarea() {
+    return targetTextarea || findLargestTextarea();
+  }
+
+  function setTextareaValueReactSafe(textarea, value) {
+    if (!textarea) return;
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
+    if (nativeInputValueSetter) {
+      nativeInputValueSetter.call(textarea, value);
+    } else {
+      textarea.value = value;
+    }
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+    textarea.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  function insertTextAtCursorReactSafe(textarea, textToInsert) {
+    if (!textarea) return;
+    const current = textarea.value || '';
+    const hasSelection = typeof textarea.selectionStart === 'number' && typeof textarea.selectionEnd === 'number';
+    const start = hasSelection ? textarea.selectionStart : current.length;
+    const end = hasSelection ? textarea.selectionEnd : current.length;
+    const next = current.slice(0, start) + textToInsert + current.slice(end);
+    setTextareaValueReactSafe(textarea, next);
+  }
+
   function initializeDeepAnalysisSession(prompt) {
     deepAnalysisSession = {
       prompt,
@@ -942,12 +1025,13 @@ function initForma() {
     );
   }
 
-  function closeAgentPanel() {
+  function closeAgentPanel(onDone) {
     if (!agentPanel) return;
     const panelToRemove = agentPanel;
     panelToRemove.classList.remove('forma-open');
     setTimeout(() => {
       if (panelToRemove.parentNode) panelToRemove.remove();
+      if (onDone) onDone();
     }, 400);
     agentPanel = null;
     if (agentPanelEscListener) {
@@ -991,6 +1075,25 @@ function initForma() {
     const criticColor = getTierColor(criticScore);
     const totalLatency = Number(meta.total_latency_ms || 0);
     const aligned = Number(consensus.agents_aligned || 0);
+    const canonicalTerms = Array.isArray(reformulator.canonical_terms_added) ? reformulator.canonical_terms_added : [];
+    const iterationFragments = Array.isArray(coach.iteration_fragments) ? coach.iteration_fragments : [];
+    const canonicalPillsHtml = canonicalTerms.length > 0
+      ? `<div style="margin-top:8px;display:flex;flex-wrap:wrap;">
+          ${canonicalTerms.map((term, idx) => `
+            <button class="forma-canonical-pill" data-term-index="${idx}" style="display:inline-block;margin-right:6px;margin-bottom:6px;background:rgba(200, 184, 154, 0.06);border:1px solid rgba(200, 184, 154, 0.18);border-radius:6px;padding:4px 10px;font-family:'Outfit',system-ui,-apple-system,sans-serif;font-size:11px;color:#f0ece4;cursor:pointer;transition:all 0.2s ease;">↳ ${escapeHtml(term)}</button>
+          `).join('')}
+        </div>`
+      : '';
+    const coachRowsHtml = iterationFragments.length > 0
+      ? `<div style="margin-top:6px;">
+          ${iterationFragments.map((item, idx) => `
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;${idx < iterationFragments.length - 1 ? 'border-bottom:1px solid rgba(200, 184, 154, 0.06);' : ''}">
+              <div style="flex:1;font-family:'Outfit',system-ui,-apple-system,sans-serif;font-size:11px;color:#a0998c;font-style:italic;line-height:1.4;">${escapeHtml(item.fragment || '')}</div>
+              <button class="forma-append-fragment" data-fragment-index="${idx}" style="width:24px;height:24px;border-radius:999px;background:transparent;border:1px solid rgba(200, 184, 154, 0.2);color:#c8b89a;font-size:14px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;transition:all 0.2s ease;">+</button>
+            </div>
+          `).join('')}
+        </div>`
+      : `<div class="forma-coach-code">${escapeHtml((coach.iteration_fragments && coach.iteration_fragments[0] && coach.iteration_fragments[0].fragment) || 'No iteration fragment returned.')}</div>`;
 
     const panel = document.createElement('div');
     panel.id = 'forma-agent-panel';
@@ -1022,6 +1125,7 @@ function initForma() {
           </div>
         </div>
         <div style="margin-top:10px;font-size:12px;color:#a0998c;font-style:italic;line-height:1.4;">${escapeHtml(consensus.reasoning || 'No reasoning returned.')}</div>
+        <button id="forma-accept-reformulated" style="width:100%;margin-top:16px;background:#c8b89a;color:#0a0a09;font-family:'Outfit',system-ui,-apple-system,sans-serif;font-size:13px;font-weight:600;padding:10px 16px;border-radius:8px;border:none;cursor:pointer;transition:all 0.2s ease;">✓ Accept Reformulated Prompt</button>
       </div>
       <div id="forma-agent-cards">
         <div class="forma-agent-card">
@@ -1045,6 +1149,7 @@ function initForma() {
           <div style="font-size:12px;color:#a0998c;text-decoration:line-through;margin-top:4px;">${escapeHtml(reformulator.original || promptText || '—')}</div>
           <div style="font-size:10px;color:#c8b89a;text-transform:uppercase;letter-spacing:0.08em;margin-top:8px;">REFORMULATED</div>
           <div style="margin-top:4px;background:rgba(200,184,154,0.06);border:1px solid rgba(200,184,154,0.12);border-radius:8px;padding:8px;font-size:12px;line-height:1.4;">${escapeHtml(reformulator.reformulated || '—')}</div>
+          ${canonicalPillsHtml}
         </div>
         <div class="forma-agent-card">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
@@ -1073,7 +1178,7 @@ function initForma() {
               <span class="forma-scroll-mono" style="font-size:10px;color:#4ade80;">✓ COMPLETE</span>
             </div>
           </div>
-          <div class="forma-coach-code">${escapeHtml((coach.iteration_fragments && coach.iteration_fragments[0] && coach.iteration_fragments[0].fragment) || 'No iteration fragment returned.')}</div>
+          ${coachRowsHtml}
         </div>
         <div class="forma-agent-card">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
@@ -1094,6 +1199,108 @@ function initForma() {
 
     const closeBtn = panel.querySelector('.forma-close');
     if (closeBtn) closeBtn.addEventListener('click', closeAgentPanel);
+
+    const acceptBtn = panel.querySelector('#forma-accept-reformulated');
+    if (acceptBtn) {
+      acceptBtn.addEventListener('mouseenter', () => {
+        acceptBtn.style.background = '#d6c9ad';
+        acceptBtn.style.transform = 'scale(1.01)';
+      });
+      acceptBtn.addEventListener('mouseleave', () => {
+        acceptBtn.style.background = '#c8b89a';
+        acceptBtn.style.transform = 'scale(1)';
+      });
+      acceptBtn.addEventListener('mousedown', () => {
+        acceptBtn.style.transform = 'scale(0.98)';
+      });
+      acceptBtn.addEventListener('mouseup', () => {
+        acceptBtn.style.transform = 'scale(1.01)';
+      });
+      acceptBtn.addEventListener('click', () => {
+        const textarea = getActiveTextarea();
+        if (!textarea) return;
+        const promptBefore = textarea.value || '';
+        const promptAfter = reformulator.reformulated || consensus.primary_recommendation || '';
+        if (!promptAfter.trim()) return;
+        setTextareaValueReactSafe(textarea, promptAfter);
+        closeAgentPanel(() => {
+          showToast('✓ Prompt updated', 'success');
+        });
+        fetch(LOG_EVENT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event_type: 'accept_reformulated',
+            payload: {
+              prompt_before: promptBefore,
+              prompt_after: promptAfter,
+              confidence: consensus.confidence_score
+            }
+          })
+        }).catch(() => {});
+      });
+    }
+
+    panel.querySelectorAll('.forma-canonical-pill').forEach((pill) => {
+      pill.addEventListener('mouseenter', () => {
+        pill.style.background = 'rgba(200, 184, 154, 0.12)';
+        pill.style.borderColor = 'rgba(200, 184, 154, 0.3)';
+      });
+      pill.addEventListener('mouseleave', () => {
+        pill.style.background = 'rgba(200, 184, 154, 0.06)';
+        pill.style.borderColor = 'rgba(200, 184, 154, 0.18)';
+      });
+      pill.addEventListener('click', () => {
+        const termIndex = parseInt(pill.dataset.termIndex || '', 10);
+        const term = canonicalTerms[termIndex];
+        if (!term) return;
+        const textarea = getActiveTextarea();
+        if (!textarea) return;
+        insertTextAtCursorReactSafe(textarea, term);
+        showToast(`✓ Term inserted: ${term}`, 'success');
+        fetch(LOG_EVENT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event_type: 'insert_canonical',
+            payload: { term: term }
+          })
+        }).catch(() => {});
+      });
+    });
+
+    panel.querySelectorAll('.forma-append-fragment').forEach((btn) => {
+      btn.addEventListener('mouseenter', () => {
+        btn.style.background = 'rgba(200, 184, 154, 0.08)';
+        btn.style.borderColor = 'rgba(200, 184, 154, 0.35)';
+      });
+      btn.addEventListener('mouseleave', () => {
+        btn.style.background = 'transparent';
+        btn.style.borderColor = 'rgba(200, 184, 154, 0.2)';
+      });
+      btn.addEventListener('click', () => {
+        const fragIndex = parseInt(btn.dataset.fragmentIndex || '', 10);
+        const frag = iterationFragments[fragIndex];
+        if (!frag || !frag.fragment) return;
+        const textarea = getActiveTextarea();
+        if (!textarea) return;
+        const current = textarea.value || '';
+        const next = (current + ' ' + frag.fragment).trim();
+        setTextareaValueReactSafe(textarea, next);
+        showToast('✓ Fragment appended', 'success');
+        fetch(LOG_EVENT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event_type: 'append_fragment',
+            payload: {
+              issue: frag.issue || '',
+              fragment: frag.fragment
+            }
+          })
+        }).catch(() => {});
+      });
+    });
 
     agentPanelEscListener = (e) => {
       if (e.key === 'Escape') closeAgentPanel();
