@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from agents import translate_phrase, analyze_sentence, run_critic_agent
+from agents import translate_phrase, analyze_sentence, run_critic_agent, run_reformulator_agent
 from patterns import contains_vague_phrase
 from parser import parse_response, parse_analyze_response
 from db import init_db, get_db
@@ -65,6 +65,10 @@ class CriticRequest(BaseModel):
     text: str
 
 
+class ReformulatorRequest(BaseModel):
+    text: str
+
+
 @app.get("/")
 def health_check():
     return {
@@ -106,6 +110,16 @@ async def critic_endpoint(request: CriticRequest):
         return {"agent": "critic", "result": result}
     except Exception as e:
         return {"agent": "critic", "error": str(e)}
+
+
+@app.post("/agents/reformulator")
+async def reformulator_endpoint(request: ReformulatorRequest):
+    """Reformulator Agent: rewrites vague prompts into precise ones."""
+    try:
+        result = await run_reformulator_agent(request.text)
+        return {"agent": "reformulator", "result": result}
+    except Exception as e:
+        return {"agent": "reformulator", "error": str(e)}
 
 
 # ============================================================

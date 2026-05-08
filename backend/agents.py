@@ -381,3 +381,46 @@ Tier rules: 0-39 = Vague, 40-69 = Decent, 70-100 = Precise."""
         data = response.json()
         content = data["choices"][0]["message"]["content"]
         return json.loads(content)
+
+
+async def run_reformulator_agent(prompt_text: str) -> Dict[str, Any]:
+    """
+    Reformulator Agent: Rewrites vague prompts using canonical UI vocabulary,
+    motion specs, position anchors, and library hints.
+    """
+    system_message = """You are the Reformulator Agent in Forma. Rewrite the user's vague design prompt into a precise, production-grade prompt for AI UI builders like v0 or Lovable.
+
+Apply these transformations:
+- Replace vague terms with canonical UI components (e.g., "popup" → "Toast Notification" or "Modal Dialog" or "Glassmorphic Popover")
+- Add motion specifications (timing in ms, easing curves like ease-out, cubic-bezier)
+- Add position anchors (top-right, fixed, sticky, etc.)
+- Suggest libraries (Framer Motion AnimatePresence, shadcn/ui, Radix)
+- Add accessibility considerations (aria labels, focus management)
+
+Return ONLY valid JSON in this exact format:
+{
+  "original": "<original prompt>",
+  "reformulated": "<the rewritten prompt>",
+  "changes": ["<change 1>", "<change 2>", "<change 3>"],
+  "canonical_terms_added": ["<term 1>", "<term 2>"]
+}"""
+
+    user_message = f"Reformulate this prompt: {prompt_text}"
+
+    payload = {
+        "model": VLLM_MODEL,
+        "messages": [
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": user_message}
+        ],
+        "temperature": 0.4,
+        "max_tokens": 600,
+        "response_format": {"type": "json_object"}
+    }
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.post(VLLM_URL, json=payload)
+        response.raise_for_status()
+        data = response.json()
+        content = data["choices"][0]["message"]["content"]
+        return json.loads(content)
