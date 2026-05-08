@@ -77,21 +77,16 @@ export const PromptInput = React.forwardRef<HTMLTextAreaElement, PromptInputProp
         transition={{ duration: 0.4, ease: "easeOut" }}
         className={cn(promptInputVariants({ variant }), className)}
       >
-        {/* Fluid height — `clamp(200px, 22vh, 260px)` — so the demo's
-            two-row (prompts + outputs) layout always fits in one
-            viewport on every screen. Textarea takes the remaining
-            space, action row pinned to the bottom. Overflow-hidden +
-            scrollbar-none keep the chrome clean even on the shortest
-            heights. */}
+        {/* Fluid height capped lower so the demo section's paired
+            textboxes sit compact above the comparison outputs. */}
         <div
           className="relative flex w-full flex-col rounded-2xl bg-[#0c0c0c]"
           style={{
-            height:
-              "clamp(260px, min(38vh, 46dvh), 400px)",
+            height: "clamp(200px, min(26vh, 32dvh), 290px)",
           }}
         >
           {label ? (
-            <div className="flex flex-shrink-0 items-center justify-between gap-3 border-b border-white/[0.06] px-5 py-3.5 text-xs font-medium uppercase tracking-[0.18em] text-white/60">
+            <div className="flex flex-shrink-0 items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-2.5 text-xs font-medium uppercase tracking-[0.18em] text-white/60 sm:px-5">
               <span>{label}</span>
               {caption ? (
                 <span className="normal-case tracking-normal text-white/40">
@@ -101,7 +96,7 @@ export const PromptInput = React.forwardRef<HTMLTextAreaElement, PromptInputProp
             </div>
           ) : null}
 
-          <div className="flex flex-1 flex-col overflow-hidden p-4 sm:p-5">
+          <div className="flex flex-1 flex-col overflow-hidden p-3 sm:p-4">
             <div
               className="flex-1 overflow-hidden"
               style={{
@@ -113,8 +108,8 @@ export const PromptInput = React.forwardRef<HTMLTextAreaElement, PromptInputProp
                 ref={ref}
                 className="block h-full w-full resize-none overflow-hidden bg-transparent text-[15px] leading-relaxed text-white placeholder:text-white/40 focus:outline-none disabled:cursor-not-allowed sm:text-base [&::-webkit-scrollbar]:hidden"
                 style={{ scrollbarWidth: "none" }}
-                minRows={3}
-                maxRows={6}
+                minRows={2}
+                maxRows={4}
                 {...props}
               />
             </div>

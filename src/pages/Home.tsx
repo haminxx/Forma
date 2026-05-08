@@ -10,8 +10,6 @@ import { ProblemTestimonial } from "../components/ProblemTestimonial";
 import { BlurText } from "../components/ui/blur-text";
 import { FeatureShowcase } from "../components/ui/feature-showcase";
 import { LogoCloud } from "../components/ui/logo-cloud";
-import type { CarouselItem } from "../components/ui/ruler-carousel";
-import { RulerCarousel } from "../components/ui/ruler-carousel";
 import { Reveal } from "../components/ui/reveal";
 import { EdgeGlow, SectionFade } from "../components/ui/section-fade";
 
@@ -28,8 +26,7 @@ import { EdgeGlow, SectionFade } from "../components/ui/section-fade";
  *   - The Problem section uses `ProblemTestimonial` — dot-pattern
  *     background, large quote with `TextRotate` word stagger, and
  *     attribution; animation replays when re-entering the viewport.
- *   - The Solution section uses `RulerCarousel` — ruler ticks + spring
- *     horizontal snap through Forma vocabulary tokens.
+ *   - The Solution section is reserved for future content (placeholder).
  *   - The About section uses `FeatureShowcase` (left-column accordion
  *     + right-column tab images, gold theme).
  *   - The Docs section uses gold `GlowCard` spotlights for each card.
@@ -58,19 +55,6 @@ function postHeadingDelay(tokenCount: number) {
     Math.max(0, tokenCount - 1) * HEADING_BASE_DELAY + HEADING_DURATION + 0.1
   );
 }
-
-/** Vocabulary carousel for the Solution ruler UI (9 labels, triplicated under the hood). */
-const SOLUTION_CAROUSEL_ITEMS: CarouselItem[] = [
-  { id: 1, title: "CANONICAL" },
-  { id: 2, title: "ANCHOR" },
-  { id: 3, title: "MOTION" },
-  { id: 4, title: "PRECISE" },
-  { id: 5, title: "VAGUE" },
-  { id: 6, title: "PACK" },
-  { id: 7, title: "MATCHER" },
-  { id: 8, title: "EXTENSION" },
-  { id: 9, title: "FORMA" },
-];
 
 export function HomePage() {
   return (
@@ -246,32 +230,14 @@ export function HomePage() {
         />
       </section>
 
-      {/* Solution — ruler-tick carousel scrubbing through Forma's
-          vocabulary layer (spring snap, keyboard + prev/next controls). */}
+      {/* Solution — section shell kept for nav / hash; content TBD. */}
       <section
         id="solution"
-        className="relative flex min-h-screen scroll-mt-20 flex-col items-center justify-center overflow-hidden px-6"
+        className="relative flex min-h-[50vh] scroll-mt-20 flex-col items-center justify-center overflow-hidden px-6 py-16"
+        aria-label="Solution"
       >
         <EdgeGlow position="top" />
         <EdgeGlow position="bottom" />
-
-        <Reveal duration={0.55} className="relative z-10 w-full">
-          <div className="mx-auto mb-8 max-w-xl text-center">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-white/55">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#d4b87a]" />
-              Solution · vocabulary in motion
-            </span>
-            <p className="mt-4 text-balance text-sm text-white/60 sm:text-base">
-              Same surface, different words — Forma keeps the stack aligned to
-              one canonical design language.
-            </p>
-          </div>
-          <RulerCarousel
-            originalItems={SOLUTION_CAROUSEL_ITEMS}
-            initialOriginalIndex={3}
-            className="relative z-10"
-          />
-        </Reveal>
       </section>
 
       {/* About — FeatureShowcase. Eyebrow + headline + accordion on

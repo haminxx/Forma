@@ -93,13 +93,13 @@ export function InstallSteps() {
   };
 
   return (
-    <div className="w-full max-w-[min(98vw,88rem)] px-2 py-2 sm:px-4">
+    <div className="w-full max-w-[min(calc(100vw-3rem),96rem)] px-2 py-2 sm:px-4">
       <div
-        className="rounded-2xl border border-white/18 p-4 sm:p-5"
+        className="rounded-2xl border border-white/[0.22] p-4 sm:p-5"
         style={{
-          background: "rgba(18, 19, 24, 0.82)",
-          backdropFilter: "blur(20px) saturate(145%)",
-          WebkitBackdropFilter: "blur(20px) saturate(145%)",
+          background: "rgba(18, 19, 24, 0.94)",
+          backdropFilter: "blur(32px) saturate(160%)",
+          WebkitBackdropFilter: "blur(32px) saturate(160%)",
           boxShadow:
             "inset 0 1px 0 rgba(255,255,255,0.10), inset 0 0 0 1px rgba(255,255,255,0.05)",
         }}
