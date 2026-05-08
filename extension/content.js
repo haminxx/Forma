@@ -575,7 +575,9 @@ function initForma() {
 
       // Keep overlay behavior unchanged; /analyze now drives badge score only.
       onComplete(lastAIResponse);
-      showFormaScoreBadge(result.score, label, color);
+      if (!(deepAnalysisLoading && deepAnalysisSession && !deepAnalysisSession.errorMessage)) {
+        showFormaScoreBadge(result.score, label, color);
+      }
     })
     .catch(err => {
       analyzeInFlight = false;
@@ -656,6 +658,17 @@ function initForma() {
   let deepAnalysisError = '';
   let agentPanel = null;
   let agentPanelEscListener = null;
+  let deepAnalysisSession = null;
+
+  const DEEP_AGENT_TIMELINE = [
+    { id: 'detector', label: '🔍 Detector', startMs: 0, endMs: 1200 },
+    { id: 'critic', label: '🔬 Critic', startMs: 200, endMs: 13000 },
+    { id: 'reformulator', label: '✏️ Reformulator', startMs: 400, endMs: 19000 },
+    { id: 'style', label: '🎨 Style', startMs: 600, endMs: 14000 },
+    { id: 'memory', label: '🧠 Memory', startMs: 800, endMs: 11000 },
+    { id: 'coach', label: '🎯 Coach', startMs: 1000, endMs: 17000 },
+    { id: 'consensus', label: '🤝 Consensus', startMs: 19500, endMs: 41000 }
+  ];
 
   function formatLatencyMs(ms) {
     if (!Number.isFinite(ms)) return '?';
@@ -745,6 +758,171 @@ function initForma() {
       }
     `;
     document.head.appendChild(style);
+  }
+
+  function ensureDeepProgressStyles() {
+    if (document.getElementById('forma-deep-progress-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'forma-deep-progress-styles';
+    style.textContent = `
+      @keyframes forma-spin { to { transform: rotate(360deg); } }
+      #forma-deep-progress-panel {
+        width: min(380px, calc(100vw - 48px));
+        background: #1c1a17;
+        border: 1px solid rgba(200, 184, 154, 0.12);
+        border-radius: 10px;
+        padding: 16px;
+        opacity: 0;
+        transform: translateY(-4px);
+        transition: opacity 250ms ease-out, transform 250ms ease-out;
+      }
+      #forma-deep-progress-panel.forma-open {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      #forma-deep-progress-panel.forma-hide {
+        opacity: 0;
+        transform: translateY(-4px);
+      }
+      #forma-deep-progress-panel .forma-agent-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 6px 0;
+        border-bottom: 1px solid rgba(200, 184, 154, 0.06);
+      }
+      #forma-deep-progress-panel .forma-agent-row:last-child {
+        border-bottom: none;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function initializeDeepAnalysisSession(prompt) {
+    deepAnalysisSession = {
+      prompt,
+      timerIds: [],
+      abortController: null,
+      responseData: null,
+      timelineDone: false,
+      responseDone: false,
+      cancelled: false,
+      errorMessage: '',
+      rows: DEEP_AGENT_TIMELINE.map((item) => ({
+        ...item,
+        state: 'pending',
+        timing: ''
+      }))
+    };
+  }
+
+  function clearDeepAnalysisTimers() {
+    if (!deepAnalysisSession) return;
+    deepAnalysisSession.timerIds.forEach((id) => clearTimeout(id));
+    deepAnalysisSession.timerIds = [];
+  }
+
+  function updateDeepRowDom(row) {
+    const iconEl = formaScoreBadge && formaScoreBadge.querySelector(`#forma-row-icon-${row.id}`);
+    const nameEl = formaScoreBadge && formaScoreBadge.querySelector(`#forma-row-name-${row.id}`);
+    const timingEl = formaScoreBadge && formaScoreBadge.querySelector(`#forma-row-timing-${row.id}`);
+    if (!iconEl || !nameEl || !timingEl) return;
+
+    if (row.state === 'pending') {
+      iconEl.innerHTML = '<span style="font-size:14px;color:#6b6560;">○</span>';
+      nameEl.style.color = '#a0998c';
+      timingEl.textContent = '';
+    } else if (row.state === 'running') {
+      iconEl.innerHTML = '<span style="display:inline-block;width:12px;height:12px;border:2px solid transparent;border-top:2px solid #c8b89a;border-radius:50%;animation:forma-spin 700ms linear infinite;"></span>';
+      nameEl.style.color = '#f0ece4';
+      timingEl.textContent = '...';
+      timingEl.style.color = '#a0998c';
+    } else {
+      iconEl.innerHTML = '<span style="font-size:14px;color:#4ade80;">✓</span>';
+      nameEl.style.color = '#f0ece4';
+      timingEl.textContent = row.timing;
+      timingEl.style.color = '#a0998c';
+    }
+  }
+
+  function setDeepRowState(rowId, nextState) {
+    if (!deepAnalysisSession || deepAnalysisSession.cancelled) return;
+    const row = deepAnalysisSession.rows.find((r) => r.id === rowId);
+    if (!row) return;
+    row.state = nextState;
+    if (nextState === 'complete') row.timing = (row.endMs / 1000).toFixed(1) + 's';
+    updateDeepRowDom(row);
+  }
+
+  function maybeFinalizeDeepAnalysis() {
+    if (!deepAnalysisSession || deepAnalysisSession.cancelled) return;
+    if (!deepAnalysisSession.timelineDone || !deepAnalysisSession.responseDone) return;
+    const responseData = deepAnalysisSession.responseData;
+    const promptText = deepAnalysisSession.prompt;
+    hideDeepProgressPanel(() => {
+      deepAnalysisLoading = false;
+      deepAnalysisSession = null;
+      updateFormaScoreBadge(targetTextarea ? targetTextarea.value : '', lastAIResponse || []);
+      showAgentPanel(responseData, promptText);
+    });
+  }
+
+  function startSimulatedDeepTimeline() {
+    if (!deepAnalysisSession) return;
+    clearDeepAnalysisTimers();
+    deepAnalysisSession.rows.forEach((row) => {
+      const startId = setTimeout(() => setDeepRowState(row.id, 'running'), row.startMs);
+      const endId = setTimeout(() => setDeepRowState(row.id, 'complete'), row.endMs);
+      deepAnalysisSession.timerIds.push(startId, endId);
+    });
+    const timelineDoneId = setTimeout(() => {
+      if (!deepAnalysisSession || deepAnalysisSession.cancelled) return;
+      deepAnalysisSession.timelineDone = true;
+      maybeFinalizeDeepAnalysis();
+    }, 41000);
+    deepAnalysisSession.timerIds.push(timelineDoneId);
+  }
+
+  function hideDeepProgressPanel(onDone) {
+    const panel = formaScoreBadge && formaScoreBadge.querySelector('#forma-deep-progress-panel');
+    if (!panel) {
+      if (onDone) onDone();
+      return;
+    }
+    panel.classList.remove('forma-open');
+    panel.classList.add('forma-hide');
+    setTimeout(() => {
+      if (onDone) onDone();
+    }, 250);
+  }
+
+  function cancelDeepAnalysisAndRestore() {
+    if (deepAnalysisSession) {
+      deepAnalysisSession.cancelled = true;
+      clearDeepAnalysisTimers();
+      if (deepAnalysisSession.abortController) {
+        deepAnalysisSession.abortController.abort();
+      }
+    }
+    hideDeepProgressPanel(() => {
+      deepAnalysisLoading = false;
+      deepAnalysisError = '';
+      deepAnalysisSession = null;
+      updateFormaScoreBadge(targetTextarea ? targetTextarea.value : '', lastAIResponse || []);
+    });
+  }
+
+  function failDeepAnalysis(message) {
+    if (!deepAnalysisSession) return;
+    clearDeepAnalysisTimers();
+    deepAnalysisSession.errorMessage = message;
+    deepAnalysisError = message;
+    showFormaScoreBadge(
+      parseInt(formaScoreBadge?.dataset.lastScore || '0', 10) || 0,
+      formaScoreBadge?.dataset.lastLabel || 'Unknown',
+      formaScoreBadge?.dataset.lastColor || '#6b6560'
+    );
   }
 
   function closeAgentPanel() {
@@ -927,6 +1105,7 @@ function initForma() {
   }
 
   async function runDeepAnalysisFromBadge() {
+    if (deepAnalysisLoading && deepAnalysisSession && !deepAnalysisSession.errorMessage) return;
     if (!targetTextarea) return;
     const prompt = (targetTextarea.value || '').trim();
     if (!prompt) {
@@ -937,10 +1116,16 @@ function initForma() {
 
     deepAnalysisLoading = true;
     deepAnalysisError = '';
-    updateFormaScoreBadge(prompt, lastAIResponse || []);
+    initializeDeepAnalysisSession(prompt);
+    showFormaScoreBadge(
+      parseInt(formaScoreBadge?.dataset.lastScore || '0', 10) || computeFormaScore(prompt, []).score,
+      formaScoreBadge?.dataset.lastLabel || 'Analyzing',
+      formaScoreBadge?.dataset.lastColor || '#c8b89a'
+    );
+    startSimulatedDeepTimeline();
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000);
+    deepAnalysisSession.abortController = controller;
     try {
       const res = await fetch(RUN_ALL_URL, {
         method: 'POST',
@@ -950,14 +1135,14 @@ function initForma() {
       });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
-      showAgentPanel(data, prompt);
+      if (!deepAnalysisSession || deepAnalysisSession.cancelled) return;
+      deepAnalysisSession.responseData = data;
+      deepAnalysisSession.responseDone = true;
+      maybeFinalizeDeepAnalysis();
     } catch (err) {
+      if (err && err.name === 'AbortError') return;
       console.error('[Forma Deep] Analysis failed:', err);
-      deepAnalysisError = 'Analysis failed - try again';
-    } finally {
-      clearTimeout(timeoutId);
-      deepAnalysisLoading = false;
-      updateFormaScoreBadge(targetTextarea.value || '', lastAIResponse || []);
+      failDeepAnalysis('Analysis failed - try again');
     }
   }
 
@@ -984,11 +1169,41 @@ function initForma() {
       });
       document.body.appendChild(formaScoreBadge);
     }
+
+    formaScoreBadge.dataset.lastScore = String(score);
+    formaScoreBadge.dataset.lastLabel = label;
+    formaScoreBadge.dataset.lastColor = color;
     
-    const buttonText = deepAnalysisLoading ? 'Analyzing... ⏳' : '⚡ Run Full Analysis';
-    const disabledAttr = deepAnalysisLoading ? 'disabled' : '';
+    ensureDeepProgressStyles();
+    const showProgressPanel = deepAnalysisLoading && deepAnalysisSession;
+    const buttonText = '⚡ Run Full Analysis';
+    const disabledAttr = '';
     const errorHtml = deepAnalysisError
       ? `<div style="font-size:10px;color:#ef4444;margin-top:4px;width:100%;">${escapeHtml(deepAnalysisError)}</div>`
+      : '';
+
+    const progressPanelHtml = showProgressPanel
+      ? (deepAnalysisSession.errorMessage
+        ? `
+          <div id="forma-deep-progress-panel" class="forma-open" style="position:relative;margin-top:8px;">
+            <div style="font-size:13px;color:#ef4444;margin-bottom:12px;">Analysis failed - try again</div>
+            <button id="forma-deep-retry" style="font-size:12px;background:transparent;border:1px solid #c8b89a;color:#c8b89a;padding:6px 10px;border-radius:8px;cursor:pointer;transition:all 0.2s ease;">⚡ Run Full Analysis</button>
+          </div>
+        `
+        : `
+          <div id="forma-deep-progress-panel" style="position:relative;margin-top:8px;">
+            <button id="forma-deep-close" style="position:absolute;top:2px;right:2px;font-size:16px;background:transparent;border:none;color:#6b6560;cursor:pointer;line-height:1;">×</button>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#c8b89a;margin-bottom:4px;">DEEP ANALYSIS RUNNING</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#6b6560;margin-bottom:12px;">7 agents • Llama 3.1 70B • AMD MI300X</div>
+            ${deepAnalysisSession.rows.map((row) => `
+              <div class="forma-agent-row" data-row-id="${row.id}">
+                <div id="forma-row-icon-${row.id}" style="width:14px;display:flex;justify-content:center;">○</div>
+                <div id="forma-row-name-${row.id}" style="flex:1;font-family:'DM Serif Display',serif;font-size:13px;color:#a0998c;">${row.label}</div>
+                <div id="forma-row-timing-${row.id}" style="width:48px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px;color:#a0998c;"></div>
+              </div>
+            `).join('')}
+          </div>
+        `)
       : '';
 
     formaScoreBadge.innerHTML = `
@@ -998,7 +1213,8 @@ function initForma() {
         <div style="font-size:9px;color:#6b6560;font-family:'JetBrains Mono', monospace;">/100</div>
         <div style="font-size:10px;color:${color};letter-spacing:0.03em;font-weight:500;">${label}</div>
       </div>
-      <button id="forma-run-full-analysis" ${disabledAttr} style="margin-left:4px;font-size:12px;background:transparent;border:1px solid #c8b89a;color:#c8b89a;padding:6px 10px;border-radius:8px;cursor:${deepAnalysisLoading ? 'not-allowed' : 'pointer'};transition:all 0.2s ease;white-space:nowrap;">${buttonText}</button>
+      ${showProgressPanel ? '' : `<button id="forma-run-full-analysis" ${disabledAttr} style="margin-left:4px;font-size:12px;background:transparent;border:1px solid #c8b89a;color:#c8b89a;padding:6px 10px;border-radius:8px;cursor:pointer;transition:all 0.2s ease;white-space:nowrap;">${buttonText}</button>`}
+      ${progressPanelHtml}
       ${errorHtml}
     `;
     formaScoreBadge.style.borderColor = color === '#6b6560' ? 'rgba(200,184,154,0.3)' : color;
@@ -1007,23 +1223,47 @@ function initForma() {
     positionFormaScoreBadge();
 
     const runBtn = formaScoreBadge.querySelector('#forma-run-full-analysis');
-    if (runBtn) {
+    if (runBtn && !showProgressPanel) {
       runBtn.addEventListener('mouseenter', () => {
-        if (!deepAnalysisLoading) runBtn.style.background = 'rgba(200, 184, 154, 0.08)';
+        runBtn.style.background = 'rgba(200, 184, 154, 0.08)';
       });
       runBtn.addEventListener('mouseleave', () => {
         runBtn.style.background = 'transparent';
         runBtn.style.transform = 'scale(1)';
       });
       runBtn.addEventListener('mousedown', () => {
-        if (!deepAnalysisLoading) runBtn.style.transform = 'scale(0.98)';
+        runBtn.style.transform = 'scale(0.98)';
       });
       runBtn.addEventListener('mouseup', () => {
         runBtn.style.transform = 'scale(1)';
       });
-      runBtn.addEventListener('click', () => {
-        if (!deepAnalysisLoading) runDeepAnalysisFromBadge();
-      });
+      runBtn.addEventListener('click', runDeepAnalysisFromBadge);
+    }
+
+    if (showProgressPanel && deepAnalysisSession && !deepAnalysisSession.errorMessage) {
+      const progressPanel = formaScoreBadge.querySelector('#forma-deep-progress-panel');
+      if (progressPanel) requestAnimationFrame(() => progressPanel.classList.add('forma-open'));
+      const closeBtn = formaScoreBadge.querySelector('#forma-deep-close');
+      if (closeBtn) closeBtn.addEventListener('click', cancelDeepAnalysisAndRestore);
+      deepAnalysisSession.rows.forEach((row) => updateDeepRowDom(row));
+    }
+
+    if (showProgressPanel && deepAnalysisSession && deepAnalysisSession.errorMessage) {
+      const retryBtn = formaScoreBadge.querySelector('#forma-deep-retry');
+      if (retryBtn) {
+        retryBtn.addEventListener('mouseenter', () => {
+          retryBtn.style.background = 'rgba(200, 184, 154, 0.08)';
+        });
+        retryBtn.addEventListener('mouseleave', () => {
+          retryBtn.style.background = 'transparent';
+        });
+        retryBtn.addEventListener('click', () => {
+          deepAnalysisSession = null;
+          deepAnalysisError = '';
+          deepAnalysisLoading = false;
+          runDeepAnalysisFromBadge();
+        });
+      }
     }
   }
 
@@ -1046,6 +1286,7 @@ function initForma() {
       hideFormaScoreBadge();
       return;
     }
+    if (deepAnalysisLoading && deepAnalysisSession && !deepAnalysisSession.errorMessage) return;
     const result = computeFormaScore(text, detectedTerms || []);
     showFormaScoreBadge(result.score, result.label, result.color);
   }
