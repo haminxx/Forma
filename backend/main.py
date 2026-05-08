@@ -19,7 +19,7 @@ from events import (
     get_average_forma_score,
 )
 
-from pro_templates import get_pro_expansion, has_pro_template
+from pro_templates import get_pro_expansion, has_pro_template, VARIANT_ALIASES
 
 app = FastAPI(title="Forma Backend", docs_url=None, redoc_url=None, openapi_url=None)
 
@@ -236,6 +236,80 @@ async def fast_critic_endpoint(request: FastCriticRequest):
 
 class TranslateProRequest(BaseModel):
     canonical_term: str
+
+
+class DetectPhrasesRequest(BaseModel):
+    text: str
+
+
+class DetectedPhrase(BaseModel):
+    phrase: str
+    start_index: int
+    end_index: int
+    canonical: str
+
+
+class DetectPhrasesResponse(BaseModel):
+    phrases: list[DetectedPhrase]
+    detection_count: int
+
+
+@app.post("/detect-phrases", response_model=DetectPhrasesResponse)
+async def detect_phrases(req: DetectPhrasesRequest):
+    """
+    Fast phrase detection. Takes user text, returns detected vague phrases
+    with their start/end indices and canonical replacements.
+    Pure string matching - no LLM, no AMD call. Sub-50ms response.
+    """
+    text = req.text or ""
+    if not text or len(text) > 8000:
+        return {"phrases": [], "detection_count": 0}
+
+    text_lower = text.lower()
+    detected: list[DetectedPhrase] = []
+
+    # No response caching needed here; deterministic string scanning is already fast.
+    variants = sorted(
+        ((variant.lower(), canonical) for variant, canonical in VARIANT_ALIASES.items() if variant and canonical),
+        key=lambda item: len(item[0]),
+        reverse=True,
+    )
+
+    def overlaps_existing(start_idx: int, end_idx: int) -> bool:
+        for existing in detected:
+            if start_idx < existing.end_index and end_idx > existing.start_index:
+                return True
+        return False
+
+    def is_word_boundary_match(start_idx: int, end_idx: int) -> bool:
+        left_ok = start_idx == 0 or not text_lower[start_idx - 1].isalnum()
+        right_ok = end_idx == len(text_lower) or not text_lower[end_idx].isalnum()
+        return left_ok and right_ok
+
+    for variant, canonical in variants:
+        search_from = 0
+        while True:
+            start_idx = text_lower.find(variant, search_from)
+            if start_idx == -1:
+                break
+            end_idx = start_idx + len(variant)
+
+            if not overlaps_existing(start_idx, end_idx) and is_word_boundary_match(start_idx, end_idx):
+                detected.append(
+                    DetectedPhrase(
+                        phrase=text[start_idx:end_idx],
+                        start_index=start_idx,
+                        end_index=end_idx,
+                        canonical=canonical,
+                    )
+                )
+            search_from = start_idx + 1
+
+    detected.sort(key=lambda item: item.start_index)
+    return {
+        "phrases": detected,
+        "detection_count": len(detected),
+    }
 
 
 @app.post("/translate-pro")
