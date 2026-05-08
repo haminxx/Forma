@@ -21,6 +21,8 @@ function initForma() {
   const RAILWAY_URL = 'https://forma-production-c800.up.railway.app/translate';
   const ANALYZE_URL = 'https://forma-production-c800.up.railway.app/analyze';
   const TRANSLATE_PRO_URL = 'https://forma-production-c800.up.railway.app/translate-pro';
+  const RUN_ALL_URL = 'https://forma-production-c800.up.railway.app/agents/run-all';
+  const LOG_EVENT_URL = 'https://forma-production-c800.up.railway.app/log/event';
   let proMode = false;  // Pro Mode toggle state
   const proExpansionCache = new Map();  // canonical_term -> expansion
   // Tracks text spans that were just accepted, so we don't re-detect them.
@@ -647,6 +649,314 @@ function initForma() {
   // ============================================================
   
   let formaScoreBadge = null;
+  let deepAnalysisLoading = false;
+  let deepAnalysisError = '';
+  let agentPanel = null;
+  let agentPanelEscListener = null;
+
+  function formatLatencyMs(ms) {
+    if (!Number.isFinite(ms)) return '?';
+    return (ms / 1000).toFixed(1);
+  }
+
+  function getTierColor(score) {
+    if (score < 40) return '#ef4444';
+    if (score < 70) return '#f59e0b';
+    return '#4ade80';
+  }
+
+  function ensureAgentPanelStyles() {
+    if (document.getElementById('forma-agent-panel-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'forma-agent-panel-styles';
+    style.textContent = `
+      #forma-agent-panel {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 420px;
+        max-height: 80vh;
+        overflow-y: auto;
+        background: #0a0a09;
+        border: 1px solid rgba(200, 184, 154, 0.12);
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        z-index: 999999;
+        padding: 24px;
+        color: #f0ece4;
+        font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+        transform: translateX(110%);
+        opacity: 0;
+        transition: transform 0.4s ease-out, opacity 0.4s ease-out;
+      }
+      #forma-agent-panel.forma-open {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      #forma-agent-panel .forma-agent-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(200, 184, 154, 0.08);
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 10px;
+        opacity: 0;
+        transform: translateY(6px);
+        transition: opacity 0.25s ease, transform 0.25s ease;
+      }
+      #forma-agent-panel .forma-agent-card.forma-card-visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      #forma-agent-panel .forma-agent-card:hover {
+        transform: translateY(-2px);
+      }
+      #forma-agent-panel .forma-consensus-card {
+        background: linear-gradient(135deg, rgba(200, 184, 154, 0.08), rgba(200, 184, 154, 0.02));
+        border: 1px solid rgba(200, 184, 154, 0.2);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+      #forma-agent-panel .forma-close {
+        border: none;
+        background: transparent;
+        color: #6b6560;
+        font-size: 24px;
+        cursor: pointer;
+        line-height: 1;
+        padding: 0;
+      }
+      #forma-agent-panel .forma-close:hover { color: #f0ece4; }
+      #forma-agent-panel .forma-coach-code {
+        background: #1a1917;
+        border: 1px solid rgba(200, 184, 154, 0.12);
+        border-radius: 8px;
+        padding: 8px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        color: #f0ece4;
+        line-height: 1.45;
+      }
+      #forma-agent-panel .forma-scroll-mono {
+        font-family: 'JetBrains Mono', monospace;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function closeAgentPanel() {
+    if (!agentPanel) return;
+    const panelToRemove = agentPanel;
+    panelToRemove.classList.remove('forma-open');
+    setTimeout(() => {
+      if (panelToRemove.parentNode) panelToRemove.remove();
+    }, 400);
+    agentPanel = null;
+    if (agentPanelEscListener) {
+      document.removeEventListener('keydown', agentPanelEscListener);
+      agentPanelEscListener = null;
+    }
+  }
+
+  function logDeepAnalysisEvent(prompt, totalLatency, confidence) {
+    fetch(LOG_EVENT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        event_type: 'deep_analysis_run',
+        payload: {
+          prompt: prompt,
+          latency_ms: totalLatency,
+          confidence: confidence
+        }
+      })
+    }).catch(() => {});
+  }
+
+  function showAgentPanel(data, promptText) {
+    ensureAgentPanelStyles();
+    closeAgentPanel();
+
+    const agents = (data && data.agents) || {};
+    const meta = (data && data.metadata) || {};
+    const consensus = agents.consensus || {};
+    const critic = agents.critic || {};
+    const reformulator = agents.reformulator || {};
+    const style = agents.style || {};
+    const memory = agents.memory || {};
+    const coach = agents.coach || {};
+    const detector = agents.detector || {};
+
+    const confidence = Number(consensus.confidence_score || 0);
+    const confidenceColor = getTierColor(confidence);
+    const criticScore = Number(critic.score || 0);
+    const criticColor = getTierColor(criticScore);
+    const totalLatency = Number(meta.total_latency_ms || 0);
+    const aligned = Number(consensus.agents_aligned || 0);
+
+    const panel = document.createElement('div');
+    panel.id = 'forma-agent-panel';
+    panel.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+        <div>
+          <div style="font-family:'DM Serif Display',serif;font-size:22px;color:#f0ece4;line-height:1.1;">Deep Analysis</div>
+          <div style="margin-top:6px;font-size:11px;color:#a0998c;text-transform:uppercase;letter-spacing:0.08em;">7-Agent Multi-Agent Consensus</div>
+        </div>
+        <button class="forma-close" aria-label="Close deep analysis panel">×</button>
+      </div>
+      <div class="forma-scroll-mono" style="margin-top:12px;font-size:10px;color:#6b6560;line-height:1.45;">
+        Llama 3.1 70B AWQ • AMD MI300X 192GB HBM3 • vLLM 0.17.1 ROCm 7.0<br/>
+        Completed in ${formatLatencyMs(totalLatency)}s
+      </div>
+      <div class="forma-consensus-card">
+        <div class="forma-scroll-mono" style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#c8b89a;margin-bottom:10px;">CONSENSUS</div>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="width:64px;height:64px;border-radius:50%;border:2px solid rgba(200,184,154,0.25);display:flex;align-items:center;justify-content:center;position:relative;">
+            <svg width="64" height="64" style="position:absolute;top:0;left:0;transform:rotate(-90deg);">
+              <circle cx="32" cy="32" r="30" fill="none" stroke="rgba(200,184,154,0.15)" stroke-width="2"></circle>
+              <circle cx="32" cy="32" r="30" fill="none" stroke="${confidenceColor}" stroke-width="2.5" stroke-dasharray="188.5" stroke-dashoffset="${188.5 - (Math.max(0, Math.min(100, confidence)) / 100) * 188.5}" stroke-linecap="round"></circle>
+            </svg>
+            <div id="forma-consensus-score" style="font-family:'JetBrains Mono',monospace;font-size:13px;color:${confidenceColor};position:relative;">0</div>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-family:'DM Serif Display',serif;font-size:14px;color:#f0ece4;line-height:1.35;">${escapeHtml(consensus.primary_recommendation || 'No recommendation returned.')}</div>
+            <div style="margin-top:6px;font-size:11px;color:#a0998c;">${aligned} of 6 agents aligned</div>
+          </div>
+        </div>
+        <div style="margin-top:10px;font-size:12px;color:#a0998c;font-style:italic;line-height:1.4;">${escapeHtml(consensus.reasoning || 'No reasoning returned.')}</div>
+      </div>
+      <div id="forma-agent-cards">
+        <div class="forma-agent-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="font-family:'DM Serif Display',serif;font-size:14px;">🧪 Critic</div>
+            <div class="forma-scroll-mono" style="font-size:10px;color:#4ade80;">✓ COMPLETE</div>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:8px;">
+            <div style="font-family:'DM Serif Display',serif;font-size:24px;color:${criticColor};">${Number.isFinite(criticScore) ? criticScore : '?'}</div>
+            <div style="font-size:12px;color:#a0998c;">${escapeHtml(critic.tier || '')}</div>
+          </div>
+          <div style="margin-top:8px;font-size:12px;color:#a0998c;">Weakness: ${escapeHtml((critic.weaknesses && critic.weaknesses[0]) || '—')}</div>
+          <div style="font-size:12px;color:#f0ece4;margin-top:4px;">Suggestion: ${escapeHtml((critic.suggestions && critic.suggestions[0]) || '—')}</div>
+        </div>
+        <div class="forma-agent-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="font-family:'DM Serif Display',serif;font-size:14px;">✍️ Reformulator</div>
+            <div class="forma-scroll-mono" style="font-size:10px;color:#4ade80;">✓ COMPLETE</div>
+          </div>
+          <div style="font-size:10px;color:#6b6560;text-transform:uppercase;letter-spacing:0.08em;">ORIGINAL</div>
+          <div style="font-size:12px;color:#a0998c;text-decoration:line-through;margin-top:4px;">${escapeHtml(reformulator.original || promptText || '—')}</div>
+          <div style="font-size:10px;color:#c8b89a;text-transform:uppercase;letter-spacing:0.08em;margin-top:8px;">REFORMULATED</div>
+          <div style="margin-top:4px;background:rgba(200,184,154,0.06);border:1px solid rgba(200,184,154,0.12);border-radius:8px;padding:8px;font-size:12px;line-height:1.4;">${escapeHtml(reformulator.reformulated || '—')}</div>
+        </div>
+        <div class="forma-agent-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="font-family:'DM Serif Display',serif;font-size:14px;">🎨 Style</div>
+            <div class="forma-scroll-mono" style="font-size:10px;color:#4ade80;">✓ COMPLETE</div>
+          </div>
+          <div style="height:8px;background:#1a1917;border-radius:999px;overflow:hidden;border:1px solid rgba(200,184,154,0.12);">
+            <div style="height:100%;width:${Math.max(0, Math.min(100, Number(style.alignment_score || 0)))}%;background:linear-gradient(90deg,#c8b89a,#4ade80);"></div>
+          </div>
+          <div style="margin-top:6px;font-size:11px;color:#a0998c;">Alignment ${Number(style.alignment_score || 0)}%</div>
+          <div style="margin-top:6px;font-size:12px;color:#f0ece4;">${escapeHtml((style.matching_preferences && style.matching_preferences[0]) || 'No matching preference found.')}</div>
+        </div>
+        <div class="forma-agent-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="font-family:'DM Serif Display',serif;font-size:14px;">🧠 Memory</div>
+            <div class="forma-scroll-mono" style="font-size:10px;color:#4ade80;">✓ COMPLETE</div>
+          </div>
+          <div style="font-size:12px;color:#f0ece4;line-height:1.4;">${escapeHtml(memory.key_insight || 'No memory insight returned.')}</div>
+          <div style="margin-top:6px;font-size:11px;color:#a0998c;">Consistency: ${escapeHtml(memory.cross_builder_consistency || '—')}</div>
+        </div>
+        <div class="forma-agent-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="font-family:'DM Serif Display',serif;font-size:14px;">🛠️ Coach</div>
+            <div style="display:inline-flex;align-items:center;gap:4px;">
+              <span class="forma-scroll-mono" style="font-size:9px;padding:2px 6px;border-radius:999px;background:rgba(200,184,154,0.08);border:1px solid rgba(200,184,154,0.12);color:#c8b89a;">${escapeHtml((coach.priority || 'medium').toUpperCase())}</span>
+              <span class="forma-scroll-mono" style="font-size:10px;color:#4ade80;">✓ COMPLETE</span>
+            </div>
+          </div>
+          <div class="forma-coach-code">${escapeHtml((coach.iteration_fragments && coach.iteration_fragments[0] && coach.iteration_fragments[0].fragment) || 'No iteration fragment returned.')}</div>
+        </div>
+        <div class="forma-agent-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <div style="font-family:'DM Serif Display',serif;font-size:14px;">🧭 Detector</div>
+            <div class="forma-scroll-mono" style="font-size:10px;color:#4ade80;">✓ COMPLETE</div>
+          </div>
+          <div style="font-size:12px;color:#a0998c;">Detected vague phrase:</div>
+          <div style="font-size:12px;color:#f0ece4;margin-top:4px;">${escapeHtml((detector.phrases_found && detector.phrases_found[0]) || (detector.detections && detector.detections[0] && detector.detections[0].phrase) || 'None detected')}</div>
+          <div style="font-size:12px;color:#c8b89a;margin-top:6px;">Canonical replacement: ${escapeHtml((detector.detections && detector.detections[0] && detector.detections[0].term) || 'See reformulator recommendation')}</div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(panel);
+    agentPanel = panel;
+
+    requestAnimationFrame(() => panel.classList.add('forma-open'));
+
+    const closeBtn = panel.querySelector('.forma-close');
+    if (closeBtn) closeBtn.addEventListener('click', closeAgentPanel);
+
+    agentPanelEscListener = (e) => {
+      if (e.key === 'Escape') closeAgentPanel();
+    };
+    document.addEventListener('keydown', agentPanelEscListener);
+
+    const cards = panel.querySelectorAll('.forma-agent-card');
+    cards.forEach((card, idx) => {
+      setTimeout(() => card.classList.add('forma-card-visible'), idx * 50);
+    });
+
+    const scoreEl = panel.querySelector('#forma-consensus-score');
+    if (scoreEl) {
+      const target = Math.max(0, Math.min(100, confidence));
+      const start = performance.now();
+      const duration = 600;
+      const tick = (now) => {
+        const t = Math.min(1, (now - start) / duration);
+        scoreEl.textContent = String(Math.round(target * t));
+        if (t < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }
+
+    logDeepAnalysisEvent(promptText || '', totalLatency, confidence);
+  }
+
+  async function runDeepAnalysisFromBadge() {
+    if (!targetTextarea) return;
+    const prompt = (targetTextarea.value || '').trim();
+    if (!prompt) {
+      deepAnalysisError = 'Enter prompt first';
+      updateFormaScoreBadge(targetTextarea.value || '', lastAIResponse || []);
+      return;
+    }
+
+    deepAnalysisLoading = true;
+    deepAnalysisError = '';
+    updateFormaScoreBadge(prompt, lastAIResponse || []);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
+    try {
+      const res = await fetch(RUN_ALL_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+        signal: controller.signal
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      showAgentPanel(data, prompt);
+    } catch (err) {
+      console.error('[Forma Deep] Analysis failed:', err);
+      deepAnalysisError = 'Analysis failed - try again';
+    } finally {
+      clearTimeout(timeoutId);
+      deepAnalysisLoading = false;
+      updateFormaScoreBadge(targetTextarea.value || '', lastAIResponse || []);
+    }
+  }
 
   function showFormaScoreBadge(score, label, color) {
     if (!targetTextarea) return;
@@ -665,22 +975,53 @@ function initForma() {
         border: '0.5px solid rgba(200,184,154,0.3)',
         borderRadius: '8px',
         fontFamily: 'system-ui, -apple-system, sans-serif',
-        pointerEvents: 'none',
+        pointerEvents: 'auto',
         boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
         transition: 'border-color 0.2s ease'
       });
       document.body.appendChild(formaScoreBadge);
     }
     
+    const buttonText = deepAnalysisLoading ? 'Analyzing... ⏳' : '⚡ Run Full Analysis';
+    const disabledAttr = deepAnalysisLoading ? 'disabled' : '';
+    const errorHtml = deepAnalysisError
+      ? `<div style="font-size:10px;color:#ef4444;margin-top:4px;width:100%;">${escapeHtml(deepAnalysisError)}</div>`
+      : '';
+
     formaScoreBadge.innerHTML = `
-      <div style="font-size:8px;color:#6b6560;letter-spacing:0.12em;text-transform:uppercase;">FORMA</div>
-      <div style="font-size:18px;font-family:Georgia,serif;color:${color};line-height:1;font-weight:600;">${score}</div>
-      <div style="font-size:9px;color:#6b6560;font-family:monospace;">/100</div>
-      <div style="font-size:10px;color:${color};letter-spacing:0.03em;font-weight:500;">${label}</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="font-size:8px;color:#6b6560;letter-spacing:0.12em;text-transform:uppercase;">FORMA</div>
+        <div style="font-size:18px;font-family:'DM Serif Display', Georgia, serif;color:${color};line-height:1;font-weight:600;">${score}</div>
+        <div style="font-size:9px;color:#6b6560;font-family:'JetBrains Mono', monospace;">/100</div>
+        <div style="font-size:10px;color:${color};letter-spacing:0.03em;font-weight:500;">${label}</div>
+      </div>
+      <button id="forma-run-full-analysis" ${disabledAttr} style="margin-left:4px;font-size:12px;background:transparent;border:1px solid #c8b89a;color:#c8b89a;padding:6px 10px;border-radius:8px;cursor:${deepAnalysisLoading ? 'not-allowed' : 'pointer'};transition:all 0.2s ease;white-space:nowrap;">${buttonText}</button>
+      ${errorHtml}
     `;
     formaScoreBadge.style.borderColor = color === '#6b6560' ? 'rgba(200,184,154,0.3)' : color;
     formaScoreBadge.style.display = 'flex';
+    formaScoreBadge.style.flexWrap = 'wrap';
     positionFormaScoreBadge();
+
+    const runBtn = formaScoreBadge.querySelector('#forma-run-full-analysis');
+    if (runBtn) {
+      runBtn.addEventListener('mouseenter', () => {
+        if (!deepAnalysisLoading) runBtn.style.background = 'rgba(200, 184, 154, 0.08)';
+      });
+      runBtn.addEventListener('mouseleave', () => {
+        runBtn.style.background = 'transparent';
+        runBtn.style.transform = 'scale(1)';
+      });
+      runBtn.addEventListener('mousedown', () => {
+        if (!deepAnalysisLoading) runBtn.style.transform = 'scale(0.98)';
+      });
+      runBtn.addEventListener('mouseup', () => {
+        runBtn.style.transform = 'scale(1)';
+      });
+      runBtn.addEventListener('click', () => {
+        if (!deepAnalysisLoading) runDeepAnalysisFromBadge();
+      });
+    }
   }
 
   function positionFormaScoreBadge() {
