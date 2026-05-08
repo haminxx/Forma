@@ -549,3 +549,59 @@ Return ONLY valid JSON in this exact format:
         data = response.json()
         content = data["choices"][0]["message"]["content"]
         return json.loads(content)
+
+
+async def run_coach_agent(prompt_text: str, current_output_description: str = None) -> Dict[str, Any]:
+    """
+    Iteration Coach Agent: Reads AI builder output and suggests specific
+    next-prompt fragments to refine it.
+    """
+    output_context = current_output_description or "User has not yet generated output. Suggest pre-emptive iteration fragments based on common AI builder failure modes."
+
+    system_message = """You are the Iteration Coach Agent in Forma. You help users iterate on AI builder outputs by suggesting specific, copy-paste-ready prompt fragments to fix common issues.
+
+Common AI builder output issues to check for:
+- Missing CTA hierarchy (no clear primary action)
+- No mobile breakpoints
+- Body font too small (under 16px)
+- Missing hover states
+- No keyboard navigation
+- Inconsistent spacing (not on grid)
+- Missing loading states
+- No error states
+- Generic colors instead of brand tokens
+- Missing accessibility features (aria, focus management)
+
+For the user's prompt, predict likely issues and provide specific iteration fragments they can submit as their next prompt.
+
+Return ONLY valid JSON in this exact format:
+{
+  "predicted_issues": ["<issue 1>", "<issue 2>", "<issue 3>"],
+  "iteration_fragments": [
+    {
+      "issue": "<issue addressed>",
+      "fragment": "<copy-paste-ready next-prompt addition>"
+    }
+  ],
+  "priority": "<high|medium|low>"
+}"""
+
+    user_message = f"Original prompt: {prompt_text}\n\nCurrent output context: {output_context}"
+
+    payload = {
+        "model": VLLM_MODEL,
+        "messages": [
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": user_message}
+        ],
+        "temperature": 0.4,
+        "max_tokens": 600,
+        "response_format": {"type": "json_object"}
+    }
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.post(VLLM_URL, json=payload)
+        response.raise_for_status()
+        data = response.json()
+        content = data["choices"][0]["message"]["content"]
+        return json.loads(content)

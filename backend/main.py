@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from agents import translate_phrase, analyze_sentence, run_critic_agent, run_reformulator_agent, run_style_agent, run_memory_agent
+from agents import translate_phrase, analyze_sentence, run_critic_agent, run_reformulator_agent, run_style_agent, run_memory_agent, run_coach_agent
 from patterns import contains_vague_phrase
 from parser import parse_response, parse_analyze_response
 from db import init_db, get_db
@@ -75,6 +75,11 @@ class StyleRequest(BaseModel):
 
 class MemoryRequest(BaseModel):
     text: str
+
+
+class CoachRequest(BaseModel):
+    text: str
+    current_output: str = None
 
 
 @app.get("/")
@@ -148,6 +153,16 @@ async def memory_endpoint(request: MemoryRequest):
         return {"agent": "memory", "result": result}
     except Exception as e:
         return {"agent": "memory", "error": str(e)}
+
+
+@app.post("/agents/coach")
+async def coach_endpoint(request: CoachRequest):
+    """Iteration Coach Agent: suggests next-prompt fragments to refine output."""
+    try:
+        result = await run_coach_agent(request.text, request.current_output)
+        return {"agent": "coach", "result": result}
+    except Exception as e:
+        return {"agent": "coach", "error": str(e)}
 
 
 # ============================================================
