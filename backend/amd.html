@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Forma × AMD MI300X Architecture</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0a09;
+      --bg-mid: #1a1917;
+      --bg-card: #1c1a17;
+      --amber: #c8b89a;
+      --amd-red: #ed1c24;
+      --text: #f0ece4;
+      --text-2: #a0998c;
+      --text-3: #6b6560;
+      --border: rgba(200, 184, 154, 0.12);
+      --tint: rgba(200, 184, 154, 0.04);
+      --blue: #60a5fa;
+      --green: #4ade80;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Outfit", system-ui, -apple-system, sans-serif;
+      line-height: 1.45;
+      padding: 36px 20px 56px;
+    }
+    .container { max-width: 1240px; margin: 0 auto; }
+    .section {
+      background: var(--bg-mid);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      margin-bottom: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    .section::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, var(--tint), transparent 30%);
+    }
+    h1, h2 { font-family: "DM Serif Display", serif; letter-spacing: -0.02em; line-height: 1.05; }
+    h1 { font-size: clamp(36px, 7vw, 56px); color: var(--text); }
+    h2 { font-size: clamp(28px, 4vw, 32px); margin-bottom: 18px; color: var(--text); }
+    .mono { font-family: "JetBrains Mono", monospace; }
+    .muted { color: var(--text-3); }
+    .subtle { color: var(--text-2); }
+    .hero-label {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--amd-red);
+      margin-bottom: 14px;
+    }
+    .hero-sub {
+      margin-top: 14px;
+      max-width: 760px;
+      font-size: clamp(16px, 2.2vw, 20px);
+      color: var(--text-2);
+    }
+    .hero-stats {
+      margin-top: 28px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .hero-tile {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px 18px;
+    }
+    .hero-num {
+      font-family: "DM Serif Display", serif;
+      font-size: 36px;
+      color: var(--amber);
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+    .hero-cap {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      color: var(--text-3);
+      font-family: "JetBrains Mono", monospace;
+    }
+    .diagram-wrap {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .diagram-note {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--text-2);
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .latency-card, .endpoint-card, .runtime-row, .vram-col {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+    }
+    .card-tag {
+      font-size: 10px;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-family: "JetBrains Mono", monospace;
+    }
+    .lat-main {
+      font-family: "DM Serif Display", serif;
+      font-size: clamp(36px, 5vw, 48px);
+      line-height: 1;
+      margin: 8px 0 6px;
+    }
+    .bullets { margin: 12px 0 14px 16px; color: var(--text-2); font-size: 13px; }
+    .bullets li { margin-bottom: 6px; }
+    .bar-scale { font-size: 10px; color: var(--text-3); margin-bottom: 6px; font-family: "JetBrains Mono", monospace; }
+    .bar-track {
+      height: 10px;
+      background: #141412;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      position: relative;
+      overflow: hidden;
+    }
+    .bar-fill { height: 100%; border-radius: 999px; }
+    .bar-marker {
+      position: absolute;
+      top: -3px;
+      width: 2px;
+      height: 16px;
+      background: var(--amber);
+      opacity: 0.9;
+    }
+    .bar-caption {
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--text-2);
+      font-family: "JetBrains Mono", monospace;
+    }
+    .vram-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .vram-col h3 {
+      font-size: 18px;
+      margin-bottom: 12px;
+      font-family: "DM Serif Display", serif;
+      color: var(--text);
+    }
+    .stack-shell {
+      height: 400px;
+      background: #141412;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      position: relative;
+      display: flex;
+      flex-direction: column-reverse;
+      overflow: hidden;
+    }
+    .stack-seg {
+      border-top: 1px solid rgba(10, 10, 9, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4px;
+      font-size: 11px;
+      color: #0a0a09;
+      font-weight: 600;
+      font-family: "JetBrains Mono", monospace;
+      line-height: 1.25;
+    }
+    .stack-seg.light { color: var(--text); font-weight: 500; }
+    .stack-total { margin: 10px 0 8px; font-family: "JetBrains Mono", monospace; color: var(--text-2); font-size: 11px; }
+    .stack-note { margin-top: 10px; font-size: 12px; color: var(--text-2); }
+    .overflow-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 44.5%;
+      border-top: 2px dotted var(--amd-red);
+      z-index: 5;
+    }
+    .overflow-label {
+      position: absolute;
+      top: calc(44.5% - 18px);
+      right: 8px;
+      padding: 2px 6px;
+      border: 1px solid rgba(237, 28, 36, 0.35);
+      border-radius: 999px;
+      color: var(--amd-red);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      background: rgba(237, 28, 36, 0.06);
+      z-index: 6;
+    }
+    .punchline {
+      margin-top: 14px;
+      font-size: 15px;
+      color: var(--text);
+      border-left: 3px solid var(--amber);
+      padding-left: 12px;
+    }
+    .runtime-table {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--bg-card);
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+    }
+    .runtime-row {
+      border: none;
+      border-bottom: 1px solid var(--border);
+      border-radius: 0;
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1.8fr;
+      gap: 12px;
+      align-items: center;
+      padding: 13px 14px;
+    }
+    .runtime-row:last-child { border-bottom: none; }
+    .runtime-row div:nth-child(1) { color: var(--text); font-weight: 600; }
+    .runtime-row div:nth-child(2) { color: var(--amber); }
+    .runtime-row div:nth-child(3) { color: var(--text-3); }
+    .endpoint-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .method-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--amber);
+      color: #0a0a09;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      font-family: "JetBrains Mono", monospace;
+      margin-bottom: 10px;
+    }
+    .path {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 14px;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+    .endpoint-meta {
+      font-size: 11px;
+      color: var(--text-2);
+      margin-bottom: 6px;
+    }
+    .endpoint-meta strong {
+      color: var(--amber);
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 500;
+    }
+    footer {
+      text-align: center;
+      margin-top: 24px;
+      color: var(--text-2);
+      font-size: 13px;
+    }
+    footer .links {
+      margin: 10px 0 8px;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      font-size: 12px;
+    }
+    footer a {
+      color: var(--amber);
+      text-decoration: none;
+    }
+    footer a:hover { text-decoration: underline; }
+    footer .tiny { font-size: 10px; letter-spacing: 0.09em; color: var(--text-3); font-family: "JetBrains Mono", monospace; text-transform: uppercase; }
+    @media (max-width: 980px) {
+      .hero-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid-2, .vram-grid, .endpoint-grid { grid-template-columns: 1fr; }
+      .runtime-row { grid-template-columns: 1fr; gap: 5px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="section">
+      <div class="hero-label mono">Forma × AMD</div>
+      <h1>Why Forma needs MI300X</h1>
+      <p class="hero-sub">Two production-grade models. One GPU. 192GB HBM3 makes it possible.</p>
+      <div class="hero-stats">
+        <div class="hero-tile"><div class="hero-num">192GB</div><div class="hero-cap">HBM3 memory</div></div>
+        <div class="hero-tile"><div class="hero-num">5.3TB/s</div><div class="hero-cap">memory bandwidth</div></div>
+        <div class="hero-tile"><div class="hero-num">2 models</div><div class="hero-cap">running simultaneously</div></div>
+        <div class="hero-tile"><div class="hero-num">&lt;1s</div><div class="hero-cap">real-time latency</div></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Dual-Model Architecture</h2>
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 1200 480" width="100%" height="480" role="img" aria-label="Dual model architecture on AMD MI300X">
+          <defs>
+            <marker id="arrowAmber" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+              <path d="M0,0 L10,5 L0,10 z" fill="rgba(200, 184, 154, 0.55)"></path>
+            </marker>
+          </defs>
+
+          <rect x="20" y="18" width="1160" height="444" rx="14" fill="#141412" stroke="rgba(200, 184, 154, 0.2)" />
+          <text x="44" y="48" fill="#c8b89a" font-size="12" font-family="'JetBrains Mono', monospace">AMD MI300X — 192GB HBM3</text>
+
+          <rect x="60" y="82" width="170" height="58" rx="10" fill="#1c1a17" stroke="rgba(200, 184, 154, 0.18)" />
+          <text x="145" y="112" fill="#f0ece4" font-size="13" text-anchor="middle" font-family="'Outfit', sans-serif">USER PROMPT</text>
+
+          <rect x="270" y="82" width="220" height="58" rx="10" fill="#1c1a17" stroke="rgba(200, 184, 154, 0.18)" />
+          <text x="380" y="106" fill="#f0ece4" font-size="12" text-anchor="middle" font-family="'Outfit', sans-serif">/analyze</text>
+          <text x="380" y="124" fill="#6b6560" font-size="11" text-anchor="middle" font-family="'JetBrains Mono', monospace">(every keystroke)</text>
+
+          <rect x="530" y="62" width="255" height="98" rx="12" fill="rgba(96,165,250,0.08)" stroke="rgba(96,165,250,0.6)" />
+          <text x="658" y="95" fill="#60a5fa" font-size="12" text-anchor="middle" font-family="'JetBrains Mono', monospace">8B TIER · PORT 30000</text>
+          <text x="658" y="119" fill="#f0ece4" font-size="13" text-anchor="middle" font-family="'Outfit', sans-serif">Meta-Llama-3.1-8B-Instruct</text>
+          <text x="658" y="139" fill="#a0998c" font-size="11" text-anchor="middle" font-family="'JetBrains Mono', monospace">Realtime score inference</text>
+
+          <rect x="840" y="82" width="280" height="58" rx="10" fill="#1c1a17" stroke="rgba(200, 184, 154, 0.18)" />
+          <text x="980" y="112" fill="#f0ece4" font-size="12" text-anchor="middle" font-family="'Outfit', sans-serif">Forma Score badge</text>
+
+          <path d="M230 111 L270 111" stroke="rgba(200,184,154,0.35)" stroke-width="2" marker-end="url(#arrowAmber)" />
+          <path d="M490 111 L530 111" stroke="rgba(200,184,154,0.35)" stroke-width="2" marker-end="url(#arrowAmber)" />
+          <path d="M785 111 L840 111" stroke="rgba(200,184,154,0.35)" stroke-width="2" marker-end="url(#arrowAmber)" />
+
+          <rect x="60" y="226" width="260" height="58" rx="10" fill="#1c1a17" stroke="rgba(200, 184, 154, 0.18)" />
+          <text x="190" y="256" fill="#f0ece4" font-size="12" text-anchor="middle" font-family="'Outfit', sans-serif">USER CLICKS DEEP ANALYSIS</text>
+
+          <rect x="360" y="226" width="220" height="58" rx="10" fill="#1c1a17" stroke="rgba(200, 184, 154, 0.18)" />
+          <text x="470" y="250" fill="#f0ece4" font-size="12" text-anchor="middle" font-family="'Outfit', sans-serif">/agents/run-all</text>
+          <text x="470" y="268" fill="#6b6560" font-size="11" text-anchor="middle" font-family="'JetBrains Mono', monospace">parallel specialists + consensus</text>
+
+          <rect x="620" y="188" width="330" height="182" rx="12" fill="rgba(74,222,128,0.08)" stroke="rgba(74,222,128,0.55)" />
+          <text x="785" y="216" fill="#4ade80" font-size="12" text-anchor="middle" font-family="'JetBrains Mono', monospace">70B AWQ-INT4 · PORT 8000</text>
+          <text x="785" y="236" fill="#f0ece4" font-size="12" text-anchor="middle" font-family="'Outfit', sans-serif">7-Agent Deep Analysis</text>
+
+          <g font-family="'JetBrains Mono', monospace" font-size="10" fill="#f0ece4">
+            <rect x="642" y="252" width="94" height="24" rx="6" fill="#1c1a17" stroke="rgba(200,184,154,0.16)" /><text x="689" y="268" text-anchor="middle">Detector</text>
+            <rect x="744" y="252" width="94" height="24" rx="6" fill="#1c1a17" stroke="rgba(200,184,154,0.16)" /><text x="791" y="268" text-anchor="middle">Critic</text>
+            <rect x="846" y="252" width="94" height="24" rx="6" fill="#1c1a17" stroke="rgba(200,184,154,0.16)" /><text x="893" y="268" text-anchor="middle">Reformulator</text>
+            <rect x="642" y="286" width="94" height="24" rx="6" fill="#1c1a17" stroke="rgba(200,184,154,0.16)" /><text x="689" y="302" text-anchor="middle">Style</text>
+            <rect x="744" y="286" width="94" height="24" rx="6" fill="#1c1a17" stroke="rgba(200,184,154,0.16)" /><text x="791" y="302" text-anchor="middle">Memory</text>
+            <rect x="846" y="286" width="94" height="24" rx="6" fill="#1c1a17" stroke="rgba(200,184,154,0.16)" /><text x="893" y="302" text-anchor="middle">Coach</text>
+            <rect x="744" y="320" width="94" height="24" rx="6" fill="#1c1a17" stroke="rgba(200,184,154,0.16)" /><text x="791" y="336" text-anchor="middle">Consensus</text>
+          </g>
+
+          <rect x="992" y="226" width="160" height="58" rx="10" fill="#1c1a17" stroke="rgba(200, 184, 154, 0.18)" />
+          <text x="1072" y="256" fill="#f0ece4" font-size="12" text-anchor="middle" font-family="'Outfit', sans-serif">Deep Analysis Panel</text>
+
+          <path d="M320 255 L360 255" stroke="rgba(200,184,154,0.35)" stroke-width="2" marker-end="url(#arrowAmber)" />
+          <path d="M580 255 L620 255" stroke="rgba(200,184,154,0.35)" stroke-width="2" marker-end="url(#arrowAmber)" />
+          <path d="M950 255 L992 255" stroke="rgba(200,184,154,0.35)" stroke-width="2" marker-end="url(#arrowAmber)" />
+        </svg>
+      </div>
+      <p class="diagram-note">Both models live in the same VRAM. No swap. No cold-start. Real-time + deep on a single GPU.</p>
+    </section>
+
+    <section class="section">
+      <h2>Latency by Tier</h2>
+      <div class="grid-2">
+        <article class="latency-card">
+          <div class="card-tag">Real-Time Tier (8B)</div>
+          <div class="lat-main" style="color: var(--blue);">0.6-1.2s</div>
+          <div class="subtle mono" style="font-size:11px;">8B Instruct • port 30000</div>
+          <ul class="bullets">
+            <li>Powers <span class="mono">/analyze</span> on every keystroke</li>
+            <li>44× concurrent requests at 2048 tokens</li>
+            <li>11.2 GiB KV cache</li>
+          </ul>
+          <div class="bar-scale mono">0s — 1.5s window</div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:53%; background:#60a5fa;"></div>
+            <div class="bar-marker" style="left:53%;"></div>
+          </div>
+          <div class="bar-caption mono">avg marker: 0.8s</div>
+        </article>
+
+        <article class="latency-card">
+          <div class="card-tag">Deep Analysis Tier (70B)</div>
+          <div class="lat-main" style="color: var(--green);">33-52s</div>
+          <div class="subtle mono" style="font-size:11px;">70B AWQ-INT4 • port 8000</div>
+          <ul class="bullets">
+            <li>Powers <span class="mono">/agents/run-all</span> 7-agent consensus</li>
+            <li>21× concurrent requests at 4096 tokens</li>
+            <li>26.25 GiB KV cache</li>
+          </ul>
+          <div class="bar-scale mono">0s — 60s window</div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:68%; background:#4ade80;"></div>
+            <div class="bar-marker" style="left:68%;"></div>
+          </div>
+          <div class="bar-caption mono">avg marker: 41.0s</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Why H100 80GB cannot do this</h2>
+      <div class="vram-grid">
+        <div class="vram-col">
+          <h3>AMD MI300X (192 GB)</h3>
+          <div class="stack-total">192 GB total</div>
+          <div class="stack-shell" aria-label="MI300X memory stack">
+            <div class="stack-seg light" style="height:53.2%; background: rgba(200,184,154,0.15);">Headroom: 102 GiB<br/>AVAILABLE FOR PARALLEL USERS</div>
+            <div class="stack-seg" style="height:5.8%; background:#3b82f6;">8B KV Cache: 11.2 GiB</div>
+            <div class="stack-seg" style="height:7.8%; background:#60a5fa;">8B Model: 15.1 GiB</div>
+            <div class="stack-seg" style="height:13.7%; background:#22c55e;">70B KV Cache: 26.3 GiB</div>
+            <div class="stack-seg" style="height:19.4%; background:#4ade80;">70B AWQ Model: 37.3 GiB</div>
+          </div>
+        </div>
+        <div class="vram-col">
+          <h3>NVIDIA H100 (80 GB)</h3>
+          <div class="stack-total">80 GB total</div>
+          <div class="stack-shell" aria-label="H100 memory stack">
+            <div class="overflow-line"></div>
+            <div class="overflow-label">80 GB CAP</div>
+            <div class="stack-seg light" style="height:12.5%; background: rgba(237, 28, 36, 0.12); color:#f0ece4;">OVER CAPACITY</div>
+            <div class="stack-seg" style="height:8.7%; background:#2563eb;">8B KV Cache: ~7 GiB</div>
+            <div class="stack-seg" style="height:18.9%; background:#60a5fa;">8B Model: 15.1 GiB</div>
+            <div class="stack-seg" style="height:25%; background:#16a34a;">70B KV Cache: ~20 GiB</div>
+            <div class="stack-seg" style="height:46.6%; background:#4ade80;">70B AWQ Model: 37.3 GiB</div>
+          </div>
+          <div class="stack-note">H100 80GB physically cannot fit both models with usable concurrency. You'd need TWO H100s — and lose unified memory.</div>
+        </div>
+      </div>
+      <p class="punchline">Forma's dual-tier architecture is only possible on MI300X-class hardware. The 192GB advantage isn't marketing — it's the difference between a working product and a broken architecture.</p>
+    </section>
+
+    <section class="section">
+      <h2>Runtime</h2>
+      <div class="runtime-table">
+        <div class="runtime-row"><div>Inference</div><div>vLLM 0.17.1</div><div>OpenAI-compatible chat completions</div></div>
+        <div class="runtime-row"><div>Compute</div><div>ROCm 7.0</div><div>AMD GPU compute platform</div></div>
+        <div class="runtime-row"><div>GPU</div><div>AMD MI300X</div><div>192 GB HBM3, 5.3TB/s bandwidth</div></div>
+        <div class="runtime-row"><div>70B Quantization</div><div>AWQ INT4</div><div>4-bit weight quantization</div></div>
+        <div class="runtime-row"><div>Hardware host</div><div>DigitalOcean GPU</div><div>Single-GPU droplet, $1.99/hr</div></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Live Endpoints</h2>
+      <div class="endpoint-grid">
+        <article class="endpoint-card">
+          <div class="method-badge">POST</div>
+          <div class="path">/analyze</div>
+          <div class="endpoint-meta">Powered by: 8B on AMD MI300X (port 30000)</div>
+          <div class="endpoint-meta"><strong>Latency:</strong> ~800ms typical</div>
+          <div class="endpoint-meta">Use: every keystroke, debounced</div>
+        </article>
+        <article class="endpoint-card">
+          <div class="method-badge">POST</div>
+          <div class="path">/agents/run-all</div>
+          <div class="endpoint-meta">Powered by: 70B AWQ on AMD MI300X (port 8000)</div>
+          <div class="endpoint-meta"><strong>Latency:</strong> 33-52s typical</div>
+          <div class="endpoint-meta">Use: on-demand, "Run Full Analysis" click</div>
+        </article>
+        <article class="endpoint-card">
+          <div class="method-badge">POST</div>
+          <div class="path">/detect-phrases</div>
+          <div class="endpoint-meta">Powered by: dictionary lookup, no LLM</div>
+          <div class="endpoint-meta"><strong>Latency:</strong> &lt;50ms</div>
+          <div class="endpoint-meta">Use: tooltip canonical resolution</div>
+        </article>
+      </div>
+    </section>
+
+    <footer>
+      <div>Forma — Hackathon submission for the AMD AI Agents Track</div>
+      <div class="links">
+        <a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub repo</a>
+        <a href="/admin">Main dashboard</a>
+        <a href="/docs">API docs</a>
+      </div>
+      <div class="tiny">Built on AMD MI300X · vLLM 0.17.1 · ROCm 7.0</div>
+    </footer>
+  </div>
+</body>
+</html>

@@ -495,3 +495,14 @@ def pitch_deck():
     pitch_path = os.path.join(os.path.dirname(__file__), "pitch.html")
     return FileResponse(pitch_path, media_type="text/html")
 
+
+# ============================================================
+# AMD TECHNICAL DEEP DIVE — Public-facing architecture page
+# ============================================================
+
+@app.get("/amd")
+def amd_deep_dive():
+    """Serve the AMD MI300X technical architecture page."""
+    amd_path = os.path.join(os.path.dirname(__file__), "amd.html")
+    return FileResponse(amd_path, media_type="text/html")
+
