@@ -424,3 +424,67 @@ Return ONLY valid JSON in this exact format:
         data = response.json()
         content = data["choices"][0]["message"]["content"]
         return json.loads(content)
+
+
+# Mock user style profile (will be derived from real user history later)
+MOCK_USER_STYLE = {
+    "preferred_components": [
+        "Glassmorphic Popover",
+        "Sticky Navbar",
+        "Hamburger Menu",
+        "Toast Notification",
+        "Skeleton Loader"
+    ],
+    "color_palette": ["warm amber #c8b89a", "charcoal #1a1917", "cream #f0ece4"],
+    "motion_timing": "200-250ms ease-out",
+    "typography": "DM Serif Display for headings, Outfit for body, JetBrains Mono for code",
+    "spacing_grid": "8px base, 16px gaps, 24px section padding",
+    "design_principles": ["minimal", "warm-neutral", "subtle motion", "high contrast"]
+}
+
+
+async def run_style_agent(prompt_text: str) -> Dict[str, Any]:
+    """
+    Style Agent: Matches the prompt against the user's accumulated design style.
+    Returns matches, conflicts, and personalization suggestions.
+    """
+    style_context = json.dumps(MOCK_USER_STYLE, indent=2)
+
+    system_message = f"""You are the Style Agent in Forma. You analyze the user's prompt against their accumulated design style preferences and suggest personalization.
+
+The user's design style profile (extracted from their accumulated work):
+{style_context}
+
+Analyze the user's prompt and:
+- Identify which preferred components match this prompt's intent
+- Note any conflicts with the user's style
+- Suggest personalizations that align with the user's accumulated taste
+- Score how well this prompt aligns with the user's style (0-100)
+
+Return ONLY valid JSON in this exact format:
+{{
+  "alignment_score": <integer 0-100>,
+  "matching_preferences": ["<preference 1>", "<preference 2>"],
+  "style_conflicts": ["<conflict if any>"],
+  "personalization_suggestions": ["<suggestion 1>", "<suggestion 2>"]
+}}"""
+
+    user_message = f"Analyze this prompt against the user's style: {prompt_text}"
+
+    payload = {
+        "model": VLLM_MODEL,
+        "messages": [
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": user_message}
+        ],
+        "temperature": 0.4,
+        "max_tokens": 500,
+        "response_format": {"type": "json_object"}
+    }
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.post(VLLM_URL, json=payload)
+        response.raise_for_status()
+        data = response.json()
+        content = data["choices"][0]["message"]["content"]
+        return json.loads(content)

@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from agents import translate_phrase, analyze_sentence, run_critic_agent, run_reformulator_agent
+from agents import translate_phrase, analyze_sentence, run_critic_agent, run_reformulator_agent, run_style_agent
 from patterns import contains_vague_phrase
 from parser import parse_response, parse_analyze_response
 from db import init_db, get_db
@@ -69,6 +69,10 @@ class ReformulatorRequest(BaseModel):
     text: str
 
 
+class StyleRequest(BaseModel):
+    text: str
+
+
 @app.get("/")
 def health_check():
     return {
@@ -120,6 +124,16 @@ async def reformulator_endpoint(request: ReformulatorRequest):
         return {"agent": "reformulator", "result": result}
     except Exception as e:
         return {"agent": "reformulator", "error": str(e)}
+
+
+@app.post("/agents/style")
+async def style_endpoint(request: StyleRequest):
+    """Style Agent: matches prompt against user's design style preferences."""
+    try:
+        result = await run_style_agent(request.text)
+        return {"agent": "style", "result": result}
+    except Exception as e:
+        return {"agent": "style", "error": str(e)}
 
 
 # ============================================================
