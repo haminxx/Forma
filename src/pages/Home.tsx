@@ -91,7 +91,7 @@ export function HomePage() {
           <InteractiveCanvas />
         </div>
 
-        <div className="relative z-20 mx-auto grid w-full max-w-6xl gap-12 md:grid-cols-[1.2fr_1fr] md:items-center md:gap-12">
+        <div className="relative z-20 mx-auto grid w-full max-w-[min(98vw,92rem)] gap-12 md:grid-cols-[1.2fr_1fr] md:items-center md:gap-12">
           <HomeHero />
           <div className="md:justify-self-end">
             <LoopingWords />
@@ -130,7 +130,7 @@ export function HomePage() {
       >
         <EdgeGlow position="top" />
         <EdgeGlow position="bottom" />
-        <div className="w-full max-w-6xl px-4">
+        <div className="w-full max-w-[min(98vw,92rem)] px-3 sm:px-4">
           <Reveal duration={0.5}>
             <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-white/55">
               <span className="h-1.5 w-1.5 rounded-full bg-[#d4b87a]" />
