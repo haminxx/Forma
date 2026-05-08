@@ -4,21 +4,15 @@ import { type MotionValue, motion, useScroll, useTransform } from "framer-motion
 import { cn } from "../../lib/cn";
 
 interface TextRevealByWordProps {
-  /** The long vague sentence that brightens word-by-word. */
+  /** The sentence that brightens word-by-word as the user scrolls. */
   text: string;
-  /** Optional short clean tagline that morphs in after the underline lands. */
-  shortText?: string;
   className?: string;
-  /** Fraction of scroll consumed by the per-word brighten pass. Default 0.55. */
+  /** Fraction of scroll consumed by the per-word brighten pass. Default 0.7. */
   wordsEnd?: number;
   /** When the gold per-line underline begins drawing. Default `wordsEnd`. */
   underlineStart?: number;
-  /** When the per-line underline reaches full width on every line. Default 0.72. */
+  /** When the per-line underline reaches full width on every line. Default 0.92. */
   underlineEnd?: number;
-  /** When the long sentence begins shrinking out. Default 0.74. */
-  morphStart?: number;
-  /** When the short tagline is fully present. Default 0.94. */
-  morphEnd?: number;
 }
 
 /**
@@ -26,29 +20,25 @@ interface TextRevealByWordProps {
  * (`MagicText`) — a permanently-dim "ghost" copy of every word with a
  * brighter overlay that fades in as the user scrolls.
  *
- *   0          → wordsEnd        each word's bright overlay opacity 0 → 1
- *   ulStart    → underlineEnd    `background-size` of an inline gradient
- *                                  with `box-decoration-break: clone`
- *                                  grows 0% → 100% — paints a dashed
- *                                  gold underline UNDER EACH wrapped
- *                                  line independently.
- *   morphStart → morphEnd        long sentence + its line-underlines
- *                                  shrink + blur + fade out, while the
- *                                  short tagline scales + fades in.
+ * Phases (driven by a single `scrollYProgress` MotionValue):
+ *   0          → wordsEnd       each word's bright overlay opacity 0 → 1
+ *   ulStart    → underlineEnd   `background-size` of an inline gradient
+ *                                 with `box-decoration-break: clone`
+ *                                 grows 0 % → 100 % — a dashed gold
+ *                                 underline appears UNDER EACH wrapped
+ *                                 line independently.
  *
- * Layout: a 220vh outer block; the visible "stage" is a `sticky top-0`
- * full-screen flex centre, so the user scrolls through the section to
- * advance every phase.
+ * No scale / blur / morph: the sentence stays at its natural size for
+ * the whole sticky stage. Font size is fluid (`clamp`) so the entire
+ * sentence fits whatever viewport the user is on without horizontal
+ * overflow or being cut off below the fold.
  */
 const TextRevealByWord: FC<TextRevealByWordProps> = ({
   text,
-  shortText,
   className,
-  wordsEnd = 0.55,
+  wordsEnd = 0.7,
   underlineStart,
-  underlineEnd = 0.72,
-  morphStart = 0.74,
-  morphEnd = 0.94,
+  underlineEnd = 0.92,
 }) => {
   const targetRef = useRef<HTMLDivElement | null>(null);
   const ulStart = underlineStart ?? wordsEnd;
@@ -68,75 +58,38 @@ const TextRevealByWord: FC<TextRevealByWordProps> = ({
   const ulPct = useTransform(scrollYProgress, [ulStart, underlineEnd], [0, 100]);
   const ulBgSize = useTransform(ulPct, (p) => `${Math.max(0, Math.min(100, p))}% 2px`);
 
-  // Long sentence morph: visible shrink so it reads as the long sentence
-  // physically collapsing into the short one.
-  const longOpacity = useTransform(scrollYProgress, [morphStart, morphEnd], [1, 0]);
-  const longScale = useTransform(scrollYProgress, [morphStart, morphEnd], [1, 0.55]);
-  const longBlur = useTransform(
-    scrollYProgress,
-    [morphStart, morphEnd],
-    ["blur(0px)", "blur(6px)"],
-  );
-
-  const shortFadeStart = morphStart + (morphEnd - morphStart) * 0.4;
-  const shortOpacity = useTransform(scrollYProgress, [shortFadeStart, morphEnd], [0, 1]);
-  const shortScale = useTransform(scrollYProgress, [shortFadeStart, morphEnd], [0.95, 1]);
-
-  const headingClass =
-    "m-0 text-balance text-center font-semibold tracking-tight leading-[1.25] text-2xl md:text-4xl lg:text-5xl xl:text-6xl";
-
   return (
     <div
       ref={targetRef}
-      className={cn("relative z-0 h-[220vh] w-full", className)}
+      className={cn("relative z-0 h-[200vh] w-full", className)}
     >
-      <div className="sticky top-0 mx-auto flex h-screen max-w-5xl flex-col items-center justify-center px-6">
-        <div
-          className="relative w-full"
-          style={{ minHeight: "clamp(220px, 40vh, 360px)" }}
+      <div className="sticky top-0 mx-auto flex h-screen w-full max-w-6xl flex-col items-center justify-center px-6">
+        <p
+          className="m-0 w-full text-balance text-center font-semibold tracking-tight"
+          style={{
+            // Fluid size: small phones get ~1.4rem, ultra-wide desks
+            // get ~3rem — never larger than that, so the long sentence
+            // always fits in the viewport's vertical band.
+            fontSize: "clamp(1.4rem, 2.8vw, 3rem)",
+            lineHeight: 1.35,
+          }}
         >
-          {/* LONG sentence — multi-line, per-line gold underline drawn
-              via inline bg-image with `box-decoration-break: clone`. */}
-          <motion.div
-            className="absolute inset-0 flex items-center justify-center"
-            style={
-              shortText
-                ? { opacity: longOpacity, scale: longScale, filter: longBlur }
-                : undefined
-            }
-          >
-            <p className={headingClass}>
-              <UnderlineSpan bgSize={ulBgSize}>
-                {words.map((word, i) => {
-                  const start = (i / words.length) * wordsEnd;
-                  const end = ((i + 1) / words.length) * wordsEnd;
-                  return (
-                    <Word
-                      key={`${word}-${i}`}
-                      progress={scrollYProgress}
-                      range={[start, end]}
-                    >
-                      {word}
-                    </Word>
-                  );
-                })}
-              </UnderlineSpan>
-            </p>
-          </motion.div>
-
-          {/* SHORT tagline — scales + fades in over the same area. */}
-          {shortText ? (
-            <motion.p
-              className={cn(
-                "absolute inset-0 flex items-center justify-center text-white",
-                headingClass,
-              )}
-              style={{ opacity: shortOpacity, scale: shortScale }}
-            >
-              {shortText}
-            </motion.p>
-          ) : null}
-        </div>
+          <UnderlineSpan bgSize={ulBgSize}>
+            {words.map((word, i) => {
+              const start = (i / words.length) * wordsEnd;
+              const end = ((i + 1) / words.length) * wordsEnd;
+              return (
+                <Word
+                  key={`${word}-${i}`}
+                  progress={scrollYProgress}
+                  range={[start, end]}
+                >
+                  {word}
+                </Word>
+              );
+            })}
+          </UnderlineSpan>
+        </p>
       </div>
     </div>
   );

@@ -23,9 +23,10 @@ import { TextRevealByWord } from "../components/ui/text-reveal";
  *     underline that draws after the last word lands.
  *   - Cards / grids / interactive blocks use `Reveal` (one observer per
  *     block, fade-up).
- *   - The Solution section uses `TextRevealByWord` — a 220 vh sticky
- *     stage with scroll-driven word brightening, per-line gold
- *     underlines, then a shrink-morph to a short clean tagline.
+ *   - The Solution section uses `TextRevealByWord` — a sticky stage
+ *     with scroll-driven word brightening + per-line gold underlines.
+ *     The sentence stays at its natural fluid size for the whole stage
+ *     (no scale morph), so the entire long sentence is visible at once.
  */
 
 // Common per-word blur stagger values, used to compute the right post-
@@ -112,9 +113,11 @@ export function HomePage() {
         </Reveal>
       </section>
 
-      {/* Sandbox — gold radial gradient stage that SCROLLS with the
-          section (no fixed-attachment image), so the bg moves naturally
-          with the content. Pure CSS so there are no external assets. */}
+      {/* Sandbox — moon-image graphic stage (back from the
+          `sandbox.md` reference) tinted with Forma's yellow/gold
+          gradient overlays. The image is anchored to the section box,
+          so it scrolls with the section instead of being pinned to the
+          viewport. */}
       <section
         id="sandbox"
         className="relative flex min-h-screen scroll-mt-20 flex-col items-center justify-center overflow-hidden px-6"
@@ -124,21 +127,39 @@ export function HomePage() {
           gap: "clamp(1rem,2.5vh,2rem)",
         }}
       >
-        {/* Layered gold radials + a subtle warm base — anchored to the
-            section box, so they scroll with it instead of staying
-            pinned to the viewport. */}
+        {/* Base moon image — sits behind the gold tint so the texture
+            shows through but the section reads as Forma-gold rather
+            than the raw greyscale photo. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-0"
+          style={{
+            backgroundImage:
+              "url('https://pub-940ccf6255b54fa799a9b01050e6c227.r2.dev/ruixen_moon_2.png')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            // No `fixed` attachment — the bg moves with the section
+            // as the user scrolls, matching their preference.
+            opacity: 0.55,
+          }}
+        />
+
+        {/* Gold tint pass — three layered radials + a warm base, all
+            anchored to the section so they scroll with it. */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 z-0"
           style={{
             background:
-              "radial-gradient(ellipse 90% 65% at 50% 55%, rgba(212, 184, 122, 0.32) 0%, rgba(212, 184, 122, 0.16) 38%, rgba(212, 184, 122, 0.04) 65%, transparent 80%), " +
-              "radial-gradient(ellipse 55% 45% at 18% 25%, rgba(231, 207, 149, 0.18) 0%, transparent 65%), " +
-              "radial-gradient(ellipse 55% 45% at 82% 18%, rgba(212, 184, 122, 0.14) 0%, transparent 65%), " +
-              "linear-gradient(180deg, rgba(35, 30, 20, 0.45) 0%, rgba(20, 18, 14, 0.35) 100%)",
+              "radial-gradient(ellipse 90% 65% at 50% 55%, rgba(212, 184, 122, 0.45) 0%, rgba(212, 184, 122, 0.22) 38%, rgba(212, 184, 122, 0.06) 65%, transparent 80%), " +
+              "radial-gradient(ellipse 55% 45% at 18% 25%, rgba(231, 207, 149, 0.22) 0%, transparent 65%), " +
+              "radial-gradient(ellipse 55% 45% at 82% 18%, rgba(212, 184, 122, 0.18) 0%, transparent 65%), " +
+              "linear-gradient(180deg, rgba(25, 22, 14, 0.55) 0%, rgba(15, 14, 10, 0.5) 100%)",
+            mixBlendMode: "screen",
           }}
         />
 
+        {/* Bottom fade into the page bg so the next section blends. */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-40"
@@ -206,14 +227,13 @@ export function HomePage() {
         />
       </section>
 
-      {/* Solution — long vague sentence brightens word-by-word, gold
-          per-line underlines draw under every wrapped line, then the
-          long sentence shrinks/blurs out and the short clean tagline
-          morphs in over the same area. */}
+      {/* Solution — long vague sentence brightens word-by-word and gold
+          per-line underlines draw under every wrapped line. The font
+          size is fluid (clamp) so the entire sentence stays visible at
+          its natural size on every viewport — no scale/zoom morph. */}
       <section id="solution" data-snap-start className="scroll-mt-20">
         <TextRevealByWord
           text="Forma is some kind of helpful smart tool thing that maybe sorta turns those random kinda vague description-y prompt words you type into something that's like, more clear and proper for getting back the UI components you actually wanted in the first place, hopefully."
-          shortText="Forma is a behavioral data layer that teaches AI models how to build highly engaging interfaces."
         />
       </section>
 
