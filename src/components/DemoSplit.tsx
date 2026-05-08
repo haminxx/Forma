@@ -43,10 +43,14 @@ export function DemoSplit() {
   }, []);
 
   return (
-    <div ref={containerRef} className="w-full max-w-6xl px-4">
-      {/* Tight grid — gap-3 on phones, gap-5 on md+ — so all four
-          cards (2 prompts + 2 outputs) fit in a single viewport. */}
-      <div className="grid w-full gap-3 md:grid-cols-2 md:gap-5">
+    <div
+      ref={containerRef}
+      className="w-full max-w-[min(94vw,76rem)] px-[clamp(0.5rem,2vw,1rem)]"
+    >
+      {/* Slightly roomier grid + fluid max width so prompt + output
+          cards read larger on desktop while still fitting one viewport
+          on laptops (heights stay fluid via PromptInput + aspect). */}
+      <div className="grid w-full gap-3 sm:gap-4 md:grid-cols-2 md:gap-6">
         <PromptInput
           variant="default"
           label="Vibe Coder"
@@ -79,7 +83,7 @@ export function DemoSplit() {
         <div className="mt-1 h-5 w-px bg-gradient-to-b from-transparent via-white/30 to-white/10" />
       </div>
 
-      <div className="grid w-full gap-3 md:grid-cols-2 md:gap-5">
+      <div className="grid w-full gap-3 sm:gap-4 md:grid-cols-2 md:gap-6">
         <div
           className={`relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.02] transition-all duration-700 ${
             outputsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"

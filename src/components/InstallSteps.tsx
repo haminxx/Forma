@@ -94,7 +94,17 @@ export function InstallSteps() {
 
   return (
     <div className="w-full max-w-3xl px-4 py-2">
-      <ol className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-4">
+      <div
+        className="rounded-2xl border border-white/18 p-4 sm:p-5"
+        style={{
+          background: "rgba(18, 19, 24, 0.82)",
+          backdropFilter: "blur(20px) saturate(145%)",
+          WebkitBackdropFilter: "blur(20px) saturate(145%)",
+          boxShadow:
+            "inset 0 1px 0 rgba(255,255,255,0.10), inset 0 0 0 1px rgba(255,255,255,0.05)",
+        }}
+      >
+        <ol className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-4">
         {STEPS.map((step, index) => {
           const Icon = step.icon;
           const isClicked = index < clickedCount;
@@ -202,7 +212,8 @@ export function InstallSteps() {
             </li>
           );
         })}
-      </ol>
+        </ol>
+      </div>
     </div>
   );
 }

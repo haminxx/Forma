@@ -18,50 +18,34 @@ export function GlassTextarea() {
   const canSend = message.trim().length > 0;
 
   return (
-    <div className="relative w-full max-w-3xl">
+    <div className="relative w-full max-w-[min(100%,42rem)] px-[clamp(0.5rem,2vw,1.25rem)]">
       <div
-        className="relative overflow-hidden rounded-3xl border border-white/15"
+        className="relative overflow-hidden rounded-xl border border-white/12 sm:rounded-2xl"
         style={{
-          background: "rgba(15, 16, 20, 0.55)",
-          backdropFilter: "blur(22px) saturate(140%)",
-          WebkitBackdropFilter: "blur(22px) saturate(140%)",
+          background: "rgba(18, 19, 24, 0.78)",
+          backdropFilter: "blur(24px) saturate(150%)",
+          WebkitBackdropFilter: "blur(24px) saturate(150%)",
           boxShadow:
-            "0 28px 70px -32px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.10), inset 0 0 0 0.5px rgba(255,255,255,0.05)",
+            "inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 0 1px rgba(255,255,255,0.04)",
         }}
       >
-        {/* Top liquid-glass shine — narrow gradient ridge so the frame
-            reads as a single piece of frosted glass instead of a flat box. */}
+        {/* Narrow top ridge — flatter silhouette than rounded-3xl glass. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-0 h-16"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.015) 55%, rgba(255,255,255,0) 100%)",
-          }}
-        />
-
-        {/* Soft gold inner glow at the bottom — ties the textbox to the
-            section's gold gradient backdrop so they read as one stage. */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-10 bottom-0 h-12"
-          style={{
-            background:
-              "radial-gradient(ellipse 60% 100% at 50% 100%, rgba(212,184,122,0.12), transparent 70%)",
-          }}
+          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/12 to-transparent"
         />
 
         <TextareaAutosize
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          minRows={3}
-          maxRows={8}
+          minRows={2}
+          maxRows={7}
           placeholder="Describe your UI component and animation"
           aria-label="Forma sandbox prompt"
-          className="relative block w-full resize-none border-0 bg-transparent px-7 pt-6 pb-2 text-base text-white placeholder:text-white/45 focus:outline-none focus:ring-0"
+          className="relative block w-full resize-none border-0 bg-transparent px-[clamp(0.85rem,3vw,1.5rem)] pt-[clamp(0.65rem,2.2vw,1rem)] pb-1 text-[clamp(0.875rem,2.1vw,1rem)] leading-relaxed text-white placeholder:text-white/45 focus:outline-none focus:ring-0"
         />
 
-        <div className="relative flex items-center justify-between px-5 pb-4 pt-1">
+        <div className="relative flex items-center justify-between px-[clamp(0.75rem,2.5vw,1.15rem)] pb-[clamp(0.5rem,1.8vw,0.75rem)] pt-0.5">
           <button
             type="button"
             aria-label="Attach reference"

@@ -85,7 +85,10 @@ export const PromptInput = React.forwardRef<HTMLTextAreaElement, PromptInputProp
             heights. */}
         <div
           className="relative flex w-full flex-col rounded-[15px] bg-[#0c0c0c]"
-          style={{ height: "clamp(200px, 22vh, 260px)" }}
+          style={{
+            height:
+              "clamp(220px, min(32vh, 38dvh), 320px)",
+          }}
         >
           {label ? (
             <div className="flex flex-shrink-0 items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-3 text-xs font-medium uppercase tracking-[0.18em] text-white/60">
