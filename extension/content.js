@@ -1608,6 +1608,7 @@ function initForma() {
       return;
     }
     if (deepAnalysisLoading && deepAnalysisSession && !deepAnalysisSession.errorMessage) return;
+    if (panelOwnsBadge) return;
     const result = computeFormaScore(text, detectedTerms || []);
     showFormaScoreBadge(result.score, result.label, result.color);
   }
