@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from agents import translate_phrase, analyze_sentence, run_critic_agent, run_reformulator_agent, run_style_agent, run_memory_agent, run_coach_agent, run_consensus_agent, run_all_agents_parallel, run_fast_critic_agent
+from agents import translate_phrase, analyze_sentence, run_critic_agent, run_reformulator_agent, run_style_agent, run_memory_agent, run_coach_agent, run_consensus_agent, run_all_agents_parallel, run_fast_critic_agent, run_detect_vague_agent
 from patterns import contains_vague_phrase
 from parser import parse_response, parse_analyze_response
 from db import init_db, get_db
@@ -98,6 +98,10 @@ class RunAllRequest(BaseModel):
 
 class FastCriticRequest(BaseModel):
     prompt: str
+
+
+class DetectVagueRequest(BaseModel):
+    text: str
 
 
 @app.get("/")
@@ -212,6 +216,15 @@ async def run_all_endpoint(request: RunAllRequest):
         return result
     except Exception as e:
         return {"error": str(e)}
+
+
+@app.post("/detect-vague")
+async def detect_vague_endpoint(request: DetectVagueRequest):
+    """Free-tier 8B vague-phrase detection for inline underline."""
+    try:
+        return await run_detect_vague_agent(request.text)
+    except Exception as e:
+        return {"phrases": [], "metadata": {"tier": "fast", "error": str(e), "phrase_count": 0}}
 
 
 @app.post("/agents/fast-critic")

@@ -38,3 +38,8 @@ logs/
 
 # OS junk
 desktop.ini
+
+# Personal context handoff docs (contain secrets, keep local only)
+CURRENT_TASK.md
+PROJECT_CONTEXT.md
+STRATEGIC_NOTES.md

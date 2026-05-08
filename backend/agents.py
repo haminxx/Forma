@@ -453,6 +453,217 @@ async def run_fast_critic_agent(prompt: str) -> Dict[str, Any]:
         }
 
 
+CANONICAL_60 = [
+    "Off-Canvas Drawer",
+    "Glassmorphic Popover",
+    "Masonry Grid",
+    "Sticky Navbar",
+    "Modal Overlay",
+    "Skeleton Loader",
+    "Tab Panel",
+    "Accordion",
+    "Toast Notification",
+    "Breadcrumb Navigation",
+    "Tooltip",
+    "Dropdown Menu",
+    "Progress Bar",
+    "Bottom Sheet",
+    "Confirmation Dialog",
+    "Search Bar",
+    "Toggle Switch",
+    "Loading Spinner",
+    "Floating Action Button",
+    "Hero Section",
+    "Card Grid",
+    "Pagination Control",
+    "Image Carousel",
+    "Hamburger Menu",
+    "Data Table",
+    "Banner",
+    "Sidebar Navigation",
+    "Footer Section",
+    "Step Progress Indicator",
+    "Notification Badge",
+    "Date Picker",
+    "File Upload",
+    "Rating Stars",
+    "Color Picker",
+    "Range Slider",
+    "Form Input Field",
+    "Login Form",
+    "Avatar",
+    "Empty State",
+    "Chip Tag",
+    "Separator",
+    "Settings Panel",
+    "Cookie Banner",
+    "Comment Thread",
+    "Stats Counter",
+    "Testimonial Card",
+    "Pricing Card",
+    "Activity Feed",
+    "Mega Menu",
+    "Command Palette",
+    "Notification Center",
+    "Profile Dropdown",
+    "OTP Input",
+    "Tag Input",
+    "Phone Input",
+    "Search Suggestions",
+    "Floating Label Input",
+    "Switch Group",
+    "Onboarding Tour",
+    "Password Strength",
+]
+CANONICAL_SET = set(CANONICAL_60)
+
+
+async def run_detect_vague_agent(text: str) -> Dict[str, Any]:
+    start_time = time.time()
+    clean_text = (text or "").strip()
+    if not clean_text:
+        return {
+            "phrases": [],
+            "metadata": {
+                "tier": "fast",
+                "model": "Llama 3.1 8B Instruct",
+                "latency_ms": 0,
+                "phrase_count": 0,
+            },
+        }
+
+    text = (text or "")[:4000]
+    system_message = (
+        "You detect vague UI phrases and return strict JSON only. "
+        "Return exactly this shape: "
+        '{"phrases":[{"phrase":"...","start":0,"end":0,"canonical":"...","description":"...","alternatives":["...","...","..."]}]}. '
+        "At most 8 phrases. "
+        "canonical and every alternatives item MUST be exactly one of this canonical set (case-sensitive): "
+        + ", ".join(CANONICAL_60)
+        + ". Description must be under 18 words. "
+        "alternatives must be 3 different canonical terms."
+    )
+    payload = {
+        "model": FAST_MODEL,
+        "messages": [
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": f"Detect vague phrases in this text and return JSON only:\n{text}"},
+        ],
+        "temperature": 0.1,
+        "max_tokens": 800,
+        "response_format": {"type": "json_object"},
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.post(VLLM_FAST_URL, json=payload)
+            response.raise_for_status()
+            data = response.json()
+            content = data["choices"][0]["message"]["content"]
+            parsed = json.loads(content)
+    except Exception as e:
+        return {
+            "phrases": [],
+            "metadata": {
+                "tier": "fast",
+                "error": str(e),
+                "latency_ms": int((time.time() - start_time) * 1000),
+                "phrase_count": 0,
+            },
+        }
+
+    raw_phrases = parsed.get("phrases", []) if isinstance(parsed, dict) else []
+    if not isinstance(raw_phrases, list):
+        raw_phrases = []
+
+    validated = []
+
+    def overlaps(span_start: int, span_end: int) -> bool:
+        for item in validated:
+            if span_start < item["end"] and span_end > item["start"]:
+                return True
+        return False
+
+    for item in raw_phrases:
+        if len(validated) >= 8 or not isinstance(item, dict):
+            continue
+
+        phrase = item.get("phrase")
+        start = item.get("start")
+        end = item.get("end")
+        canonical = item.get("canonical")
+        description = item.get("description", "")
+
+        if not isinstance(phrase, str) or not isinstance(start, int) or not isinstance(end, int):
+            continue
+        if not (0 <= start < end <= len(text)):
+            continue
+        if canonical not in CANONICAL_SET:
+            continue
+
+        if text[start:end] != phrase:
+            window_start = max(0, start - 20)
+            window_end = min(len(text), end + 20)
+            found_at = text.find(phrase, window_start, window_end)
+            if found_at == -1:
+                continue
+            start = found_at
+            end = found_at + len(phrase)
+
+        if overlaps(start, end):
+            continue
+
+        alt_terms = item.get("alternatives", [])
+        if not isinstance(alt_terms, list):
+            alt_terms = []
+        alt_terms = [a for a in alt_terms if isinstance(a, str) and a in CANONICAL_SET and a != canonical]
+
+        deduped = []
+        seen = set()
+        for term in alt_terms:
+            if term in seen:
+                continue
+            deduped.append(term)
+            seen.add(term)
+            if len(deduped) == 3:
+                break
+
+        if len(deduped) < 3:
+            for term in CANONICAL_60:
+                if term == canonical or term in seen:
+                    continue
+                deduped.append(term)
+                seen.add(term)
+                if len(deduped) == 3:
+                    break
+
+        validated.append(
+            {
+                "phrase": phrase,
+                "start": start,
+                "end": end,
+                "canonical": canonical,
+                "term": canonical,
+                "description": description,
+                "definition": description,
+                "category": "Component",
+                "alternatives": [{"term": term, "description": ""} for term in deduped[:3]],
+            }
+        )
+
+    return {
+        "phrases": validated,
+        "metadata": {
+            "tier": "fast",
+            "model": "Llama 3.1 8B Instruct",
+            "hardware": "AMD MI300X (port 30000)",
+            "latency_ms": int((time.time() - start_time) * 1000),
+            "phrase_count": len(validated),
+            "raw_count": len(raw_phrases),
+        },
+    }
+
+
 async def run_reformulator_agent(prompt_text: str) -> Dict[str, Any]:
     """
     Reformulator Agent: Rewrites vague prompts using canonical UI vocabulary,
