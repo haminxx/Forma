@@ -20,6 +20,7 @@ function initForma() {
   
   const RAILWAY_URL = 'https://forma-production-c800.up.railway.app/translate';
   const ANALYZE_URL = 'https://forma-production-c800.up.railway.app/analyze';
+  const DETECT_VAGUE_URL = 'https://forma-production-c800.up.railway.app/detect-vague';
   const TRANSLATE_PRO_URL = 'https://forma-production-c800.up.railway.app/translate-pro';
   const RUN_ALL_URL = 'https://forma-production-c800.up.railway.app/agents/run-all';
   const LOG_EVENT_URL = 'https://forma-production-c800.up.railway.app/log/event';
@@ -502,6 +503,11 @@ function initForma() {
   let analyzeInFlight = false;
   let analyzeRequestSeq = 0;
   let activeAnalyzeController = null;
+  let lastVagueText = '';
+  let vagueInFlight = false;
+  let vagueRequestSeq = 0;
+  let activeVagueController = null;
+  const vagueResponseCache = new Map();
   let lastAIResponse = []; // most recent phrases array from AMD
   
   function detectPhrasesAI(text) {
@@ -595,6 +601,75 @@ function initForma() {
       activeAnalyzeController = null;
       hideAIIndicator();
       console.error('[Forma AI] Error:', err);
+    });
+  }
+
+  function fetchVaguePhrases(text, onComplete) {
+    if (!text || text.length < 3) {
+      onComplete([]);
+      return;
+    }
+
+    if (vagueResponseCache.has(text)) {
+      console.log('[Forma Underline] Cache hit for text');
+      onComplete(vagueResponseCache.get(text));
+      return;
+    }
+
+    if (activeVagueController) {
+      activeVagueController.abort();
+      activeVagueController = null;
+    }
+
+    const requestSeq = ++vagueRequestSeq;
+    const controller = new AbortController();
+    activeVagueController = controller;
+    vagueInFlight = true;
+    lastVagueText = text;
+    console.log('[Forma Underline] Calling /detect-vague for:', text.substring(0, 60) + '...');
+
+    fetch(DETECT_VAGUE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: text }),
+      signal: controller.signal
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (requestSeq !== vagueRequestSeq) return;
+      vagueInFlight = false;
+      activeVagueController = null;
+
+      if (!data || !Array.isArray(data.phrases)) {
+        console.warn('[Forma Underline] Invalid response format');
+        onComplete([]);
+        return;
+      }
+
+      const validatedPhrases = data.phrases.filter((p) => {
+        return (
+          p &&
+          typeof p.start === 'number' &&
+          typeof p.end === 'number' &&
+          typeof p.phrase === 'string' &&
+          p.start >= 0 &&
+          p.start < p.end &&
+          p.end <= text.length &&
+          text.substring(p.start, p.end) === p.phrase
+        );
+      });
+
+      console.log('[Forma Underline] Valid phrases:', validatedPhrases.length, 'from', data.phrases.length);
+      vagueResponseCache.set(text, validatedPhrases);
+      onComplete(validatedPhrases);
+    })
+    .catch(err => {
+      if (requestSeq !== vagueRequestSeq) return;
+      if (err && err.name === 'AbortError') return;
+      vagueInFlight = false;
+      activeVagueController = null;
+      console.error('[Forma Underline] Detection error:', err);
+      onComplete([]);
     });
   }
 
@@ -1539,6 +1614,16 @@ function initForma() {
     }, 800);
   }
 
+  let vagueDebounceTimer = null;
+  const VAGUE_DEBOUNCE_MS = 350;
+
+  function scheduleVagueDetection(text, onComplete) {
+    if (vagueDebounceTimer) clearTimeout(vagueDebounceTimer);
+    vagueDebounceTimer = setTimeout(() => {
+      fetchVaguePhrases(text, onComplete);
+    }, VAGUE_DEBOUNCE_MS);
+  }
+
   let overlay = null;
   let targetTextarea = null;
 
@@ -1572,21 +1657,24 @@ function initForma() {
 
   function renderOverlay(textarea) {
     const text = textarea.value;
-
-    // Branch detection based on mode
     let matches;
     if (DETECTION_MODE === "ai") {
       matches = detectPhrasesAI(text);
-      // Schedule async AMD call to update phrases (with debounce)
-      scheduleAIAnalysis(text, (newPhrases) => {
-        // Re-render overlay when new phrases arrive
+      renderOverlayWithPhrases(textarea, matches);
+
+      scheduleAIAnalysis(text, () => {
+        // /analyze drives badge score only; no phrase update from here
+      });
+
+      scheduleVagueDetection(text, (newPhrases) => {
+        lastAIResponse = newPhrases;
+        aiResponseCache.set(text, newPhrases);
         renderOverlayWithPhrases(textarea, newPhrases);
       });
     } else {
       matches = detectPhrases(text);
+      renderOverlayWithPhrases(textarea, matches);
     }
-
-    renderOverlayWithPhrases(textarea, matches);
   }
 
   function renderOverlayWithPhrases(textarea, matches) {
