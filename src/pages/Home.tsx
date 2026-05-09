@@ -133,7 +133,11 @@ export function HomePage() {
             />
           </div>
         </div>
-        <Reveal delay={postHeadingDelay(11)} duration={0.6}>
+        <Reveal
+          delay={postHeadingDelay(11)}
+          duration={0.6}
+          className="flex w-full justify-center"
+        >
           <DemoSplit />
         </Reveal>
       </section>
