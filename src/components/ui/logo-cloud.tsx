@@ -22,14 +22,22 @@ type Platform = {
   name: string;
   src: string;
   href: string;
+  /**
+   * Set true when the source PNG is a black-on-anything mark. The img
+   * gets `filter: invert(1)` so the black artwork flips to light and
+   * the previously-black "background bake" becomes invisible against
+   * the dark sandbox backdrop. Used for `bolt` whose source PNG has a
+   * mostly-black canvas around the icon.
+   */
+  invert?: boolean;
 };
 
 const PLATFORMS: Platform[] = [
-  { name: "Vercel v0", src: "/logos/v0.png", href: "https://v0.app" },
+  { name: "Vercel v0", src: "/logos/v0.png", href: "https://v0.app", invert: true },
   { name: "Replit", src: "/logos/replit.png", href: "https://replit.com" },
-  { name: "Bolt", src: "/logos/bolt.png", href: "https://bolt.new" },
+  { name: "Bolt", src: "/logos/bolt.png", href: "https://bolt.new", invert: true },
   { name: "Lovable", src: "/logos/lovable.png", href: "https://lovable.dev" },
-  { name: "Manus", src: "/logos/manus.png", href: "https://manus.im" },
+  { name: "Manus", src: "/logos/manus.png", href: "https://manus.im", invert: true },
   { name: "Figma Make", src: "/logos/figma-make.png", href: "https://www.figma.com/make/" },
   { name: "Base 44", src: "/logos/base44.png", href: "https://base44.com" },
   { name: "Tempo", src: "/logos/tempo.png", href: "https://www.tempo.new/" },
@@ -94,6 +102,7 @@ export function LogoCloud({ className, ...props }: LogoCloudProps) {
             href={p.href}
             src={p.src}
             alt={`${p.name} logo`}
+            invert={p.invert}
             className={cn(cellBorder, cellBg)}
           >
             {showPlusBR ? (
@@ -119,9 +128,11 @@ type LogoCardProps = {
   alt: string;
   className?: string;
   children?: ReactNode;
+  /** Apply CSS `filter: invert(1)` for black-on-anything source PNGs. */
+  invert?: boolean;
 };
 
-function LogoCard({ href, src, alt, className, children }: LogoCardProps) {
+function LogoCard({ href, src, alt, className, children, invert }: LogoCardProps) {
   return (
     <HoverPeek url={href}>
       <a
@@ -130,20 +141,21 @@ function LogoCard({ href, src, alt, className, children }: LogoCardProps) {
         rel="noopener noreferrer"
         aria-label={`Open ${alt}`}
         className={cn(
-          "group/cell relative flex items-center justify-center px-4 py-8 transition-colors duration-200",
-          "hover:bg-[#d4b87a]/10 md:p-10",
+          "group/cell relative flex items-center justify-center px-4 py-9 transition-colors duration-200",
+          "hover:bg-[#d4b87a]/10 md:p-12",
           className,
         )}
       >
-        {/* Uniform 11 × 44px (mobile) / 12 × 48px (desktop) frame so
-            every logo carries the same visual weight regardless of
-            wordmark vs square-mark aspect ratio. object-contain
-            centres the mark within. */}
-        <span className="relative flex h-11 w-[160px] items-center justify-center md:h-12 md:w-[180px]">
+        {/* Bigger uniform frame: h-14 / w-[200px] mobile, h-16 / w-[240px]
+            desktop. Logos render larger now per the latest direction
+            while object-contain still keeps each mark centred and
+            inside the same bounding box. */}
+        <span className="relative flex h-14 w-[200px] items-center justify-center md:h-16 md:w-[240px]">
           <img
             src={src}
             alt={alt}
             loading="lazy"
+            style={invert ? { filter: "invert(1) brightness(1.05)" } : undefined}
             // Default: full colour. When the *grid* is hovered, dim
             // every cell with grayscale + low opacity. The cell that
             // is *itself* hovered overrides back to full colour with

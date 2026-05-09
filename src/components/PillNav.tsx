@@ -37,10 +37,16 @@ function clampExpandedWidth(viewport: number): number {
   return Math.max(COLLAPSED_W + 60, Math.min(EXPANDED_MAX, usable));
 }
 
+// Pixels of scroll past which the pill auto-collapses. Below this we
+// consider the user "still at the top of the home hero" and keep every
+// section label visible in the expanded pill.
+const SCROLL_COLLAPSE_THRESHOLD = 80;
+
 export const PillNav: React.FC = () => {
   const [activeSection, setActiveSection] = useState("home");
   const [expanded, setExpanded] = useState(false);
   const [hovering, setHovering] = useState(false);
+  const [atTop, setAtTop] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [vw, setVw] = useState<number>(() =>
     typeof window === "undefined" ? 1280 : window.innerWidth,
@@ -64,15 +70,44 @@ export const PillNav: React.FC = () => {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
+  // Track whether the user is still at the top of the home hero. When
+  // they are, the pill stays in its expanded "all sections visible"
+  // form. When they scroll past SCROLL_COLLAPSE_THRESHOLD we collapse
+  // back to the active-section label. Coming back to the top re-
+  // expands the pill automatically.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const y = window.scrollY || window.pageYOffset || 0;
+      setAtTop(y < SCROLL_COLLAPSE_THRESHOLD);
+    };
+    const onScroll = () => {
+      if (raf) return;
+      raf = window.requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (raf) window.cancelAnimationFrame(raf);
+    };
+  }, []);
+
   const expandedWidth = clampExpandedWidth(vw);
 
-  // Handle hover expansion
+  // The pill is expanded whenever the user is at the top OR is hovering
+  // it. Otherwise it collapses to the active-section label after a
+  // short grace period (so a quick mouse-out doesn't snap it shut).
   useEffect(() => {
-    if (hovering) {
+    const shouldExpand = hovering || atTop;
+    if (shouldExpand) {
       setExpanded(true);
       pillWidth.set(expandedWidth);
       if (hoverTimeoutRef.current) {
         clearTimeout(hoverTimeoutRef.current);
+        hoverTimeoutRef.current = null;
       }
     } else {
       hoverTimeoutRef.current = setTimeout(() => {
@@ -86,14 +121,14 @@ export const PillNav: React.FC = () => {
         clearTimeout(hoverTimeoutRef.current);
       }
     };
-  }, [hovering, pillWidth, expandedWidth]);
+  }, [hovering, atTop, pillWidth, expandedWidth]);
 
   // Re-snap the spring target if the viewport changes while expanded so
-  // the pill grows / shrinks live with the window instead of waiting for
-  // the next hover.
+  // the pill grows / shrinks live with the window instead of waiting
+  // for the next hover.
   useEffect(() => {
-    if (hovering) pillWidth.set(expandedWidth);
-  }, [expandedWidth, hovering, pillWidth]);
+    if (expanded) pillWidth.set(expandedWidth);
+  }, [expandedWidth, expanded, pillWidth]);
 
   const handleMouseEnter = () => {
     setHovering(true);
