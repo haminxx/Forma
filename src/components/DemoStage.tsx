@@ -7,31 +7,26 @@ import {
 } from "framer-motion";
 
 import { DemoSplit } from "./DemoSplit";
-import AnimatedGradientBackground from "@/components/ui/animated-gradient-background";
 import { cn } from "@/lib/utils";
 
 /**
  * DemoStage — peek-then-expand scroll wrapper around `DemoSplit`.
  *
+ * The shared `AnimatedGradientBackground` lives in `Home.tsx` as a
+ * sticky layer behind both #home and #demo, so this stage renders
+ * NO gradient of its own. The demo just floats above the home
+ * background as a self-contained window card with its own dark frame.
+ *
  * Mechanic:
- *   - 170vh outer section. The user scrolls *through* the demo
- *     while a sticky inner panel stays locked to the viewport.
- *   - `useScroll` over the section drives a single 0 → 1 progress
- *     that's mapped to scale (0.7 → 1) + y (+30 → 0) + opacity
- *     (0.85 → 1) so the panel peeks from the bottom of home, then
- *     scales up + locks at viewport centre.
+ *   - 170vh outer section. The user scrolls *through* the demo while
+ *     a sticky inner panel stays locked to the viewport.
+ *   - `useScroll` over the section drives a single 0 → 1 progress that's
+ *     mapped to scale (0.7 → 1) + y (+30 → 0) + opacity (0.85 → 1)
+ *     so the panel peeks from the bottom of home, then scales up + locks
+ *     at viewport centre.
  *   - prefers-reduced-motion short-circuits to the resting state.
- *
- * Background:
- *   - The sticky panel mounts its OWN AnimatedGradientBackground so
- *     the gold gradient is visible BEHIND the demo window for the
- *     entire 170vh of scroll. Non-breathing here so it doesn't
- *     compete with the hero's pulsing instance; same warm palette
- *     so home → demo reads as one continuous gold backdrop.
- *
- * Layout:
- *   - `top-24` (6rem ≈ 96px) keeps the sticky panel below the
- *     floating PillNav + brand / GitHub bar above (~88px tall).
+ *   - `top-24` (6rem ≈ 96px) keeps the sticky panel below the floating
+ *     PillNav + brand / GitHub bar above (~88px tall).
  */
 export function DemoStage({ className }: { className?: string }) {
   const reduced = useReducedMotion();
@@ -52,17 +47,10 @@ export function DemoStage({ className }: { className?: string }) {
       className={cn("relative w-full", className)}
       style={{ minHeight: "170vh" }}
     >
-      {/* Sticky panel — pinned to the viewport at top: 6rem so it
-          sits below the floating navbar. */}
+      {/* Sticky panel — pinned to viewport at top: 6rem so it sits
+          below the floating navbar. NO local gradient: the home-level
+          sticky AnimatedGradientBackground in Home.tsx shows through. */}
       <div className="sticky top-24 h-[calc(100vh-6rem)] overflow-hidden px-3 sm:px-6">
-        {/* Gold gradient backdrop (mounted INSIDE the sticky panel so
-            it scrolls with the panel and stays in viewport for the
-            entire demo section). */}
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-black">
-          <AnimatedGradientBackground breathing={false} topOffset={-20} />
-        </div>
-
-        {/* Demo window centred in the sticky viewport. */}
         <div className="relative flex h-full w-full items-center justify-center">
           <motion.div
             style={
@@ -72,17 +60,19 @@ export function DemoStage({ className }: { className?: string }) {
             }
             className="relative w-full max-w-[min(98vw,92rem)]"
           >
-            {/* Soft gold glow ring underneath the window. */}
+            {/* Soft gold glow ring underneath the floating window. */}
             <div
               aria-hidden
               className="pointer-events-none absolute -inset-12 -z-10"
               style={{
                 background:
-                  "radial-gradient(60% 50% at 50% 60%, rgba(212,184,122,0.16) 0%, rgba(212,184,122,0) 70%)",
+                  "radial-gradient(60% 50% at 50% 60%, rgba(212,184,122,0.18) 0%, rgba(212,184,122,0) 70%)",
               }}
             />
 
-            {/* macOS-style window frame around the demo content. */}
+            {/* macOS-style window frame around the demo content. The
+                window is the only opaque element in this section — it
+                "floats" above the home gradient that bleeds through. */}
             <div
               className="relative overflow-hidden rounded-[1.25rem] border border-white/10 bg-[#0d0e12] shadow-[0_40px_120px_-30px_rgba(0,0,0,0.7)] sm:rounded-[1.5rem]"
               style={{

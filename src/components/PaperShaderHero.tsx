@@ -1,23 +1,15 @@
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 
-import AnimatedGradientBackground from "@/components/ui/animated-gradient-background";
 import { cn } from "@/lib/utils";
 
 /**
- * Forma home hero.
+ * Forma home hero — centred title stack only.
  *
- * Architecture (per latest direction): every screen that needs the
- * gold gradient mounts its OWN `AnimatedGradientBackground`. The
- * page-level wrapper around #home + #demo no longer carries one.
- * That guarantees:
- *   1. The gradient actually renders at viewport size on the hero
- *      instead of stretching across home + demo and washing out.
- *   2. The breathing animation on this hero's instance can run
- *      independently of the demo's instance.
- *
- * Both instances use the same warm-gold palette so visually they
- * read as one continuous gradient when scrolling between them.
+ * The shared `AnimatedGradientBackground` lives in `Home.tsx` as a
+ * sticky layer behind both #home and #demo, so this component renders
+ * just the local readability scrim + the centred content. NO local
+ * gradient is mounted here.
  */
 export function PaperShaderHero() {
   const containerVariants = {
@@ -38,17 +30,14 @@ export function PaperShaderHero() {
 
   return (
     <motion.section
-      className={cn("relative h-screen w-full overflow-hidden bg-black text-white")}
+      className={cn("relative h-screen w-full overflow-hidden text-white")}
       initial="hidden"
       animate="visible"
       variants={containerVariants}
     >
-      {/* The gold gradient itself. `breathing` keeps the soft pulse
-          alive; `topOffset` nudges the radial centre slightly upward. */}
-      <AnimatedGradientBackground breathing topOffset={-20} />
-
-      {/* Vertical scrim — light at top, transparent at bottom — so
-          the navbar / centred title stay legible against the gradient. */}
+      {/* Vertical scrim — keeps the navbar and centred copy legible
+          against the brightest part of the gradient that comes from
+          the page-level sticky layer behind this section. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"

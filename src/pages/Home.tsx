@@ -6,6 +6,7 @@ import { PaperShaderHero } from "../components/PaperShaderHero";
 import { PoweredBy } from "../components/PoweredBy";
 import { ProblemTestimonial } from "../components/ProblemTestimonial";
 import { SolutionSection } from "../components/SolutionSection";
+import AnimatedGradientBackground from "../components/ui/animated-gradient-background";
 import { BlurText } from "../components/ui/blur-text";
 import { FeatureShowcase } from "../components/ui/feature-showcase";
 import { LogoCloud } from "../components/ui/logo-cloud";
@@ -45,29 +46,41 @@ function postHeadingDelay(tokenCount: number) {
 export function HomePage() {
   return (
     <div>
-      {/* Home — PaperShaderHero owns its own AnimatedGradientBackground
-          (the breathing one) and fills h-screen. */}
-      <section
-        id="home"
-        className="relative scroll-mt-24"
-        aria-label="Forma — Grammarly for AI builder prompts"
-      >
-        <PaperShaderHero />
-      </section>
+      {/* ╭─ Home + Demo: ONE shared sticky gradient backdrop ─╮
+          The gradient is mounted ONCE here and pinned to the viewport
+          via `position: sticky; top: 0; h-screen` (inside an absolute
+          parent so it doesn't take flow space). This gives:
+            1. The gradient is correctly viewport-sized (NOT stretched
+               across ~270vh of combined section height)
+            2. It stays visible behind both #home AND the demo's
+               170vh sticky panel — the demo card now reads as a
+               floating window above the home backdrop
+            3. PaperShaderHero + DemoStage no longer mount their own
+               gradients (each was sized to its own section before) */}
+      <div className="relative">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="sticky top-0 h-screen w-full">
+            <AnimatedGradientBackground breathing topOffset={-20} />
+          </div>
+        </div>
 
-      {/* Demo — DemoStage's sticky panel mounts its OWN matching
-          AnimatedGradientBackground so the gold gradient is visible
-          behind the demo for the entire 170vh of scroll. Pulled up
-          with -38vh so the peek-then-expand frame visually starts
-          halfway through the home fold. */}
-      <section
-        id="demo"
-        className="relative z-10 scroll-mt-24"
-        style={{ marginTop: "-38vh" }}
-        aria-label="Demo"
-      >
-        <DemoStage />
-      </section>
+        <section
+          id="home"
+          className="relative z-10 scroll-mt-24"
+          aria-label="Forma — Grammarly for AI builder prompts"
+        >
+          <PaperShaderHero />
+        </section>
+
+        <section
+          id="demo"
+          className="relative z-10 scroll-mt-24"
+          style={{ marginTop: "-38vh" }}
+          aria-label="Demo"
+        >
+          <DemoStage />
+        </section>
+      </div>
 
       {/* Powered-by marquee — narrow dark band acting as a transition
           between the gold hero/demo block and the sandbox below. */}
@@ -119,13 +132,17 @@ export function HomePage() {
           className="relative z-10 flex w-full flex-col items-center"
           style={{ gap: "clamp(1rem,2.5vh,2rem)" }}
         >
-          <Reveal delay={0.15} duration={0.6}>
+          {/* Faster Reveal stagger — delays compressed from
+              0.15/0.25/0.35 → 0.05/0.10/0.15 and durations from 0.6
+              → 0.4 so the install grid + prompt + brand grid land
+              quickly when the section enters the viewport. */}
+          <Reveal delay={0.05} duration={0.4}>
             <InstallSteps />
           </Reveal>
-          <Reveal delay={0.25} duration={0.6}>
+          <Reveal delay={0.1} duration={0.4}>
             <GlassTextarea />
           </Reveal>
-          <Reveal delay={0.35} duration={0.6}>
+          <Reveal delay={0.15} duration={0.4}>
             <LogoCloud />
           </Reveal>
         </div>

@@ -3,33 +3,36 @@ import { useScroll, useTransform, motion, useReducedMotion } from "framer-motion
 import { cn } from "@/lib/utils";
 
 /**
- * "Powered by" — scroll-driven horizontal marquee.
+ * "Powered by" — scroll-driven horizontal marquee of Forma's tech-stack
+ * brand marks (Llama, FastAPI, DigitalOcean, Railway, AMD).
  *
- * Per latest direction:
- *   - PNG logos removed; the strip now scrolls brand NAMES as text
- *     labels (cleaner against the dark page bg, no per-logo invert
- *     juggling).
- *   - Heading reduced to just "Powered by".
+ * Per latest direction the previous text-label marquee was replaced
+ * with PNG logo files dropped in /public/logos. Each entry carries an
+ * optional `invert` flag for source PNGs that ship as black-on-light
+ * (Llama, AMD) — CSS `filter: invert(1) brightness(1.05)` flips them
+ * to light so they read against the dark page bg.
  *
  * Direction is bound to page scroll:
- *   - Scrolling DOWN (scrollY ↑) → strip translates LEFT (labels move
- *     right relative to viewport).
- *   - Scrolling UP (scrollY ↓)   → strip translates RIGHT (labels move
- *     left relative to viewport).
- *
- * `prefers-reduced-motion` short-circuits to a static centred row.
+ *   - Scrolling DOWN (scrollY ↑) → strip translates LEFT
+ *   - Scrolling UP   (scrollY ↓) → strip translates RIGHT
  */
 
-const PLATFORMS = [
-  "Vercel v0",
-  "Replit",
-  "Bolt",
-  "Lovable",
-  "Manus",
-  "Figma Make",
-  "Base 44",
-  "Tempo",
-] as const;
+type StackLogo = {
+  name: string;
+  src: string;
+  /** Apply CSS invert(1) for black-on-light source PNGs. */
+  invert?: boolean;
+  /** Optional max height override for visually heavy / light marks. */
+  heightClass?: string;
+};
+
+const STACK: StackLogo[] = [
+  { name: "Llama", src: "/logos/llama.png", invert: true },
+  { name: "FastAPI", src: "/logos/fastapi.png" },
+  { name: "DigitalOcean", src: "/logos/digitalocean.png" },
+  { name: "Railway", src: "/logos/railway.png" },
+  { name: "AMD", src: "/logos/amd.png", invert: true },
+];
 
 export function PoweredBy({ className }: { className?: string }) {
   const reduced = useReducedMotion();
@@ -40,7 +43,7 @@ export function PoweredBy({ className }: { className?: string }) {
 
   // Triple the list so the strip never visually "ends" at either
   // extreme of the addressable scroll range.
-  const tripled = [...PLATFORMS, ...PLATFORMS, ...PLATFORMS];
+  const tripled = [...STACK, ...STACK, ...STACK];
 
   return (
     <section
@@ -65,7 +68,7 @@ export function PoweredBy({ className }: { className?: string }) {
       </div>
 
       <div className="relative">
-        {/* Edge-mask: fade out at both sides so labels enter / exit on
+        {/* Edge-mask: fade out at both sides so logos enter / exit on
             soft seams instead of hitting a hard viewport edge. */}
         <div
           aria-hidden
@@ -77,23 +80,28 @@ export function PoweredBy({ className }: { className?: string }) {
         />
 
         <motion.ul
-          className="flex w-max items-center gap-12 px-12 sm:gap-16 sm:px-16"
+          className="flex w-max items-center gap-14 px-12 sm:gap-20 sm:px-16"
           style={reduced ? undefined : { x }}
         >
-          {tripled.map((name, i) => (
+          {tripled.map((logo, i) => (
             <li
-              key={`${name}-${i}`}
-              className="shrink-0"
+              key={`${logo.name}-${i}`}
+              className="flex h-14 shrink-0 items-center justify-center"
             >
-              <span
-                className="select-none text-base font-semibold tracking-[0.18em] text-white/70 transition-colors duration-200 hover:text-white sm:text-lg"
-                style={{
-                  fontFamily:
-                    'Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif',
-                }}
-              >
-                {name}
-              </span>
+              <img
+                src={logo.src}
+                alt={logo.name}
+                loading="lazy"
+                style={
+                  logo.invert
+                    ? { filter: "invert(1) brightness(1.05)" }
+                    : undefined
+                }
+                className={cn(
+                  "pointer-events-none w-auto select-none object-contain opacity-80 transition-opacity duration-200 hover:opacity-100",
+                  logo.heightClass ?? "h-9 sm:h-11",
+                )}
+              />
             </li>
           ))}
         </motion.ul>

@@ -29,11 +29,15 @@ type Persona = {
   accent: string;
 };
 
+// Quotes deliberately balanced to similar lengths (~190 chars each)
+// so the 3-state quote stack lands in the same vertical footprint
+// regardless of which persona is active — guarantees the text
+// always sits cleanly above the icon row, never overlapping it.
 const PERSONAS: Persona[] = [
   {
     id: "vibe",
     quote:
-      "I keep typing 'popup that slides in' and getting six different flavours of generic component back. The model isn't broken — my prompt is.",
+      "I keep typing 'popup that slides in' and getting six different flavours of generic component back. The model isn't broken — my prompt is, and I have no shared vocabulary with the AI.",
     name: "The Vibe-Coder",
     role: "Solo builder · ships from v0 daily",
     Icon: Code2,
@@ -42,7 +46,7 @@ const PERSONAS: Persona[] = [
   {
     id: "team",
     quote:
-      "Every team has a 'modal' that's actually a sheet, a dialog, and a popover all wearing the same name. Naming collisions ship to production.",
+      "Every team has a 'modal' that's actually a sheet, a dialog, and a popover all wearing the same name. Naming collisions ship to production and we burn hours redoing the same component.",
     name: "The Team Lead",
     role: "8-person product team · multiple builders",
     Icon: Users,
@@ -51,7 +55,7 @@ const PERSONAS: Persona[] = [
   {
     id: "researcher",
     quote:
-      "Builders got dramatically better at generation. The bottleneck moved upstream — to the vocabulary of the prompt itself.",
+      "Builders got dramatically better at generation. The bottleneck moved upstream — to the vocabulary of the prompt itself. Precision in equals precision out; vague phrases ship vague components.",
     name: "The Researcher",
     role: "Studied AI-builder workflows",
     Icon: Sparkles,
@@ -77,14 +81,17 @@ export function ProblemTestimonial() {
       />
 
       {/* Quote — single absolute-positioned stack, only the active
-          quote is opaque + un-blurred. Big bold display type. */}
-      <div className="relative mb-12 min-h-[260px] sm:min-h-[220px]">
+          quote is opaque + un-blurred. Big bold display type.
+          min-h is sized for the LONGEST persona quote at desktop
+          font-size so the text always sits cleanly above the icon
+          row, never visually colliding with it. */}
+      <div className="relative mb-14 min-h-[420px] sm:min-h-[340px] md:min-h-[320px] lg:min-h-[300px]">
         {PERSONAS.map((p, i) => (
           <p
             key={p.id}
             aria-hidden={active !== i}
             className={cn(
-              "absolute inset-0 text-balance text-3xl font-bold leading-[1.15] tracking-tight text-white sm:text-4xl md:text-5xl lg:text-[3.25rem]",
+              "absolute inset-0 text-balance text-2xl font-bold leading-[1.2] tracking-tight text-white sm:text-3xl md:text-4xl lg:text-[2.75rem]",
               "transition-all duration-500 ease-out",
               active === i
                 ? "translate-y-0 opacity-100 blur-0"
