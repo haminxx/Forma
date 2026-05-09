@@ -19,6 +19,7 @@ Lightweight design guidance for the Vite/React landing shell in this folder. Pai
 
 ## Layout habits used here
 
+- **Home hero (invisible positioning grid)** — The `#home` hero wraps copy and `LoopingWords` in a **12-column CSS grid** (`md:grid-cols-12`). Grid lines are not drawn; the structure exists only to align title block (~cols 1–7) and the motion panel (~cols 8–12) to the same max width as other rails. Inspect layout in DevTools via the grid overlay if needed.
 - **Wide comparison rails** — Demo and Sandbox use `max-w-[min(98vw,88–92rem)]` so dual-column prompts and output screenshots read as **full horizontal bands** on large displays without swimming in empty margins.
 - **Touch targets** — Icon buttons in prompts/sandbox aim for ≥ 36–40px hit area.
 - **Motion** — Springs for carousel/hero affordances; global `prefers-reduced-motion` in `index.css` disables smooth scroll; components should avoid gratuitous motion when reviewing.

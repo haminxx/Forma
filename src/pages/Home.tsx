@@ -27,7 +27,8 @@ import { EdgeGlow, SectionFade } from "../components/ui/section-fade";
  *   - The Problem section uses `ProblemTestimonial` — dot-pattern
  *     background, large quote with `TextRotate` word stagger, and
  *     attribution; animation replays when re-entering the viewport.
- *   - The Solution section is reserved for future content (placeholder).
+ *   - The Solution section uses SolutionSection — bento grid (individual
+ *     builders) with shadcn-style cards.
  *   - The About section uses `FeatureShowcase` (left-column accordion
  *     + right-column tab images, gold theme).
  *   - The Docs section uses gold `GlowCard` spotlights for each card.
@@ -76,10 +77,16 @@ export function HomePage() {
           <InteractiveCanvas />
         </div>
 
-        <div className="relative z-20 mx-auto grid w-full max-w-[min(98vw,92rem)] gap-12 md:grid-cols-[1.2fr_1fr] md:items-center md:gap-12">
-          <HomeHero />
-          <div className="md:justify-self-end">
-            <LoopingWords />
+        {/* 12-col shell: grid is invisible (no borders) — positions hero vs
+            motion per DESIGN.md “Home hero (invisible positioning grid)”. */}
+        <div className="relative z-20 mx-auto w-full max-w-[min(98vw,92rem)]">
+          <div className="grid grid-cols-1 gap-12 md:grid-cols-12 md:items-start md:gap-x-8 md:gap-y-12">
+            <div className="md:col-span-7 lg:col-span-6">
+              <HomeHero />
+            </div>
+            <div className="md:col-span-5 md:col-start-8 lg:col-span-6 lg:col-start-7 md:justify-self-end">
+              <LoopingWords />
+            </div>
           </div>
         </div>
 
@@ -210,7 +217,11 @@ export function HomePage() {
       </section>
 
       {/* Problem — dot-pattern framed quote with gold pixel corners
-          and a per-line stagger reveal. */}
+          and a per-line stagger reveal. The TOP edge intentionally
+          carries a stronger gold bloom (intensity ~2× default) so the
+          warmth at the bottom of Sandbox reads as if it's continuing
+          INTO Problem instead of stopping at the section seam — the
+          harmonic.ai colour-bleed pattern. */}
       <section
         id="problem"
         className="relative flex min-h-screen scroll-mt-20 items-center justify-center px-6"
@@ -219,8 +230,8 @@ export function HomePage() {
           paddingBottom: "clamp(3rem,8vh,6rem)",
         }}
       >
-        <EdgeGlow position="top" />
-        <EdgeGlow position="bottom" />
+        <EdgeGlow position="top" intensity={0.12} height="clamp(8rem, 18vh, 14rem)" />
+        <EdgeGlow position="bottom" intensity={0.1} />
         <ProblemTestimonial
           quotes={[
             "Building UI by prompt feels fast — until 'card' means six different things and you spend an hour clarifying which one you actually meant.",
@@ -235,29 +246,53 @@ export function HomePage() {
         />
       </section>
 
-      {/* Solution — bento product-features layout + B2C / B2B toggle. */}
+      {/* Solution — bento product-features layout + B2C / B2B toggle.
+          The Sandbox-style gold radial returns here at lower intensity
+          so the Problem→Solution scroll continues the warm half of the
+          palette before handing off to the cool/teal About+Docs tail. */}
       <section
         id="solution"
         className="relative flex min-h-screen scroll-mt-20 flex-col items-center justify-center overflow-hidden px-6 py-16"
         aria-label="Solution"
       >
-        <EdgeGlow position="top" />
-        <EdgeGlow position="bottom" />
+        {/* Gold radial backdrop — smaller % size than Sandbox so the
+            bloom sits as a halo behind the bento, not a wall of gold. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-10 [background:radial-gradient(110%_90%_at_50%_15%,#000_55%,rgba(212,184,122,0.55)_100%)]"
+        />
+        <SectionFade position="top" blur={5} />
+        {/* Bottom fade is the gold→teal handoff: page-bg fade above
+            (handled by SectionFade) plus a teal EdgeGlow whose top
+            counterpart lives in the About section so the warmth bleeds
+            out and the cool tone bleeds in across the same seam. */}
+        <SectionFade position="bottom" blur={5} />
+        <EdgeGlow position="bottom" tone="accent" intensity={0.08} />
         <SolutionSection />
       </section>
 
       {/* About — FeatureShowcase. Eyebrow + headline + accordion on
-          the left, image-tab panel on the right. */}
+          the left, image-tab panel on the right.
+          About is the first section in the cool/teal half of the
+          palette (the 10% accent). A subtle teal radial sits behind
+          the content; both EdgeGlows use `tone="accent"` so the
+          Solution→About seam feels like one continuous gradient hand-
+          off (teal bloom on Solution bottom + teal bloom on About top
+          line up at the seam). */}
       <section
         id="about"
-        className="relative flex min-h-screen scroll-mt-20 flex-col items-center justify-center px-6"
+        className="relative flex min-h-screen scroll-mt-20 flex-col items-center justify-center overflow-hidden px-6"
         style={{
           paddingTop: "clamp(3rem,8vh,6rem)",
           paddingBottom: "clamp(3rem,8vh,6rem)",
         }}
       >
-        <EdgeGlow position="top" />
-        <EdgeGlow position="bottom" />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-10 [background:radial-gradient(120%_90%_at_50%_0%,rgba(94,177,191,0.32)_0%,#000_60%)]"
+        />
+        <EdgeGlow position="top" tone="accent" intensity={0.1} height="clamp(8rem, 18vh, 14rem)" />
+        <EdgeGlow position="bottom" tone="accent" intensity={0.08} />
         <FeatureShowcase
           eyebrow="About Forma"
           title="Design-language research, shipped as a tool."
@@ -308,25 +343,28 @@ export function HomePage() {
         />
       </section>
 
-      {/* Docs section sticks for 100 vh of scroll, then a 100 vh "lock"
-          buffer must be cleared before the footer arrives — gives the
-          deliberate "scroll once more to reach footer" feel. */}
+      {/* Docs — sticky 200 vh section closes the cool/teal tail of the
+          palette. EdgeGlows now use the same `tone="accent"` as About
+          so the About→Docs seam continues the cool half without
+          dipping back through the warm gold. */}
       <section
         id="docs"
         className="relative scroll-mt-20"
         style={{ height: "200vh" }}
       >
         <div
-          className="sticky top-0 flex h-screen items-center justify-center px-6"
+          className="sticky top-0 flex h-screen items-center justify-center overflow-hidden px-6"
           style={{ paddingTop: "clamp(3rem,8vh,6rem)", paddingBottom: "clamp(3rem,8vh,6rem)" }}
         >
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 -z-10 [background:radial-gradient(120%_85%_at_50%_100%,rgba(94,177,191,0.22)_0%,#000_55%)]"
+          />
           {/* EdgeGlow lives inside the sticky panel so the bloom moves
               with the visible viewport as the panel sticks during the
-              200 vh scroll buffer. The top bloom bleeds the warm
-              About→Docs transition into Docs; the bottom bloom warms
-              the lock-buffer area before the footer arrives. */}
-          <EdgeGlow position="top" />
-          <EdgeGlow position="bottom" />
+              200 vh scroll buffer. */}
+          <EdgeGlow position="top" tone="accent" intensity={0.08} />
+          <EdgeGlow position="bottom" tone="accent" intensity={0.06} />
           <DocsPanel />
         </div>
       </section>

@@ -45,6 +45,8 @@ export interface PromptInputProps
   label?: string;
   /** Optional caption rendered next to the label. */
   caption?: string;
+  /** Low-profile bar for IDE-style demo docks (short + wide). */
+  dock?: boolean;
 }
 
 export const PromptInput = React.forwardRef<HTMLTextAreaElement, PromptInputProps>(
@@ -56,6 +58,7 @@ export const PromptInput = React.forwardRef<HTMLTextAreaElement, PromptInputProp
       isLoading,
       label,
       caption,
+      dock = false,
       ...props
     },
     ref,
@@ -81,11 +84,15 @@ export const PromptInput = React.forwardRef<HTMLTextAreaElement, PromptInputProp
             textboxes sit compact above the comparison outputs. */}
         <div
           className="relative flex w-full flex-col rounded-2xl bg-[#0c0c0c]"
-          style={{
-            height: "clamp(200px, min(26vh, 32dvh), 290px)",
-          }}
+          style={
+            dock
+              ? { minHeight: "52px", maxHeight: "120px" }
+              : {
+                  height: "clamp(200px, min(26vh, 32dvh), 290px)",
+                }
+          }
         >
-          {label ? (
+          {label && !dock ? (
             <div className="flex flex-shrink-0 items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-2.5 text-xs font-medium uppercase tracking-[0.18em] text-white/60 sm:px-5">
               <span>{label}</span>
               {caption ? (
@@ -96,7 +103,12 @@ export const PromptInput = React.forwardRef<HTMLTextAreaElement, PromptInputProp
             </div>
           ) : null}
 
-          <div className="flex flex-1 flex-col overflow-hidden p-3 sm:p-4">
+          <div
+            className={cn(
+              "flex flex-1 flex-col overflow-hidden",
+              dock ? "p-2.5 sm:p-3" : "p-3 sm:p-4",
+            )}
+          >
             <div
               className="flex-1 overflow-hidden"
               style={{
@@ -108,13 +120,18 @@ export const PromptInput = React.forwardRef<HTMLTextAreaElement, PromptInputProp
                 ref={ref}
                 className="block h-full w-full resize-none overflow-hidden bg-transparent text-[15px] leading-relaxed text-white placeholder:text-white/40 focus:outline-none disabled:cursor-not-allowed sm:text-base [&::-webkit-scrollbar]:hidden"
                 style={{ scrollbarWidth: "none" }}
-                minRows={2}
-                maxRows={4}
+                minRows={dock ? 1 : 2}
+                maxRows={dock ? 2 : 4}
                 {...props}
               />
             </div>
 
-            <div className="mt-3 flex flex-shrink-0 items-center justify-between">
+            <div
+              className={cn(
+                "flex flex-shrink-0 items-center justify-between",
+                dock ? "mt-2" : "mt-3",
+              )}
+            >
               <div className="flex items-center gap-3 text-white/55">
                 {actionButtons.map((Button) => (
                   <button

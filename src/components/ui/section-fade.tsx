@@ -98,13 +98,29 @@ export function SectionFade({
   );
 }
 
+/**
+ * Bloom palette presets that match the 60/30/10 site palette tokens
+ * (see `index.css`). Sections pick a tone instead of hand-rolling RGB
+ * strings so a palette edit in one place re-tones every glow.
+ */
+export type EdgeGlowTone = "gold" | "warm-gold" | "accent" | "deep-accent";
+
+const TONE_RGB: Record<EdgeGlowTone, string> = {
+  gold: "212, 184, 122", // --color-forma-gold
+  "warm-gold": "232, 198, 130", // brighter gold for hero/sandbox crowns
+  accent: "94, 177, 191", // --color-forma-accent (steel-teal)
+  "deep-accent": "46, 126, 140", // --color-forma-accent-deep
+};
+
 export interface EdgeGlowProps {
   position: Position;
   /** CSS length for the strip height. Default: clamp 6rem..12rem. */
   height?: string;
   /** Peak alpha at the bloom centre. Default 0.06. */
   intensity?: number;
-  /** RGB triplet for the bloom colour. Default: Forma gold. */
+  /** Palette preset for the bloom colour. Default "gold". */
+  tone?: EdgeGlowTone;
+  /** RGB triplet override — bypasses the `tone` preset. */
   color?: string;
   /** Stacking order. Default 0 (between bg and content). */
   z?: number;
@@ -115,15 +131,17 @@ export function EdgeGlow({
   position,
   height = "clamp(6rem, 14vh, 12rem)",
   intensity = 0.06,
-  color = "212, 184, 122",
+  tone = "gold",
+  color,
   z = 0,
   className,
 }: EdgeGlowProps) {
+  const rgb = color ?? TONE_RGB[tone];
   const isTop = position === "top";
 
   const radial = isTop
-    ? `radial-gradient(ellipse 70% 100% at 50% 0%, rgba(${color}, ${intensity}) 0%, rgba(${color}, ${intensity * 0.4}) 35%, transparent 70%)`
-    : `radial-gradient(ellipse 70% 100% at 50% 100%, rgba(${color}, ${intensity}) 0%, rgba(${color}, ${intensity * 0.4}) 35%, transparent 70%)`;
+    ? `radial-gradient(ellipse 70% 100% at 50% 0%, rgba(${rgb}, ${intensity}) 0%, rgba(${rgb}, ${intensity * 0.4}) 35%, transparent 70%)`
+    : `radial-gradient(ellipse 70% 100% at 50% 100%, rgba(${rgb}, ${intensity}) 0%, rgba(${rgb}, ${intensity * 0.4}) 35%, transparent 70%)`;
 
   const style: CSSProperties = {
     height,

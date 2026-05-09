@@ -18,7 +18,7 @@ export function GlassTextarea() {
   const canSend = message.trim().length > 0;
 
   return (
-    <div className="relative w-full max-w-[min(calc(100vw-3rem),96rem)]">
+    <div className="relative w-full max-w-[min(calc(100vw-2rem),120rem)]">
       <div
         className="relative overflow-hidden rounded-2xl border border-white/14 sm:rounded-[1.35rem]"
         style={{
@@ -41,8 +41,8 @@ export function GlassTextarea() {
           size="large"
           placeholder="Describe your UI component and animation"
           aria-label="Forma sandbox prompt"
-          style={{ minHeight: 100 }}
-          className="relative !h-auto min-h-[100px] !border-0 !bg-transparent px-[clamp(1rem,3.5vw,2rem)] pb-1 pt-[clamp(0.75rem,2.5vw,1.25rem)] text-[clamp(0.9rem,2.2vw,1.05rem)] leading-relaxed !text-white placeholder:!text-white/45 hover:!border-transparent focus:!border-transparent focus:!shadow-none !ring-0 focus:!ring-0"
+          style={{ minHeight: 52, maxHeight: 72 }}
+          className="relative !h-[52px] !min-h-[52px] !max-h-[4.5rem] overflow-y-auto !border-0 !bg-transparent px-[clamp(1rem,3.5vw,2rem)] py-2 text-[clamp(0.9rem,2.2vw,1.05rem)] leading-snug !text-white placeholder:!text-white/45 hover:!border-transparent focus:!border-transparent focus:!shadow-none !ring-0 focus:!ring-0"
         />
 
         <div className="relative flex items-center justify-between px-[clamp(0.9rem,3vw,1.75rem)] pb-[clamp(0.65rem,2vw,0.85rem)] pt-0.5">

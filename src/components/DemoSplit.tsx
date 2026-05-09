@@ -1,13 +1,22 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Globe, Lock, RefreshCw } from "lucide-react";
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Code2,
+  Eye,
+  ExternalLink,
+  Globe,
+  Lock,
+  MoreHorizontal,
+  RefreshCw,
+  Terminal,
+} from "lucide-react";
 
 import { PromptInput } from "./PromptInput";
 import { cn } from "../lib/cn";
 
-// Same vague-vs-precise prompt pair as before, just hoisted into a
-// per-mode lookup so the single PromptInput can swap content when the
-// user flips the toggle.
 const VIBE_PROMPT =
   "make something that shows up while my app is loading data, just so it doesn't look empty";
 const FORMA_PROMPT =
@@ -15,14 +24,29 @@ const FORMA_PROMPT =
 
 type Mode = "vibe" | "forma";
 
+/** Vibe: vague bullets. Forma: precise build spec (storefront-style). */
+const SPEC_LINES: Record<Mode, string[]> = {
+  vibe: [
+    "Landing with a hero and some buttons.",
+    "Middle area with cards or a grid — structure TBD.",
+    "Footer with links or social icons.",
+  ],
+  forma: [
+    "Hero: Large section with elegant typography, featured image, and floating product badge.",
+    "Feature Banner: Highlights for shipping, returns, checkout, and quality.",
+    "Categories: Interactive cards for Dresses, Accessories, and Outerwear.",
+    "Featured Products: Grid with ratings, favorites, and sale badges.",
+    "Testimonials: Carousel slider with navigation dots.",
+    "Newsletter: Dark section with an email signup form.",
+    "Footer: Complete footer with links and social media.",
+  ],
+};
+
 interface ChecklistItem {
   label: string;
   hint: string;
 }
 
-// Forma's precision dimensions — checked in Forma mode (the prompt
-// captured each one), unchecked in Vibe mode (the prompt left them
-// implicit).
 const CHECKLIST: ChecklistItem[] = [
   { label: "Component type", hint: "Skeleton Loader" },
   { label: "Animation spec", hint: "shimmer · 1.5s infinite" },
@@ -31,86 +55,112 @@ const CHECKLIST: ChecklistItem[] = [
   { label: "Library target", hint: "shadcn / React" },
 ];
 
-const PREVIEW_META: Record<Mode, { url: string; status: string; src: string }> = {
-  vibe: {
-    url: "preview.forma.dev/vague",
-    status: "generic spinner",
-    src: "/vague-output.png",
-  },
-  forma: {
-    url: "preview.forma.dev/precise",
-    status: "skeleton with shimmer",
-    src: "/precise-output.png",
-  },
-};
+const PREVIEW_META: Record<Mode, { url: string; status: string; src: string }> =
+  {
+    vibe: {
+      url: "preview.forma.dev/vague",
+      status: "generic spinner",
+      src: "/vague-output.png",
+    },
+    forma: {
+      url: "preview.forma.dev/precise",
+      status: "skeleton with shimmer",
+      src: "/precise-output.png",
+    },
+  };
 
 /**
- * v0.app-styled demo screen.
- *
- *   ┌─ Mode toggle ──────────────────────────────────────────────┐
- *   │ [Vibe Coder | Forma User]                                  │
- *   ├──── prompt rail ─────┬──── preview pane ──────────────────┤
- *   │ PromptInput          │ ● ● ● url-bar  ↻                    │
- *   │ ─────────────        │ ──────────────────────────────────  │
- *   │ ☐ Component type     │                                     │
- *   │ ☐ Animation spec     │  [v0 output image]                  │
- *   │ ☐ Layout anchor      │                                     │
- *   │ ...                  │                                     │
- *   └──────────────────────┴─────────────────────────────────────┘
- *
- * The same `mode` state drives:
- *   - PromptInput value + variant gradient (default = vibe, magic = forma)
- *   - Checklist tick states (forma checks all five precision dims)
- *   - Preview pane URL slug, status pill, and rendered image
+ * Vibe-coding IDE demo — left: design brief + docked prompt; right: browser
+ * preview of generated UI (reference: Replit / Lovable style split).
  */
 export function DemoSplit() {
   const [mode, setMode] = useState<Mode>("vibe");
-  // Track edits per-mode so flipping the toggle doesn't blow away
-  // anything the user typed in the other mode.
   const [vibeValue, setVibeValue] = useState(VIBE_PROMPT);
   const [formaValue, setFormaValue] = useState(FORMA_PROMPT);
 
   const value = mode === "vibe" ? vibeValue : formaValue;
   const setValue = mode === "vibe" ? setVibeValue : setFormaValue;
   const meta = PREVIEW_META[mode];
+  const specs = SPEC_LINES[mode];
 
   return (
     <div className="w-full max-w-[min(98vw,92rem)]">
-      <div className="grid w-full gap-4 lg:gap-5 lg:grid-cols-[minmax(340px,38%)_1fr]">
-        {/* ───── Left rail: toggle + prompt + checklist ───── */}
-        <div className="flex min-w-0 flex-col gap-4">
-          <ModeToggle mode={mode} setMode={setMode} />
+      <ModeToggle mode={mode} setMode={setMode} />
 
-          <PromptInput
-            variant={mode === "vibe" ? "default" : "magic"}
-            label={mode === "vibe" ? "Vibe Coder" : "Forma User"}
-            caption={mode === "vibe" ? "vague intent" : "precise vocab"}
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder={
+      <div className="mt-4 flex min-h-0 w-full flex-col gap-3 lg:mt-5 lg:h-[min(72vh,780px)] lg:flex-row lg:gap-4">
+        {/* Left: brief + precision strip + docked prompt */}
+        <div
+          className={cn(
+            "flex min-h-[420px] w-full min-w-0 flex-col overflow-hidden rounded-2xl border bg-black/45 lg:min-h-0 lg:max-w-[min(100%,440px)] lg:flex-[0_0_38%]",
+            mode === "vibe"
+              ? "border-white/[0.09]"
+              : "border-[#d4b87a]/20",
+          )}
+        >
+          <div
+            className={cn(
+              "flex flex-shrink-0 items-center justify-between gap-2 border-b px-3 py-2",
               mode === "vibe"
-                ? "describe the thing you want…"
-                : "ask for the exact component, anchor, motion spec…"
-            }
-          />
+                ? "border-white/[0.08]"
+                : "border-[#d4b87a]/15",
+            )}
+          >
+            <span className="text-[10px] font-medium uppercase tracking-[0.22em] text-white/45">
+              Design brief
+            </span>
+            <span
+              className={cn(
+                "rounded px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider",
+                mode === "vibe"
+                  ? "bg-white/[0.06] text-white/40"
+                  : "bg-[#d4b87a]/15 text-[#d4b87a]",
+              )}
+            >
+              {mode === "vibe" ? "Draft" : "Locked spec"}
+            </span>
+          </div>
 
-          <Checklist mode={mode} />
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3">
+            <ol className="space-y-3 text-left text-[13px] leading-snug text-white/78">
+              {specs.map((line, i) => (
+                <li key={`${mode}-${i}`} className="flex gap-2.5">
+                  <span className="shrink-0 font-mono text-[11px] tabular-nums text-[#d4b87a]/90">
+                    {i + 1}.
+                  </span>
+                  <span>{line}</span>
+                </li>
+              ))}
+            </ol>
+
+            <Checklist mode={mode} />
+          </div>
+
+          <div
+            className={cn(
+              "flex-shrink-0 border-t p-2.5 sm:p-3",
+              mode === "vibe" ? "border-white/[0.08]" : "border-[#d4b87a]/12",
+            )}
+          >
+            <PromptInput
+              dock
+              variant={mode === "vibe" ? "default" : "magic"}
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              placeholder="Ask a follow-up…"
+            />
+          </div>
         </div>
 
-        {/* ───── Right pane: v0-style website preview ───── */}
         <PreviewPane mode={mode} meta={meta} />
       </div>
 
       <p className="mt-4 text-center text-xs text-white/40">
-        Same intent. Same model. Different vocabulary → dramatically different output.
+        Same intent. Same model. Different vocabulary → dramatically different
+        output.
       </p>
     </div>
   );
 }
-
-// ──────────────────────────────────────────────────────────────────────
-// Mode toggle (segmented pill, sliding indicator)
-// ──────────────────────────────────────────────────────────────────────
 
 function ModeToggle({
   mode,
@@ -121,9 +171,6 @@ function ModeToggle({
 }) {
   return (
     <div className="relative inline-flex w-fit items-center rounded-full border border-white/10 bg-white/[0.03] p-1 backdrop-blur-sm">
-      {/* Sliding indicator. width = (50% - 4px) so two of them tile
-          edge-to-edge inside the 4px-padded container; x:100% lands
-          the indicator exactly under the right segment. */}
       <motion.span
         aria-hidden="true"
         className={cn(
@@ -163,15 +210,11 @@ function ModeToggle({
   );
 }
 
-// ──────────────────────────────────────────────────────────────────────
-// Checklist of precision dimensions
-// ──────────────────────────────────────────────────────────────────────
-
 function Checklist({ mode }: { mode: Mode }) {
   const checked = mode === "forma";
   return (
-    <div className="flex min-h-0 flex-col rounded-2xl border border-white/[0.08] bg-white/[0.02] p-4">
-      <div className="flex items-center justify-between pb-3">
+    <div className="mt-5 flex min-h-0 flex-col rounded-xl border border-white/[0.06] bg-black/35 p-3">
+      <div className="flex items-center justify-between pb-2">
         <span className="text-[10px] font-medium uppercase tracking-[0.22em] text-white/45">
           Precision dimensions
         </span>
@@ -184,7 +227,7 @@ function Checklist({ mode }: { mode: Mode }) {
           {checked ? "5 / 5" : "0 / 5"} captured
         </span>
       </div>
-      <ul className="flex flex-col gap-1">
+      <ul className="flex flex-col gap-0.5">
         {CHECKLIST.map((item, i) => (
           <ChecklistRow
             key={item.label}
@@ -208,7 +251,7 @@ function ChecklistRow({
   delay: number;
 }) {
   return (
-    <li className="flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-white/[0.02]">
+    <li className="flex items-center gap-2.5 rounded-lg px-1.5 py-1 transition-colors hover:bg-white/[0.02]">
       <motion.span
         aria-hidden="true"
         animate={{
@@ -232,10 +275,12 @@ function ChecklistRow({
           ) : null}
         </AnimatePresence>
       </motion.span>
-      <span className="flex-1 truncate text-[13px] text-white/75">{item.label}</span>
+      <span className="flex-1 truncate text-[12px] text-white/72">
+        {item.label}
+      </span>
       <span
         className={cn(
-          "truncate text-[11px] font-mono transition-colors",
+          "truncate text-[10px] font-mono transition-colors",
           checked ? "text-[#d4b87a]/85" : "text-white/30",
         )}
       >
@@ -244,10 +289,6 @@ function ChecklistRow({
     </li>
   );
 }
-
-// ──────────────────────────────────────────────────────────────────────
-// Preview pane (v0.app-style browser frame)
-// ──────────────────────────────────────────────────────────────────────
 
 function PreviewPane({
   mode,
@@ -259,37 +300,68 @@ function PreviewPane({
   return (
     <div
       className={cn(
-        "relative flex min-h-[420px] flex-col overflow-hidden rounded-2xl border bg-black/30 transition-colors duration-500",
+        "relative flex h-full min-h-[420px] flex-1 flex-col overflow-hidden rounded-2xl border bg-black/35 transition-colors duration-500",
         mode === "vibe"
           ? "border-white/[0.08] shadow-[0_24px_80px_-48px_rgba(0,0,0,0.55)]"
           : "border-[#d4b87a]/25 shadow-[0_24px_80px_-48px_rgba(212,184,122,0.18)]",
       )}
-      style={{ height: "min(70vh, 720px)" }}
     >
-      {/* Browser chrome: traffic lights + URL bar + reload */}
       <div
         className={cn(
-          "flex flex-shrink-0 items-center gap-3 border-b px-4 py-2.5 transition-colors duration-500",
+          "flex flex-shrink-0 flex-col gap-1.5 border-b px-3 py-2 transition-colors duration-500",
           mode === "vibe" ? "border-white/[0.08]" : "border-[#d4b87a]/15",
         )}
       >
-        <div className="flex items-center gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]/80" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]/80" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]/80" />
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]/80" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]/80" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]/80" />
+          </div>
+          <div className="ml-1 flex items-center gap-0.5 text-white/45">
+            <button
+              type="button"
+              aria-label="Back"
+              className="rounded p-1 hover:bg-white/[0.06] hover:text-white"
+            >
+              <ChevronLeft size={14} />
+            </button>
+            <button
+              type="button"
+              aria-label="Forward"
+              className="rounded p-1 hover:bg-white/[0.06] hover:text-white"
+            >
+              <ChevronRight size={14} />
+            </button>
+            <button
+              type="button"
+              aria-label="Preview"
+              className="rounded p-1 hover:bg-white/[0.06] hover:text-white"
+            >
+              <Eye size={13} />
+            </button>
+            <button
+              type="button"
+              aria-label="Code"
+              className="rounded p-1 hover:bg-white/[0.06] hover:text-white"
+            >
+              <Code2 size={13} />
+            </button>
+          </div>
         </div>
 
-        <div className="flex flex-1 items-center justify-center">
+        <div className="flex items-center gap-2">
           <div
             className={cn(
-              "flex max-w-md flex-1 items-center gap-2 rounded-md border px-3 py-1 text-[11px] font-mono transition-colors duration-500",
+              "flex min-w-0 flex-1 items-center gap-2 rounded-md border px-2.5 py-1 text-[11px] font-mono transition-colors duration-500",
               mode === "vibe"
-                ? "border-white/[0.08] bg-black/30 text-white/55"
-                : "border-[#d4b87a]/20 bg-[#d4b87a]/[0.04] text-[#d4b87a]/85",
+                ? "border-white/[0.08] bg-black/40 text-white/55"
+                : "border-[#d4b87a]/20 bg-[#d4b87a]/[0.05] text-[#d4b87a]/85",
             )}
           >
-            <Lock size={10} className="opacity-70" />
-            <Globe size={11} className="opacity-70" />
+            <Lock size={10} className="shrink-0 opacity-70" />
+            <Globe size={11} className="shrink-0 opacity-70" />
+            <span className="text-white/35">/</span>
             <AnimatePresence mode="wait">
               <motion.span
                 key={meta.url}
@@ -297,33 +369,52 @@ function PreviewPane({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
                 transition={{ duration: 0.25 }}
-                className="truncate"
+                className="min-w-0 truncate"
               >
                 {meta.url}
               </motion.span>
             </AnimatePresence>
           </div>
+          <button
+            type="button"
+            aria-label="Open in new tab"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded text-white/45 hover:bg-white/[0.06] hover:text-white/80"
+          >
+            <ExternalLink size={13} />
+          </button>
+          <button
+            type="button"
+            aria-label="Reload preview"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded text-white/45 hover:bg-white/[0.06] hover:text-white/80"
+          >
+            <RefreshCw size={12} />
+          </button>
+          <button
+            type="button"
+            aria-label="Terminal"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded text-white/45 hover:bg-white/[0.06] hover:text-white/80"
+          >
+            <Terminal size={13} />
+          </button>
+          <button
+            type="button"
+            aria-label="More"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded text-white/45 hover:bg-white/[0.06] hover:text-white/80"
+          >
+            <MoreHorizontal size={14} />
+          </button>
         </div>
-
-        <button
-          type="button"
-          aria-label="Reload preview"
-          className="flex h-6 w-6 items-center justify-center rounded text-white/45 transition-colors hover:bg-white/[0.06] hover:text-white/80"
-        >
-          <RefreshCw size={12} />
-        </button>
       </div>
 
-      {/* Output image — crossfades between vague/precise on mode flip */}
-      <div className="relative flex-1 overflow-hidden">
+      <div className="relative flex-1 overflow-hidden bg-white/[0.02]">
         <AnimatePresence mode="wait">
           <motion.img
             key={meta.src}
             src={meta.src}
             alt={
               mode === "vibe"
-                ? "v0 output from a vague prompt — generic loading state"
-                : "v0 output from a precise prompt — skeleton loader components"
+                ? "Preview from a vague prompt — generic loading state"
+                : "Preview from a precise prompt — skeleton loader"
             }
             loading="lazy"
             initial={{ opacity: 0, scale: 1.02 }}
@@ -334,7 +425,6 @@ function PreviewPane({
           />
         </AnimatePresence>
 
-        {/* Status pill — bottom-right of the preview */}
         <div className="pointer-events-none absolute bottom-3 right-3">
           <AnimatePresence mode="wait">
             <motion.div
