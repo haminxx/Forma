@@ -519,3 +519,10 @@ def amd_deep_dive():
     amd_path = os.path.join(os.path.dirname(__file__), "amd.html")
     return FileResponse(amd_path, media_type="text/html")
 
+
+@app.get("/memory")
+def memory_engine():
+    """Static showcase page for Forma Pro tier Memory Engine (long-context personalization)."""
+    memory_path = os.path.join(os.path.dirname(__file__), "memory.html")
+    return FileResponse(memory_path, media_type="text/html")
+
