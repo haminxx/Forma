@@ -246,26 +246,27 @@ export function HomePage() {
         />
       </section>
 
-      {/* Solution — bento product-features layout + B2C / B2B toggle.
-          The Sandbox-style gold radial returns here at lower intensity
-          so the Problem→Solution scroll continues the warm half of the
-          palette before handing off to the cool/teal About+Docs tail. */}
+      {/* Solution — full-gold backdrop. The user wants this section to
+          read entirely as the warm half of the palette (the 30%), so
+          the radial is dialled up to ~85% gold with only a small dark
+          core for legibility behind the bento panel. The bottom fade
+          still hands off to the cool/teal About+Docs tail. */}
       <section
         id="solution"
         className="relative flex min-h-screen scroll-mt-20 flex-col items-center justify-center overflow-hidden px-6 py-16"
         aria-label="Solution"
       >
-        {/* Gold radial backdrop — smaller % size than Sandbox so the
-            bloom sits as a halo behind the bento, not a wall of gold. */}
+        {/* Gold-dominant backdrop: warm gold fills the section with a
+            soft dark vignette so card text retains contrast. */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 -z-10 [background:radial-gradient(110%_90%_at_50%_15%,#000_55%,rgba(212,184,122,0.55)_100%)]"
+          className="pointer-events-none absolute inset-0 -z-10"
+          style={{
+            background:
+              "radial-gradient(120% 100% at 50% 35%, rgba(212,184,122,0.92) 0%, rgba(212,184,122,0.78) 45%, rgba(120,100,60,0.70) 80%, rgba(25,26,31,0.85) 100%)",
+          }}
         />
         <SectionFade position="top" blur={5} />
-        {/* Bottom fade is the gold→teal handoff: page-bg fade above
-            (handled by SectionFade) plus a teal EdgeGlow whose top
-            counterpart lives in the About section so the warmth bleeds
-            out and the cool tone bleeds in across the same seam. */}
         <SectionFade position="bottom" blur={5} />
         <EdgeGlow position="bottom" tone="accent" intensity={0.08} />
         <SolutionSection />

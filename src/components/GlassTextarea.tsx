@@ -18,7 +18,9 @@ export function GlassTextarea() {
   const canSend = message.trim().length > 0;
 
   return (
-    <div className="relative w-full max-w-[min(calc(100vw-2rem),120rem)]">
+    /* Width matches `InstallSteps` outer container so the prompt aligns
+       edge-to-edge with the four numbered step rails directly above it. */
+    <div className="relative w-full max-w-[min(calc(100vw-3rem),96rem)] px-2 sm:px-4">
       <div
         className="relative overflow-hidden rounded-2xl border border-white/14 sm:rounded-[1.35rem]"
         style={{

@@ -170,36 +170,38 @@ function ShortcutsCard() {
 
 export function SolutionSection() {
   return (
+    /* No inner panel: the section's gold radial backdrop in `Home.tsx`
+       is the surface itself, and the dark bento cards float on it for
+       maximum contrast. Headline is rendered upstream by Home.tsx —
+       the duplicate "Built for individual builders" block was removed
+       per the latest design direction. */
     <div className="w-full max-w-[min(calc(100vw-3rem),72rem)] text-foreground">
-      <div className="mb-6 text-center">
-        <h2 className="text-balance text-3xl font-bold tracking-tight text-white sm:text-4xl md:text-5xl">
+      <div className="mb-8 text-center">
+        <h2
+          className="text-balance text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl"
+          style={{
+            color: "#191a1f",
+            textShadow: "0 1px 0 rgba(255,255,255,0.18)",
+          }}
+        >
           The solution
         </h2>
-        <p className="mt-2 text-sm text-white/55 sm:text-base">
+        <p
+          className="mt-2 text-sm sm:text-base"
+          style={{ color: "rgba(25,26,31,0.72)" }}
+        >
           Product surfaces — how you ship with Forma.
         </p>
       </div>
 
-      <div className="mb-10 w-full rounded-2xl border border-border bg-card/80 px-6 py-8 shadow-sm backdrop-blur-sm sm:px-10">
-        <div className="mb-8 text-center">
-          <h3 className="text-2xl font-bold tracking-tight sm:text-3xl">
-            Built for individual builders
-          </h3>
-          <p className="mx-auto mt-3 max-w-2xl text-lg text-muted-foreground">
-            Personal precision for builders who live in AI IDEs — catch vague UI
-            language before it ships.
-          </p>
-        </div>
-
-        <BentoGridShowcase
-          integration={<IntegrationCard />}
-          trackers={<TrackersCard />}
-          statistic={<StatisticCard />}
-          focus={<FocusCard />}
-          productivity={<ProductivityCard />}
-          shortcuts={<ShortcutsCard />}
-        />
-      </div>
+      <BentoGridShowcase
+        integration={<IntegrationCard />}
+        trackers={<TrackersCard />}
+        statistic={<StatisticCard />}
+        focus={<FocusCard />}
+        productivity={<ProductivityCard />}
+        shortcuts={<ShortcutsCard />}
+      />
     </div>
   );
 }
