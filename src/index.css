@@ -23,6 +23,121 @@
 
   --color-aurora-purple: #b58bff;
   --color-aurora-pink: #ff9ec5;
+
+  /* Geist / textarea primitives — driven by :root / .dark below */
+  --color-context-card-border: var(--context-card-border);
+  --color-red-300: var(--ds-red-300);
+  --color-red-900: var(--ds-red-900);
+  --color-gray-100: var(--ds-gray-100);
+  --color-gray-700: var(--ds-gray-700);
+  --color-gray-900: var(--ds-gray-900);
+  --color-gray-alpha-400: var(--ds-gray-alpha-400);
+  --color-gray-alpha-500: var(--ds-gray-alpha-500);
+  --color-gray-alpha-600: var(--ds-gray-alpha-600);
+  --color-background-100: var(--ds-background-100);
+  --color-geist-foreground: var(--geist-foreground);
+  --color-error: var(--geist-error);
+  --shadow-focus-input: var(--ds-input-ring);
+
+  /* shadcn-compatible semantic colors (HSL triples on :root) */
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+}
+
+:root {
+  --context-card-border: hsla(0, 0%, 92%, 1);
+  --ds-red-300: oklch(94.33% 0.0369 15.011509923860523);
+  --ds-red-900: oklch(54.99% 0.232 25.29);
+  --ds-gray-100: hsla(0, 0%, 95%, 1);
+  --ds-gray-700: hsla(0, 0%, 56%, 1);
+  --ds-gray-900: hsla(0, 0%, 40%, 1);
+  --ds-gray-alpha-400: hsla(0, 0%, 0%, 0.08);
+  --ds-gray-alpha-500: hsla(0, 0%, 0%, 0.21);
+  --ds-gray-alpha-600: hsla(0, 0%, 0%, 0.34);
+  --ds-background-100: hsla(0, 0%, 100%, 1);
+  --geist-foreground: #000;
+  --geist-error: #ee0000;
+  --ds-input-ring: 0 0 0 1px var(--ds-gray-alpha-600), 0 0 0 4px rgba(0, 0, 0, 0.16);
+  --ds-gray-1000: hsla(0, 0%, 9%, 1);
+
+  /* Forma dark surfaces — used by shadcn Card/Button in marketing sections */
+  --background: 240 6% 10%;
+  --foreground: 0 0% 98%;
+  --card: 240 5% 14%;
+  --card-foreground: 0 0% 98%;
+  --popover: 240 5% 14%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 43 42% 58%;
+  --primary-foreground: 240 10% 6%;
+  --secondary: 240 4% 18%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 240 4% 18%;
+  --muted-foreground: 240 5% 64%;
+  --accent: 240 4% 22%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62% 45%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 4% 24%;
+  --input: 240 4% 24%;
+  --ring: 43 42% 55%;
+  --radius: 0.5rem;
+}
+
+.dark {
+  --context-card-border: hsla(0, 0%, 18%, 1);
+  --ds-red-300: oklch(31.47% 0.1105 20.96);
+  --ds-red-900: oklch(69.96% 0.2136 22.03);
+  --ds-gray-100: hsla(0, 0%, 10%, 1);
+  --ds-gray-700: hsla(0, 0%, 56%, 1);
+  --ds-gray-900: hsla(0, 0%, 63%, 1);
+  --ds-gray-alpha-400: hsla(0, 0%, 100%, 0.14);
+  --ds-gray-alpha-500: hsla(0, 0%, 100%, 0.24);
+  --ds-gray-alpha-600: hsla(0, 0%, 100%, 0.51);
+  --ds-background-100: hsla(0, 0%, 4%, 1);
+  --geist-foreground: #fff;
+  --geist-error: #ff0000;
+  --ds-input-ring: 0 0 0 1px var(--ds-gray-alpha-600), 0 0 0 4px rgba(255, 255, 255, 0.24);
+  --ds-gray-1000: hsla(0, 0%, 93%, 1);
+
+  --background: 240 6% 10%;
+  --foreground: 0 0% 98%;
+  --card: 240 5% 14%;
+  --card-foreground: 0 0% 98%;
+  --popover: 240 5% 14%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 43 42% 60%;
+  --primary-foreground: 240 10% 6%;
+  --secondary: 240 4% 18%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 240 4% 18%;
+  --muted-foreground: 240 5% 64%;
+  --accent: 240 4% 22%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62% 45%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 4% 26%;
+  --input: 240 4% 26%;
+  --ring: 43 42% 55%;
 }
 
 html,

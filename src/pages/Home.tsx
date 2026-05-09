@@ -3,6 +3,7 @@ import { DocsPanel } from "../components/DocsPanel";
 import { GlassTextarea } from "../components/GlassTextarea";
 import { HomeHero } from "../components/HomeHero";
 import { InstallSteps } from "../components/InstallSteps";
+import { SolutionSection } from "../components/SolutionSection";
 import { InteractiveCanvas } from "../components/InteractiveCanvas";
 import { LoopingWords } from "../components/LoopingWords";
 import { PixelWave } from "../components/PixelWave";
@@ -234,14 +235,15 @@ export function HomePage() {
         />
       </section>
 
-      {/* Solution — section shell kept for nav / hash; content TBD. */}
+      {/* Solution — bento product-features layout + B2C / B2B toggle. */}
       <section
         id="solution"
-        className="relative flex min-h-[50vh] scroll-mt-20 flex-col items-center justify-center overflow-hidden px-6 py-16"
+        className="relative flex min-h-screen scroll-mt-20 flex-col items-center justify-center overflow-hidden px-6 py-16"
         aria-label="Solution"
       >
         <EdgeGlow position="top" />
         <EdgeGlow position="bottom" />
+        <SolutionSection />
       </section>
 
       {/* About — FeatureShowcase. Eyebrow + headline + accordion on

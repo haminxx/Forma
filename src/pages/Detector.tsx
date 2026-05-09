@@ -23,7 +23,7 @@ export function DetectorPage() {
 
   const taRef = useRef<HTMLTextAreaElement>(null);
   const mirrorRef = useRef<HTMLDivElement>(null);
-  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const closeTimerRef = useRef<number | null>(null);
 
   function clearCloseTimer() {
     if (closeTimerRef.current !== null) {
