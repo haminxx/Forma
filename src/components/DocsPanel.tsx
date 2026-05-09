@@ -7,6 +7,10 @@ import { Reveal } from "./ui/reveal";
  * Docs section. Three live entry-points — every link goes to a real
  * surface in the deployed product (Railway live demo + GitHub repo)
  * matching the README's "Submission Details" anchors.
+ *
+ * Animation timing tightened per latest direction — heading
+ * blur-in shortened, post-heading delay halved, card stagger
+ * compressed so the panel lands faster as the user scrolls in.
  */
 type DocCard = {
   title: string;
@@ -43,17 +47,19 @@ const DOC_CARDS: DocCard[] = [
   },
 ];
 
-const HEADING_BASE_DELAY = 0.07;
-const HEADING_DURATION = 0.85;
+// Faster heading + tighter post-heading offset so the cards animate
+// in close on the heading's heels.
+const HEADING_BASE_DELAY = 0.04;
+const HEADING_DURATION = 0.5;
 const HEADING_TOKENS = 7;
 const POST_HEADING =
-  (HEADING_TOKENS - 1) * HEADING_BASE_DELAY + HEADING_DURATION + 0.1;
+  (HEADING_TOKENS - 1) * HEADING_BASE_DELAY + HEADING_DURATION + 0.05;
 
 export function DocsPanel() {
   return (
     <div className="mx-auto w-full max-w-5xl px-4 sm:px-6">
       <div className="flex flex-col items-start gap-4">
-        <Reveal duration={0.5}>
+        <Reveal duration={0.35}>
           <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-white/55">
             <span className="h-1.5 w-1.5 rounded-full bg-[#d4b87a]" />
             Docs · AMD AI Hackathon · Track 1
@@ -64,7 +70,7 @@ export function DocsPanel() {
           as="h2"
           baseDelay={HEADING_BASE_DELAY}
           duration={HEADING_DURATION}
-          blur={12}
+          blur={10}
           underline
           underlineWidth="min(16rem, 60%)"
           className="text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl"
@@ -74,18 +80,22 @@ export function DocsPanel() {
         <BlurText
           as="p"
           startDelay={POST_HEADING}
-          baseDelay={0.035}
-          duration={0.7}
-          blur={8}
-          y={10}
+          baseDelay={0.025}
+          duration={0.45}
+          blur={6}
+          y={8}
           className="max-w-2xl text-base leading-relaxed text-white/60 sm:text-lg"
           content="Forma is a working product, not a demo. Both inference paths run on production AMD MI300X hardware on DigitalOcean, with the FastAPI orchestrator deployed to Railway. The pages below are the live entry-points used in the hackathon submission."
         />
       </div>
 
-      <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-3">
+      <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-3">
         {DOC_CARDS.map(({ title, description, href, Icon, meta }, index) => (
-          <Reveal key={title} delay={POST_HEADING + 0.4 + index * 0.12} duration={0.55}>
+          <Reveal
+            key={title}
+            delay={POST_HEADING + 0.15 + index * 0.07}
+            duration={0.4}
+          >
             <a
               href={href}
               target="_blank"
@@ -98,7 +108,6 @@ export function DocsPanel() {
                 customSize
                 className="h-full min-h-[220px] w-full p-5 sm:p-6"
               >
-                {/* Row 1 (1fr) — icon, arrow, title, description. */}
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center justify-between">
                     <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/[0.06] text-white/85 transition-colors group-hover:bg-[#d4b87a]/20 group-hover:text-[#d4b87a]">
@@ -120,8 +129,6 @@ export function DocsPanel() {
                   </div>
                 </div>
 
-                {/* Row 2 (auto) — meta footer pinned to the bottom by
-                    GlowCard's internal `grid-rows-[1fr_auto]`. */}
                 <span className="text-xs font-medium uppercase tracking-[0.18em] text-white/35">
                   {meta}
                 </span>

@@ -52,12 +52,15 @@ export const BentoGridShowcase = ({
 }: BentoGridShowcaseProps) => {
   const prefersReducedMotion = useReducedMotion();
 
+  // Animation now replays every time the section re-enters the
+  // viewport (matches the docs/about pattern — scroll out and back
+  // in re-triggers the stagger).
   const motionProps = prefersReducedMotion
     ? { initial: "visible" as const, animate: "visible" as const }
     : {
         initial: "hidden" as const,
         whileInView: "visible" as const,
-        viewport: { once: true, amount: 0.12 },
+        viewport: { once: false, amount: 0.12 },
       };
 
   return (

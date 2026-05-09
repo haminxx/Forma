@@ -128,8 +128,10 @@ export const PillNav: React.FC = () => {
     prevSectionRef.current = sectionId;
     setActiveSection(sectionId);
 
-    // Collapse the pill after selection
-    setHovering(false);
+    // NOTE: do NOT force `setHovering(false)` here. The cursor is still
+    // on the pill after the click, so the pill should stay expanded
+    // until the user actually moves their mouse off the header. The
+    // existing onMouseLeave handler will collapse it naturally then.
 
     // Lock IO-driven active updates while smooth-scroll is mid-flight,
     // otherwise mid-scroll sections would temporarily flip the label.

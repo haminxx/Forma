@@ -45,10 +45,35 @@ export const ProblemTestimonial = forwardRef<HTMLDivElement, ProblemTestimonialP
       >
         <DotPattern className="fill-white/15 md:fill-white/20" />
 
+        {/* Depth / glow halo behind the quote — soft warm radial that
+            adds vertical lift to the testimonial and matches the gold
+            backdrop without competing with it. */}
+        <motion.div
+          aria-hidden
+          key={`halo-${animKey}`}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={
+            inView
+              ? { opacity: 1, scale: 1 }
+              : { opacity: 0, scale: 0.9 }
+          }
+          transition={{ duration: 0.9, ease: [0.22, 0.68, 0, 1] }}
+          className="pointer-events-none absolute inset-x-0 top-1/4 -z-10 h-[60%]"
+          style={{
+            background:
+              "radial-gradient(60% 50% at 50% 50%, rgba(255,215,140,0.22) 0%, rgba(212,184,122,0.10) 35%, rgba(0,0,0,0) 70%)",
+            filter: "blur(8px)",
+          }}
+        />
+
         <div key={animKey} className="relative z-10">
           <QuoteGlyph
             aria-hidden="true"
-            className="mb-6 h-10 w-10 text-white/85 sm:h-12 sm:w-12"
+            className="mb-6 h-10 w-10 text-[#fff3cf] sm:h-12 sm:w-12"
+            style={{
+              filter:
+                "drop-shadow(0 4px 18px rgba(0,0,0,0.45)) drop-shadow(0 0 12px rgba(212,184,122,0.35))",
+            }}
           />
 
           <LayoutGroup>
@@ -70,6 +95,10 @@ export const ProblemTestimonial = forwardRef<HTMLDivElement, ProblemTestimonialP
                   fontFamily: SF_DISPLAY_STACK,
                   fontWeight: 900,
                   letterSpacing: "-0.02em",
+                  // Layered text shadow: deep ambient drop + warm gold
+                  // halo for richness on the gold backdrop.
+                  textShadow:
+                    "0 2px 30px rgba(0,0,0,0.55), 0 0 24px rgba(255,215,140,0.18)",
                 }}
               />
             ) : null}
@@ -77,6 +106,10 @@ export const ProblemTestimonial = forwardRef<HTMLDivElement, ProblemTestimonialP
             <motion.div
               layout
               className="my-8 h-2 w-2 rounded-full bg-[#ff5941] sm:h-3 sm:w-3"
+              style={{
+                boxShadow:
+                  "0 0 14px rgba(255,89,65,0.7), 0 4px 14px rgba(0,0,0,0.5)",
+              }}
               aria-hidden="true"
             />
 
@@ -98,7 +131,10 @@ export const ProblemTestimonial = forwardRef<HTMLDivElement, ProblemTestimonialP
                 }}
                 animatePresenceMode="wait"
                 animatePresenceInitial
-                mainClassName="text-sm text-white/75 sm:text-base"
+                mainClassName="text-sm text-white/85 sm:text-base"
+                style={{
+                  textShadow: "0 1px 8px rgba(0,0,0,0.5)",
+                }}
               />
             ) : null}
           </LayoutGroup>

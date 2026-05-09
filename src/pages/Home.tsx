@@ -6,6 +6,7 @@ import { PaperShaderHero } from "../components/PaperShaderHero";
 import { PoweredBy } from "../components/PoweredBy";
 import { ProblemTestimonial } from "../components/ProblemTestimonial";
 import { SolutionSection } from "../components/SolutionSection";
+import AnimatedGradientBackground from "../components/ui/animated-gradient-background";
 import { BlurText } from "../components/ui/blur-text";
 import { FeatureShowcase } from "../components/ui/feature-showcase";
 import { LogoCloud } from "../components/ui/logo-cloud";
@@ -52,32 +53,37 @@ function postHeadingDelay(tokenCount: number) {
 export function HomePage() {
   return (
     <div>
-      {/* Home — full-bleed animated gradient hero. The lower 38% of
-          the viewport is intentionally transparent (the hero only
-          fills its top 62%) so the DemoStage section directly below
-          peeks through the bottom of the home fold. */}
-      <section
-        id="home"
-        className="relative scroll-mt-20"
-        aria-label="Forma — Grammarly for AI builder prompts"
-      >
-        <PaperShaderHero />
-      </section>
+      {/* Shared gold gradient wrapper — the AnimatedGradientBackground
+          is mounted ONCE here and spans both #home and #demo so the
+          two sections share the same continuous backdrop with no
+          visible seam between them. */}
+      <div className="relative">
+        <AnimatedGradientBackground breathing topOffset={-20} />
 
-      {/* Demo — pulled up with -38vh so its sticky frame visually
-          starts halfway through the home fold. The peek-then-expand
-          scroll mechanic in DemoStage handles the scale-up as the
-          user scrolls into the section. The hero gradient bleeds
-          straight through into the demo because there's no SectionFade
-          band between them now. */}
-      <section
-        id="demo"
-        className="relative z-10 scroll-mt-20"
-        style={{ marginTop: "-38vh" }}
-        aria-label="Demo"
-      >
-        <DemoStage />
-      </section>
+        {/* Home — full-bleed centred content stack. The hero's local
+            scrim is rendered inside PaperShaderHero, but the gradient
+            itself comes from the shared wrapper above. */}
+        <section
+          id="home"
+          className="relative z-10 scroll-mt-20"
+          aria-label="Forma — Grammarly for AI builder prompts"
+        >
+          <PaperShaderHero />
+        </section>
+
+        {/* Demo — pulled up with -38vh so its sticky frame visually
+            starts halfway through the home fold and the gold gradient
+            from the shared wrapper bleeds straight through into the
+            demo (no SectionFade band). */}
+        <section
+          id="demo"
+          className="relative z-10 scroll-mt-20"
+          style={{ marginTop: "-38vh" }}
+          aria-label="Demo"
+        >
+          <DemoStage />
+        </section>
+      </div>
 
       {/* Powered by — scroll-driven horizontal name marquee. Moved
           from after #home to between #demo and #sandbox per the

@@ -33,9 +33,12 @@ export function Reveal({
   children,
   className,
   delay = 0,
-  duration = 0.6,
+  duration = 0.55,
   y = 16,
-  once = true,
+  // Default changed: animations now reset on scroll-out and replay
+  // when the user scrolls back into view. Sections that want a one-
+  // shot reveal can opt back in with `once={true}`.
+  once = false,
   margin = "-80px",
   style,
   as = "div",

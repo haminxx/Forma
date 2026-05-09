@@ -5,7 +5,7 @@ import type { CSSProperties, FC } from "react";
 interface AnimatedGradientBackgroundProps {
   /** Initial size of the radial gradient (% width). Default 125. */
   startingGap?: number;
-  /** Toggle the breathing in/out animation. Default false. */
+  /** Toggle the breathing in/out animation. Default true. */
   breathing?: boolean;
   /** Colour stops (hex). Length must equal `gradientStops`. */
   gradientColors?: string[];
@@ -26,28 +26,28 @@ interface AnimatedGradientBackgroundProps {
 /**
  * AnimatedGradientBackground
  *
- * Full-bleed animated radial gradient. Adopted from the user-pasted
- * reference. Uses `framer-motion` for the entrance scale/fade and a
- * raw rAF loop to drive an optional "breathing" oscillation directly
- * on the inner div's `background` style — no React re-renders per
- * frame.
+ * Full-bleed animated radial gradient. Uses `framer-motion` for the
+ * entrance scale/fade and a raw rAF loop to drive an optional
+ * "breathing" oscillation directly on the inner div's `background`
+ * style — no React re-renders per frame.
  *
- * Defaults swapped to the Forma palette so the gradient bleeds from
- * deep charcoal -> Forma gold -> warm-amber -> violet -> teal -> blue,
- * matching the rest of the marketing site instead of the original
- * blue/pink/orange/yellow rainbow.
+ * Default palette is now an all-warm gold spectrum per the latest
+ * direction: deep charcoal core -> warm bronze -> amber -> Forma
+ * gold -> soft buttery cream at the rim. The result reads as a
+ * single yellow/gold radial that bleeds straight into Forma's gold
+ * marketing accent.
  */
 const AnimatedGradientBackground: FC<AnimatedGradientBackgroundProps> = ({
   startingGap = 125,
   breathing = true,
   gradientColors = [
     "#0A0A0A", // canvas
-    "#1a1a1f", // near-black
-    "#3D5AFE", // electric blue
-    "#8B5CF6", // violet
-    "#FF80AB", // soft pink
-    "#FFD66B", // amber
-    "#D4B87A", // Forma gold
+    "#1a1612", // near-black warm
+    "#3a2a18", // deep bronze
+    "#7a5a2a", // burnt umber
+    "#c89a4a", // amber
+    "#d4b87a", // Forma gold
+    "#f3e0a8", // soft cream highlight
   ],
   gradientStops = [35, 50, 60, 70, 80, 90, 100],
   animationSpeed = 0.02,

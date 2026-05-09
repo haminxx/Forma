@@ -58,6 +58,24 @@ export function DemoStage({ className }: { className?: string }) {
       className={cn("relative w-full", className)}
       style={{ minHeight: "170vh" }}
     >
+      {/* Hero gradient extension — mirrors the AnimatedGradientBackground
+          from PaperShaderHero with the radial centred well above the
+          demo (50% / -55%) so the demo only ever sees the gradient's
+          OUTER rings (gold → gold-soft → fade-to-canvas), which is
+          exactly the same colour band visible at the bottom edge of
+          the home hero. Result: scrolling from home into the demo
+          reads as one continuous Forma-gold backdrop instead of a
+          hard cut to plain canvas. Static (non-breathing) so it does
+          not compete with the hero's animation. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10"
+        style={{
+          background:
+            "radial-gradient(150% 130% at 50% -55%, #0d0e12 25%, #191a1f 45%, #2c1f12 60%, #5a432a 72%, #a08850 84%, #d4b87a 94%, #e5c98f 100%)",
+        }}
+      />
+
       {/* Sticky frame: the peek-expand panel is pinned to the viewport
           while the user scrolls through the section's tall flow. */}
       <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden px-3 sm:px-6">

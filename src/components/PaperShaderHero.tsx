@@ -1,25 +1,25 @@
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 
-import AnimatedGradientBackground from "@/components/ui/animated-gradient-background";
 import { cn } from "@/lib/utils";
 
 /**
- * Forma home hero — full-bleed `AnimatedGradientBackground` (multi-
- * stop charcoal -> blue -> violet -> pink -> amber -> Forma gold
- * radial that subtly breathes) with a CENTERED card-style content
- * stack on top.
+ * Forma home hero — centered text stack on top of the shared
+ * gold-radial backdrop.
  *
- * Per latest direction:
- *   - All hero copy is centered (not left-aligned). Mirrors the
- *     centered shadcn Card pattern from the user-pasted reference.
- *   - 3-col footer info row (URL / hardware / hackathon track) was
- *     removed — the hero is just title + divider + subtitle + CTA.
- *   - Bottom of the hero is left transparent so the next section
- *     (DemoStage) can peek through the lower half of the viewport.
+ * Note: the `AnimatedGradientBackground` is now mounted ONCE at the
+ * Home.tsx page level so it can span both #home and #demo with no
+ * visible seam (per the latest direction). This component contributes
+ * only the local scrim + the centered content stack.
+ *
+ * Centred layout:
+ *   - Title is now vertically centred in the full hero (was confined
+ *     to the upper 62%). The user wanted the text shifted down so it
+ *     reads as the visual centre of the home screen, not the top.
+ *   - 3-col footer info row is gone; just title + divider + subtitle
+ *     + CTA.
  */
 export function PaperShaderHero() {
-  // Stagger orchestration — kept lightweight so the hero lands fast.
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -39,53 +39,53 @@ export function PaperShaderHero() {
   return (
     <motion.section
       className={cn(
-        "relative h-screen w-full overflow-hidden bg-black text-white",
+        "relative h-screen w-full overflow-hidden text-white",
       )}
       initial="hidden"
       animate="visible"
       variants={containerVariants}
     >
-      {/* Full-bleed animated radial gradient backdrop. */}
-      <AnimatedGradientBackground breathing topOffset={-20} />
-
-      {/* Soft top scrim so the title + body stay readable against the
-          brightest part of the gradient. Bottom intentionally left
-          transparent so the next section bleeds through naturally. */}
+      {/* Vertical scrim — light at top + bottom, hollow in the
+          middle — keeps the navbar / centred text legible against
+          the brightest part of the gradient without eating the gold
+          tones at the edges. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.20) 35%, rgba(0,0,0,0) 60%)",
+            "linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.18) 25%, rgba(0,0,0,0) 55%)",
         }}
       />
 
-      {/* Centred content stack — sits above the gradient + scrim.
-          Constrained to the upper 60% of the viewport so the lower
-          40% is reserved for the DemoStage to peek through. */}
-      <div className="relative z-10 mx-auto flex h-[62%] w-full max-w-3xl flex-col items-center justify-center px-6 pt-20 text-center">
+      {/* Centred content stack. Full-height flex container so the
+          stack lands at the vertical centre of the hero. */}
+      <div className="relative z-10 mx-auto flex h-full w-full max-w-3xl flex-col items-center justify-center px-6 text-center">
         <motion.div
           variants={containerVariants}
           className="flex flex-col items-center"
+          style={{ filter: "drop-shadow(0 6px 20px rgba(0,0,0,0.45))" }}
         >
           <motion.h1
             className="text-4xl font-bold leading-[1.05] tracking-tight text-white md:text-5xl lg:text-6xl"
             variants={itemVariants}
+            style={{ textShadow: "0 2px 12px rgba(0,0,0,0.45)" }}
           >
             Every Prompt
             <br />
-            <span className="text-[#d4b87a]">Becomes Precise.</span>
+            <span className="text-[#f3e0a8]">Becomes Precise.</span>
           </motion.h1>
 
           <motion.div
-            className="my-7 h-1 w-20 rounded-full bg-[#d4b87a]"
+            className="my-7 h-1 w-20 rounded-full bg-[#d4b87a] shadow-[0_0_24px_-2px_rgba(212,184,122,0.85)]"
             variants={itemVariants}
             aria-hidden
           />
 
           <motion.p
-            className="mb-9 max-w-xl text-base leading-relaxed text-white/80 md:text-lg"
+            className="mb-9 max-w-xl text-base leading-relaxed text-white/85 md:text-lg"
             variants={itemVariants}
+            style={{ textShadow: "0 1px 8px rgba(0,0,0,0.5)" }}
           >
             Forma flags vague UI words as you type and rewrites them into
             canonical components with concrete motion and accessibility
@@ -96,7 +96,7 @@ export function PaperShaderHero() {
             href="https://forma-production-c800.up.railway.app/"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm font-bold tracking-[0.22em] text-[#d4b87a] transition-colors hover:text-[#e2c890]"
+            className="inline-flex items-center gap-2 rounded-full border border-[#d4b87a]/40 bg-black/30 px-5 py-2 text-sm font-bold tracking-[0.22em] text-[#f3e0a8] backdrop-blur-md transition-all hover:border-[#d4b87a]/70 hover:bg-black/40 hover:text-[#fff3cf]"
             variants={itemVariants}
           >
             OPEN THE LIVE DEMO
