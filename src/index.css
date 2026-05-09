@@ -21,6 +21,25 @@
   --color-forma-muted: rgba(255, 255, 255, 0.6);
   --color-forma-faint: rgba(255, 255, 255, 0.35);
 
+  /* 60 / 30 / 10 cinematic palette
+   *   60% — `--color-forma-bg`        (#191a1f, charcoal)
+   *   30% — `--color-forma-gold`      (#d4b87a, warm Forma gold)
+   *   10% — `--color-forma-accent`    (#5eb1bf, cool steel-teal pop)
+   *
+   * `*-rgb` triplets are exposed for `rgba(var(--token-rgb), <a>)` use
+   * in inline styles + radial gradients. Keeping them as CSS vars (not
+   * hex literals scattered in code) means a single edit in this file
+   * re-tones the whole site.
+   */
+  --color-forma-gold: #d4b87a;
+  --color-forma-gold-soft: #e5c98f;
+  --color-forma-gold-rgb: 212, 184, 122;
+
+  --color-forma-accent: #5eb1bf;
+  --color-forma-accent-soft: #7ac4d1;
+  --color-forma-accent-deep: #2e7e8c;
+  --color-forma-accent-rgb: 94, 177, 191;
+
   --color-aurora-purple: #b58bff;
   --color-aurora-pink: #ff9ec5;
 
