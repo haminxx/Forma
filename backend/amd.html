@@ -450,6 +450,43 @@
     </section>
 
     <section class="section">
+      <h2>The architecture mirrors the business model</h2>
+      <p style="font-size:15px;color:var(--text-2);margin-bottom:20px;max-width:780px;">Forma is a freemium SaaS. The dual-model architecture on a single MI300X isn't just a hardware demo — it's the production architecture that makes the freemium unit economics work. Cheap 8B inference for free-tier users running on every keystroke. Expensive 70B inference for paid-tier users running deep analysis and long-context personalization. Both models live in 192GB HBM3 simultaneously, so a single GPU serves both tiers concurrently.</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px;">
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:20px;position:relative;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--blue);margin-bottom:8px;">FREE TIER</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--text);margin-bottom:14px;line-height:1.1;">Llama 3.1 8B Instruct</div>
+          <div style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.5;">Real-time per-keystroke scoring. Inline underline detection for vague UI vocabulary. Sub-2-second latency. Acquires users at zero marginal cost.</div>
+          <ul style="list-style:none;padding:0;margin:0;font-size:12px;color:var(--text-3);line-height:1.7;">
+            <li>· Forma Score badge</li>
+            <li>· Inline wavy underline</li>
+            <li>· Hover tooltip with canonical term</li>
+            <li>· 3 alternative pills with descriptions</li>
+            <li>· Click-to-accept replacement</li>
+          </ul>
+        </div>
+
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:20px;position:relative;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--green);margin-bottom:8px;">PRO TIER</div>
+          <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--text);margin-bottom:14px;line-height:1.1;">Llama 3.1 70B AWQ-INT4</div>
+          <div style="font-size:13px;color:var(--text-2);margin-bottom:14px;line-height:1.5;">7-agent multi-agent consensus. Long-context Memory Engine personalization. Production-grade prompt rewriting with motion specs and accessibility attributes. Converts power users.</div>
+          <ul style="list-style:none;padding:0;margin:0;font-size:12px;color:var(--text-3);line-height:1.7;">
+            <li>· 7-agent Run Full Analysis</li>
+            <li>· Memory Engine personalization</li>
+            <li>· Cross-builder style fingerprint</li>
+            <li>· Predicted next-project recommendations</li>
+            <li>· Production prompt with motion + a11y specs</li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="margin-top:24px;padding:16px 20px;background:var(--tint);border-left:2px solid var(--amber);border-radius:6px;">
+        <div style="font-size:13px;color:var(--text);line-height:1.55;"><strong style="color:var(--amber);">The unit economics require MI300X.</strong> 8B is cheap enough for free-tier scale. 70B is the expensive moat for paying users. Running both on a single H100 80GB isn't possible — you'd need two separate GPUs, doubling cost and breaking unified memory. MI300X's 192GB makes a freemium architecture economical. The hardware choice and the business model are the same decision.</div>
+      </div>
+    </section>
+
+    <section class="section">
       <h2>Runtime</h2>
       <div class="runtime-table">
         <div class="runtime-row"><div>Inference</div><div>vLLM 0.17.1</div><div>OpenAI-compatible chat completions</div></div>
