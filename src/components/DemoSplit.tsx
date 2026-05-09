@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { motion, AnimatePresence, useInView } from "framer-motion";
 import {
   CheckCircle2,
   ChevronLeft,
@@ -18,36 +18,31 @@ import { cn } from "../lib/cn";
 
 /**
  * Forma demo window — IDE-style three-pane layout (sidebar / preview /
- * agent-panel) inspired by common AI-coding-tool window patterns.
+ * agent-panel) with a coordinated entrance animation:
  *
- * IMPORTANT: every word of copy, every task name, every prompt line,
- * every preview snippet, and every CSS class is Forma-original. No
- * content has been copied from any third-party site.
+ *   1. typing   — the user prompt types into the bottom prompt input
+ *   2. pushing  — the typed prompt is "sent": the input clears and a
+ *                 floating bubble flies up to the transcript header
+ *   3. thinking — agent steps stream in (Read / Thought / Edit) and
+ *                 the preview pane progressively materialises
+ *   4. ready    — everything visible, transcript scrollable, etc.
  *
- * Pane breakdown:
- *   - Left sidebar  (w-[260px]): "In Progress" + "Ready for Review"
- *     task lists drawn from Forma's actual pipeline — Detector,
- *     Memory Engine sync, Critic deep-pass, etc.
- *   - Centre pane:  Browser-frame preview of the rewritten output
- *     for the current `mode`. The Vibe-mode preview is a vague
- *     marketing copy stub; Forma-mode shows the *canonical
- *     component* (Off-Canvas Drawer) materialised with motion +
- *     a11y tokens labelled.
- *   - Right pane    (w-[340px]): live "agent transcript" — user
- *     prompt at top, Forma agent steps below (Read canonical-60,
- *     Run Detector, Generate alternatives, Done), prompt input
- *     pinned to the bottom.
- *
- * The macOS-style chrome (3 traffic lights, "Forma Sandbox" title,
- * tab-icon buttons) lives in this component; the macOS rounded
- * outer frame around the whole window comes from `DemoStage`.
+ * The same flow re-runs whenever the user toggles between Vibe Coder
+ * and Forma User. The Vibe prompt also gets a yellow Grammarly-style
+ * wavy underline on the vague phrase to advertise what Forma is about
+ * to fix; switching to Forma triggers an inline "expand with details"
+ * morph from the short vague sentence into the precise rewrite.
  */
 
 type Mode = "vibe" | "forma";
+type Phase = "idle" | "typing" | "pushing" | "thinking" | "ready";
 
 const VIBE_PROMPT = "Build a popup that slides in from the side";
 const FORMA_PROMPT =
   "Build an Off-Canvas Drawer (slides from right edge, 320px width, 250ms ease-in-out, semi-transparent backdrop, focus-trap on open, ESC to dismiss)";
+
+/** Word range inside VIBE_PROMPT that gets the squiggly underline. */
+const VIBE_UNDERLINE_PHRASE = "popup that slides in from the side";
 
 type TaskState = "running" | "ready";
 
@@ -182,11 +177,72 @@ const PREVIEW_META: Record<
   },
 };
 
+// ─────────────────────────────────────────────────────────────────────
+// Phase timing — each phase auto-advances after its dwell elapses.
+// ─────────────────────────────────────────────────────────────────────
+
+function getTypingDuration(text: string) {
+  // ~22ms / char, clamped so neither the short nor long prompt drags.
+  return Math.min(2400, Math.max(600, text.length * 22));
+}
+const PUSH_MS = 700;
+const THINK_TAIL_MS = 600; // grace after agent steps before "ready"
+
 export function DemoSplit() {
   const [mode, setMode] = useState<Mode>("vibe");
+  const rootRef = useRef<HTMLDivElement>(null);
+  const inView = useInView(rootRef, { amount: 0.3, once: true });
+
+  // Phase state machine: drives the entrance animation. Resets and
+  // re-runs on mode toggle so each switch replays prompt → push →
+  // think → ready.
+  const [phase, setPhase] = useState<Phase>("idle");
+  const [runId, setRunId] = useState(0);
+
+  // Kick off the very first run when the demo scrolls into view.
+  useEffect(() => {
+    if (!inView) return;
+    if (phase !== "idle") return;
+    setPhase("typing");
+  }, [inView, phase]);
+
+  // Re-trigger the full phase pipeline whenever the user toggles mode.
+  useEffect(() => {
+    if (phase === "idle") return;
+    setPhase("typing");
+    setRunId((k) => k + 1);
+    // Intentional: depend only on mode.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
+
+  // Auto-advance the phases on timers.
+  useEffect(() => {
+    if (phase === "idle") return;
+    const prompt = mode === "vibe" ? VIBE_PROMPT : FORMA_PROMPT;
+    const steps = AGENT_STEPS_BY_MODE[mode];
+    let timer: number | undefined;
+    if (phase === "typing") {
+      timer = window.setTimeout(
+        () => setPhase("pushing"),
+        getTypingDuration(prompt) + 250,
+      );
+    } else if (phase === "pushing") {
+      timer = window.setTimeout(() => setPhase("thinking"), PUSH_MS);
+    } else if (phase === "thinking") {
+      // Each step entry uses delay = i * 0.07 + 0.32s motion duration.
+      const stepsTime = steps.length * 70 + 320;
+      timer = window.setTimeout(
+        () => setPhase("ready"),
+        stepsTime + THINK_TAIL_MS,
+      );
+    }
+    return () => {
+      if (timer !== undefined) window.clearTimeout(timer);
+    };
+  }, [phase, mode, runId]);
 
   return (
-    <div className="w-full max-w-[min(98vw,92rem)]">
+    <div ref={rootRef} className="w-full max-w-[min(98vw,92rem)]">
       {/* Top-center toggle */}
       <div className="flex w-full justify-center">
         <ModeToggle mode={mode} setMode={setMode} />
@@ -207,9 +263,9 @@ export function DemoSplit() {
 
         {/* Body — 3 columns at lg+, stacks below */}
         <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-          <Sidebar mode={mode} />
-          <PreviewPane mode={mode} />
-          <AgentPanel mode={mode} />
+          <Sidebar mode={mode} phase={phase} runId={runId} />
+          <PreviewPane mode={mode} phase={phase} runId={runId} />
+          <AgentPanel mode={mode} phase={phase} runId={runId} />
         </div>
       </div>
 
@@ -310,10 +366,22 @@ function WindowChrome({ mode }: { mode: Mode }) {
 // Left sidebar — task list ("In Progress" + "Ready for Review")
 // ─────────────────────────────────────────────────────────────────────
 
-function Sidebar({ mode }: { mode: Mode }) {
+function Sidebar({
+  mode,
+  phase,
+  runId,
+}: {
+  mode: Mode;
+  phase: Phase;
+  runId: number;
+}) {
   const tasks = SIDEBAR_TASKS_BY_MODE[mode];
   const inProgress = tasks.filter((t) => t.state === "running");
   const ready = tasks.filter((t) => t.state === "ready");
+
+  // Sidebar entries reveal alongside the agent thinking phase so the
+  // window's three panes feel like a single coordinated boot.
+  const visible = phase === "thinking" || phase === "ready";
 
   return (
     <aside
@@ -322,21 +390,42 @@ function Sidebar({ mode }: { mode: Mode }) {
         mode === "vibe" ? "lg:border-white/[0.08]" : "lg:border-[#d4b87a]/15",
       )}
     >
-      {inProgress.length > 0 ? (
-        <SidebarSection
-          title="In Progress"
-          count={inProgress.length}
-          tasks={inProgress}
-        />
-      ) : null}
-      {ready.length > 0 ? (
-        <SidebarSection
-          title="Ready for Review"
-          count={ready.length}
-          tasks={ready}
-        />
-      ) : null}
+      {visible ? (
+        <>
+          {inProgress.length > 0 ? (
+            <SidebarSection
+              title="In Progress"
+              count={inProgress.length}
+              tasks={inProgress}
+              runId={runId}
+            />
+          ) : null}
+          {ready.length > 0 ? (
+            <SidebarSection
+              title="Ready for Review"
+              count={ready.length}
+              tasks={ready}
+              runId={runId}
+            />
+          ) : null}
+        </>
+      ) : (
+        <SidebarSkeleton />
+      )}
     </aside>
+  );
+}
+
+function SidebarSkeleton() {
+  return (
+    <div className="flex flex-col gap-3 px-2 py-2">
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="space-y-1.5">
+          <div className="h-2 w-1/3 animate-pulse rounded-full bg-white/[0.06]" />
+          <div className="h-2 w-4/5 animate-pulse rounded-full bg-white/[0.04]" />
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -344,13 +433,15 @@ function SidebarSection({
   title,
   count,
   tasks,
+  runId,
 }: {
   title: string;
   count: number;
   tasks: SidebarTask[];
+  runId: number;
 }) {
   return (
-    <div className="mb-3">
+    <div className="mb-3" key={runId}>
       <div className="px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/45">
         {title} <span className="text-white/30">{count}</span>
       </div>
@@ -426,8 +517,17 @@ function SidebarTaskRow({ task, delay }: { task: SidebarTask; delay: number }) {
 // Centre — browser-frame preview pane
 // ─────────────────────────────────────────────────────────────────────
 
-function PreviewPane({ mode }: { mode: Mode }) {
+function PreviewPane({
+  mode,
+  phase,
+  runId,
+}: {
+  mode: Mode;
+  phase: Phase;
+  runId: number;
+}) {
   const meta = PREVIEW_META[mode];
+  const previewVisible = phase === "thinking" || phase === "ready";
 
   return (
     <div className="flex min-h-[300px] flex-1 flex-col bg-[#0a0b0e] lg:min-h-0">
@@ -495,60 +595,75 @@ function PreviewPane({ mode }: { mode: Mode }) {
         </span>
       </div>
 
-      {/* Preview body — actual rendered "output" of whichever mode is
-          active. NO third-party content; both views are Forma-original
-          mock product surfaces. */}
+      {/* Preview body — staged: shows a "rendering" placeholder while
+          the agent is still thinking, then morphs into the actual
+          output when phase enters `ready`. NO third-party content;
+          both views are Forma-original mock product surfaces. */}
       <div className="relative flex-1 overflow-hidden">
         <AnimatePresence mode="wait">
-          {mode === "vibe" ? (
+          {!previewVisible ? (
             <motion.div
-              key="vibe-preview"
+              key="preview-empty"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              className="absolute inset-0 flex items-center justify-center bg-[#0f1014]"
+            >
+              <PreviewWaiting />
+            </motion.div>
+          ) : mode === "vibe" ? (
+            <motion.div
+              key={`vibe-preview-${runId}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
               className="absolute inset-0 flex items-center justify-center bg-[#1a1c22] p-6"
             >
-              <VaguePreview />
+              <VaguePreview rendered={phase === "ready"} />
             </motion.div>
           ) : (
             <motion.div
-              key="forma-preview"
+              key={`forma-preview-${runId}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
               className="absolute inset-0 flex items-center justify-center bg-[#0f1014] p-6"
             >
-              <PrecisePreview />
+              <PrecisePreview rendered={phase === "ready"} />
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Score pill bottom-right */}
+        {/* Score pill bottom-right — only after the preview fully
+            renders, otherwise it leaks information ahead of the agent. */}
         <div className="pointer-events-none absolute bottom-3 right-3">
           <AnimatePresence mode="wait">
-            <motion.div
-              key={meta.status}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.3 }}
-              className={cn(
-                "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.16em] backdrop-blur-md",
-                mode === "vibe"
-                  ? "border-white/15 bg-black/65 text-white/75"
-                  : "border-[#d4b87a]/40 bg-black/65 text-[#d4b87a]",
-              )}
-            >
-              <span
+            {phase === "ready" ? (
+              <motion.div
+                key={meta.status}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.3 }}
                 className={cn(
-                  "h-1.5 w-1.5 rounded-full",
-                  mode === "vibe" ? "bg-white/60" : "bg-[#d4b87a]",
+                  "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.16em] backdrop-blur-md",
+                  mode === "vibe"
+                    ? "border-white/15 bg-black/65 text-white/75"
+                    : "border-[#d4b87a]/40 bg-black/65 text-[#d4b87a]",
                 )}
-              />
-              {meta.status}
-            </motion.div>
+              >
+                <span
+                  className={cn(
+                    "h-1.5 w-1.5 rounded-full",
+                    mode === "vibe" ? "bg-white/60" : "bg-[#d4b87a]",
+                  )}
+                />
+                {meta.status}
+              </motion.div>
+            ) : null}
           </AnimatePresence>
         </div>
       </div>
@@ -556,58 +671,104 @@ function PreviewPane({ mode }: { mode: Mode }) {
   );
 }
 
-/** Vibe-mode preview: a generic, vague-looking "popup" stub. */
-function VaguePreview() {
+/** Visible while the agent is still pre-thinking. Communicates that
+ *  the preview is intentionally blank, not broken. */
+function PreviewWaiting() {
+  return (
+    <div className="flex flex-col items-center gap-3 text-center">
+      <div className="relative h-9 w-9">
+        <span className="absolute inset-0 animate-ping rounded-full bg-[#d4b87a]/20" />
+        <span className="absolute inset-1 rounded-full border border-[#d4b87a]/40" />
+      </div>
+      <div className="text-[10px] font-mono uppercase tracking-[0.24em] text-white/35">
+        awaiting agent
+      </div>
+    </div>
+  );
+}
+
+/** Vibe-mode preview: a generic, vague-looking "popup" stub. The
+ *  inner markup staggers in once `rendered` is true so the user sees
+ *  the components actually drop into place. */
+function VaguePreview({ rendered }: { rendered: boolean }) {
   return (
     <div className="flex w-full max-w-md flex-col items-center gap-3 text-center">
-      <div className="text-xs uppercase tracking-[0.32em] text-white/40">
+      <motion.div
+        initial={{ opacity: 0, y: 4 }}
+        animate={
+          rendered ? { opacity: 1, y: 0 } : { opacity: 0.4, y: 4 }
+        }
+        transition={{ duration: 0.3 }}
+        className="text-xs uppercase tracking-[0.32em] text-white/40"
+      >
         popup-ish
-      </div>
-      <div
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={
+          rendered ? { opacity: 1, scale: 1 } : { opacity: 0.5, scale: 0.96 }
+        }
+        transition={{ duration: 0.4, ease: [0.22, 0.68, 0, 1] }}
         className="w-full max-w-sm rounded-xl border border-white/15 bg-white/[0.06] p-5 shadow-lg"
         role="dialog"
         aria-label="Vague popup preview"
       >
-        <div className="h-3 w-2/3 rounded-full bg-white/30" />
-        <div className="mt-3 h-2 w-5/6 rounded-full bg-white/15" />
-        <div className="mt-1.5 h-2 w-4/6 rounded-full bg-white/15" />
+        <StaggeredBar delay={0.05} className="h-3 w-2/3 bg-white/30" />
+        <StaggeredBar delay={0.12} className="mt-3 h-2 w-5/6 bg-white/15" />
+        <StaggeredBar delay={0.17} className="mt-1.5 h-2 w-4/6 bg-white/15" />
         <div className="mt-5 flex gap-2">
-          <span className="h-7 flex-1 rounded-md border border-white/10" />
-          <span className="h-7 w-20 rounded-md bg-white/[0.08]" />
+          <StaggeredBar
+            delay={0.22}
+            className="h-7 flex-1 rounded-md border border-white/10 bg-transparent"
+          />
+          <StaggeredBar
+            delay={0.26}
+            className="h-7 w-20 rounded-md bg-white/[0.08]"
+          />
         </div>
-      </div>
-      <div className="text-[11px] text-white/45">
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: rendered ? 1 : 0 }}
+        transition={{ duration: 0.4, delay: 0.3 }}
+        className="text-[11px] text-white/45"
+      >
         No motion spec · no a11y tokens · no canonical name
-      </div>
+      </motion.div>
     </div>
   );
 }
 
 /** Forma-mode preview: an Off-Canvas Drawer materialised on the right
  *  edge of a faux app shell, with motion + a11y tokens called out. */
-function PrecisePreview() {
+function PrecisePreview({ rendered }: { rendered: boolean }) {
   return (
     <div className="relative flex h-full w-full max-w-2xl items-stretch">
       {/* Faux app behind */}
       <div className="absolute inset-0 m-2 rounded-lg border border-white/[0.06] bg-[#13151b] p-4">
-        <div className="h-3 w-32 rounded-full bg-white/15" />
+        <StaggeredBar delay={0.05} className="h-3 w-32 bg-white/15" />
         <div className="mt-3 grid grid-cols-3 gap-2">
-          <div className="h-12 rounded bg-white/[0.05]" />
-          <div className="h-12 rounded bg-white/[0.05]" />
-          <div className="h-12 rounded bg-white/[0.05]" />
+          <StaggeredBar delay={0.1} className="h-12 rounded bg-white/[0.05]" />
+          <StaggeredBar delay={0.13} className="h-12 rounded bg-white/[0.05]" />
+          <StaggeredBar delay={0.16} className="h-12 rounded bg-white/[0.05]" />
         </div>
-        <div className="mt-3 h-2 w-2/3 rounded-full bg-white/10" />
-        <div className="mt-1.5 h-2 w-1/2 rounded-full bg-white/10" />
+        <StaggeredBar delay={0.2} className="mt-3 h-2 w-2/3 bg-white/10" />
+        <StaggeredBar delay={0.24} className="mt-1.5 h-2 w-1/2 bg-white/10" />
       </div>
 
       {/* Backdrop scrim */}
-      <div className="absolute inset-0 m-2 rounded-lg bg-black/55 backdrop-blur-[1px]" />
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: rendered ? 1 : 0 }}
+        transition={{ duration: 0.3, delay: 0.25 }}
+        className="absolute inset-0 m-2 rounded-lg bg-black/55 backdrop-blur-[1px]"
+      />
 
-      {/* Off-Canvas Drawer — slides in from right */}
+      {/* Off-Canvas Drawer — slides in from right once rendered. */}
       <motion.div
         initial={{ x: "100%" }}
-        animate={{ x: 0 }}
-        transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+        animate={{ x: rendered ? 0 : "100%" }}
+        transition={{ duration: 0.42, delay: 0.3, ease: [0.4, 0, 0.2, 1] }}
         className="absolute right-2 top-2 bottom-2 w-[58%] max-w-[320px] overflow-hidden rounded-lg border border-[#d4b87a]/30 bg-[#0d0e12] shadow-[-12px_0_40px_-12px_rgba(0,0,0,0.6)]"
         role="dialog"
         aria-modal="true"
@@ -620,15 +781,35 @@ function PrecisePreview() {
           <span className="text-[10px] font-mono text-white/40">ESC ⌫</span>
         </div>
         <div className="space-y-2 p-3">
-          <div className="h-2 w-3/4 rounded-full bg-white/15" />
-          <div className="h-2 w-2/3 rounded-full bg-white/10" />
-          <div className="h-2 w-1/2 rounded-full bg-white/10" />
+          <StaggeredBar delay={0.55} className="h-2 w-3/4 bg-white/15" />
+          <StaggeredBar delay={0.6} className="h-2 w-2/3 bg-white/10" />
+          <StaggeredBar delay={0.65} className="h-2 w-1/2 bg-white/10" />
 
           <div className="mt-4 space-y-1.5">
-            <SpecRow label="motion" value="250ms · ease-in-out" />
-            <SpecRow label="anchor" value="right · 320px" />
-            <SpecRow label="backdrop" value="semi-transparent" />
-            <SpecRow label="a11y" value="focus-trap · aria-modal" />
+            <SpecRow
+              label="motion"
+              value="250ms · ease-in-out"
+              delay={0.72}
+              rendered={rendered}
+            />
+            <SpecRow
+              label="anchor"
+              value="right · 320px"
+              delay={0.78}
+              rendered={rendered}
+            />
+            <SpecRow
+              label="backdrop"
+              value="semi-transparent"
+              delay={0.84}
+              rendered={rendered}
+            />
+            <SpecRow
+              label="a11y"
+              value="focus-trap · aria-modal"
+              delay={0.9}
+              rendered={rendered}
+            />
           </div>
         </div>
       </motion.div>
@@ -636,8 +817,8 @@ function PrecisePreview() {
       {/* Slide-in arrow indicator */}
       <motion.div
         initial={{ opacity: 0, x: -6 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.4, delay: 0.25 }}
+        animate={rendered ? { opacity: 1, x: 0 } : { opacity: 0, x: -6 }}
+        transition={{ duration: 0.4, delay: 0.55 }}
         className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-mono text-[#d4b87a]/70"
       >
         slides ←
@@ -646,30 +827,74 @@ function PrecisePreview() {
   );
 }
 
-function SpecRow({ label, value }: { label: string; value: string }) {
+function StaggeredBar({
+  delay,
+  className,
+}: {
+  delay: number;
+  className: string;
+}) {
   return (
-    <div className="flex items-center justify-between rounded border border-[#d4b87a]/15 bg-[#d4b87a]/[0.04] px-2 py-1 text-[10px]">
+    <motion.div
+      initial={{ opacity: 0, scaleX: 0.4 }}
+      animate={{ opacity: 1, scaleX: 1 }}
+      transition={{ duration: 0.35, delay, ease: [0.22, 0.68, 0, 1] }}
+      style={{ transformOrigin: "left center" }}
+      className={cn("rounded-full", className)}
+    />
+  );
+}
+
+function SpecRow({
+  label,
+  value,
+  delay,
+  rendered,
+}: {
+  label: string;
+  value: string;
+  delay: number;
+  rendered: boolean;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 4 }}
+      animate={rendered ? { opacity: 1, y: 0 } : { opacity: 0, y: 4 }}
+      transition={{ duration: 0.3, delay }}
+      className="flex items-center justify-between rounded border border-[#d4b87a]/15 bg-[#d4b87a]/[0.04] px-2 py-1 text-[10px]"
+    >
       <span className="font-mono text-[#d4b87a]/75">{label}</span>
       <span className="font-mono text-white/75">{value}</span>
-    </div>
+    </motion.div>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// Right — agent transcript + prompt input
+// Right — agent transcript + prompt input (entrance-animated)
 // ─────────────────────────────────────────────────────────────────────
 
-function AgentPanel({ mode }: { mode: Mode }) {
+function AgentPanel({
+  mode,
+  phase,
+  runId,
+}: {
+  mode: Mode;
+  phase: Phase;
+  runId: number;
+}) {
   const userPrompt = mode === "vibe" ? VIBE_PROMPT : FORMA_PROMPT;
   const steps = AGENT_STEPS_BY_MODE[mode];
   const [draft, setDraft] = useState("");
 
-  // Re-trigger the per-step entry stagger when switching modes — this
-  // gives the agent transcript its "fresh re-run" feel.
-  const [animKey, setAnimKey] = useState(0);
-  useEffect(() => {
-    setAnimKey((k) => k + 1);
-  }, [mode]);
+  // Char count revealed during the typing phase. Drives both the
+  // bottom prompt input (the "user is typing" stage) and the head
+  // bubble's expand-with-details morph on toggle.
+  const typedText = useTypewriter(userPrompt, phase === "typing", runId);
+
+  const userBubbleVisible =
+    phase === "pushing" || phase === "thinking" || phase === "ready";
+  const stepsVisible = phase === "thinking" || phase === "ready";
+  const promptInputContent = phase === "typing" ? typedText : "";
 
   return (
     <div
@@ -686,45 +911,88 @@ function AgentPanel({ mode }: { mode: Mode }) {
 
       {/* Transcript */}
       <div className="flex-1 overflow-y-auto px-3 py-3 text-[12px]">
-        {/* User prompt bubble — sticky at top of scroll */}
+        {/* User prompt bubble — sticky at top of scroll. Hidden until
+            the prompt has been "sent" in the pushing phase. */}
         <div className="sticky top-0 z-10 -mt-3 bg-gradient-to-b from-black/80 to-transparent pb-2 pt-3">
-          <div
-            className={cn(
-              "rounded-lg border px-3 py-2 text-[12px] leading-relaxed transition-colors duration-300",
-              mode === "vibe"
-                ? "border-white/[0.08] bg-white/[0.04] text-white/85"
-                : "border-[#d4b87a]/30 bg-[#d4b87a]/[0.06] text-white",
-            )}
-          >
-            {userPrompt}
-          </div>
+          <AnimatePresence>
+            {userBubbleVisible ? (
+              <motion.div
+                key={`bubble-${runId}`}
+                layoutId={`prompt-bubble-${runId}`}
+                initial={{ opacity: 0, y: 24, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{
+                  duration: 0.42,
+                  ease: [0.22, 0.68, 0, 1],
+                }}
+                className={cn(
+                  "rounded-lg border px-3 py-2 text-[12px] leading-relaxed transition-colors duration-300",
+                  mode === "vibe"
+                    ? "border-white/[0.08] bg-white/[0.04] text-white/85"
+                    : "border-[#d4b87a]/30 bg-[#d4b87a]/[0.06] text-white",
+                )}
+              >
+                <PromptText mode={mode} runId={runId} />
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
         </div>
 
-        {/* Agent steps */}
-        <ul className="mt-2 space-y-1.5" key={animKey}>
-          {steps.map((step, i) => (
-            <AgentStepRow key={step.id} step={step} delay={i * 0.07} />
-          ))}
+        {/* Agent steps — only stream once thinking phase begins. */}
+        <ul className="mt-2 space-y-1.5" key={`steps-${runId}`}>
+          {stepsVisible
+            ? steps.map((step, i) => (
+                <AgentStepRow key={step.id} step={step} delay={i * 0.07} />
+              ))
+            : null}
         </ul>
       </div>
 
-      {/* Prompt input — pinned bottom */}
+      {/* Prompt input — pinned bottom. Plays the typewriter while phase
+          is `typing`, then briefly flashes a "sending" state during
+          `pushing`, then becomes a normal follow-up input. */}
       <div className="flex-shrink-0 border-t border-white/[0.06] p-2">
         <form
           onSubmit={(e) => {
             e.preventDefault();
             setDraft("");
           }}
-          className="flex flex-col gap-1.5 rounded-lg border border-white/[0.06] bg-white/[0.03] focus-within:border-[#d4b87a]/40 focus-within:bg-white/[0.05]"
+          className={cn(
+            "flex flex-col gap-1.5 rounded-lg border bg-white/[0.03] transition-colors",
+            phase === "pushing"
+              ? "border-[#d4b87a]/60 bg-[#d4b87a]/[0.08] shadow-[0_0_0_3px_rgba(212,184,122,0.15)]"
+              : "border-white/[0.06] focus-within:border-[#d4b87a]/40 focus-within:bg-white/[0.05]",
+          )}
         >
-          <textarea
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            rows={1}
-            placeholder="Ask a follow-up…"
-            aria-label="Follow-up prompt"
-            className="w-full resize-none border-0 bg-transparent px-3 pt-2 text-[12px] text-white placeholder:text-white/35 focus:outline-none focus:ring-0"
-          />
+          {phase === "typing" ? (
+            <div className="px-3 pt-2 pb-1 text-[12px] text-white/85">
+              {promptInputContent}
+              <span className="ml-0.5 inline-block h-3 w-[1px] animate-pulse bg-[#d4b87a] align-middle" />
+            </div>
+          ) : phase === "pushing" ? (
+            <motion.div
+              key={`pushing-${runId}`}
+              initial={{ opacity: 1, y: 0, scale: 1 }}
+              animate={{ opacity: 0, y: -16, scale: 0.96 }}
+              transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
+              className={cn(
+                "px-3 pt-2 pb-1 text-[12px]",
+                mode === "vibe" ? "text-white/85" : "text-white",
+              )}
+            >
+              {userPrompt}
+            </motion.div>
+          ) : (
+            <textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              rows={1}
+              placeholder="Ask a follow-up…"
+              aria-label="Follow-up prompt"
+              className="w-full resize-none border-0 bg-transparent px-3 pt-2 text-[12px] text-white placeholder:text-white/35 focus:outline-none focus:ring-0"
+            />
+          )}
           <div className="flex items-center justify-between gap-2 px-2 pb-2">
             <div className="flex items-center gap-1.5">
               <span className="rounded-full bg-white/[0.05] px-2 py-0.5 text-[10px] font-medium text-white/60">
@@ -736,22 +1004,126 @@ function AgentPanel({ mode }: { mode: Mode }) {
             </div>
             <button
               type="submit"
-              disabled={draft.trim().length === 0}
+              disabled={draft.trim().length === 0 || phase !== "ready"}
               aria-label="Send follow-up"
               className={cn(
                 "inline-flex h-6 w-6 items-center justify-center rounded-full transition-all",
-                draft.trim().length === 0
-                  ? "bg-white/[0.05] text-white/35"
-                  : "bg-[#d4b87a] text-black hover:bg-[#e2c890]",
+                phase === "pushing"
+                  ? "bg-[#d4b87a] text-black"
+                  : draft.trim().length === 0 || phase !== "ready"
+                    ? "bg-white/[0.05] text-white/35"
+                    : "bg-[#d4b87a] text-black hover:bg-[#e2c890]",
               )}
             >
-              <Sparkles size={11} />
+              <Sparkles
+                size={11}
+                className={phase === "pushing" ? "animate-pulse" : ""}
+              />
             </button>
           </div>
         </form>
       </div>
     </div>
   );
+}
+
+/** Renders the user-prompt text inside the transcript header bubble.
+ *  In Vibe mode it draws a yellow Grammarly-style wavy underline
+ *  beneath the vague phrase. In Forma mode the vague phrase is
+ *  replaced by the precise rewrite, and the parenthetical detail
+ *  block animates open word-by-word so the user feels the prompt
+ *  "expanding with details". */
+function PromptText({ mode, runId }: { mode: Mode; runId: number }) {
+  if (mode === "vibe") {
+    const idx = VIBE_PROMPT.indexOf(VIBE_UNDERLINE_PHRASE);
+    const before = VIBE_PROMPT.slice(0, idx);
+    const phrase = VIBE_PROMPT.slice(idx, idx + VIBE_UNDERLINE_PHRASE.length);
+    const after = VIBE_PROMPT.slice(idx + VIBE_UNDERLINE_PHRASE.length);
+    return (
+      <span>
+        {before}
+        <span className="forma-vague-underline">{phrase}</span>
+        {after}
+      </span>
+    );
+  }
+  return <FormaPromptExpand key={`exp-${runId}`} />;
+}
+
+/** Forma prompt with an "expand with details" reveal. Splits the
+ *  precise prompt at the first " (" so the noun ("Off-Canvas Drawer")
+ *  appears immediately, then the parenthetical specs stream word-by-
+ *  word inside an unrolling container. */
+function FormaPromptExpand() {
+  const splitIdx = FORMA_PROMPT.indexOf(" (");
+  const head = splitIdx >= 0 ? FORMA_PROMPT.slice(0, splitIdx) : FORMA_PROMPT;
+  const detail = splitIdx >= 0 ? FORMA_PROMPT.slice(splitIdx) : "";
+  const detailWords = useMemo(
+    () => (detail ? detail.split(/(\s+)/) : []),
+    [detail],
+  );
+
+  return (
+    <span className="inline">
+      <motion.span
+        initial={{ opacity: 0, y: 2 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        {head}
+      </motion.span>
+      {detail ? (
+        <motion.span
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.2, delay: 0.25 }}
+          className="text-[#d4b87a]"
+        >
+          {detailWords.map((word, i) =>
+            word.match(/^\s+$/) ? (
+              <span key={i}>{word}</span>
+            ) : (
+              <motion.span
+                key={i}
+                initial={{ opacity: 0, filter: "blur(6px)", x: -4 }}
+                animate={{ opacity: 1, filter: "blur(0px)", x: 0 }}
+                transition={{
+                  duration: 0.3,
+                  delay: 0.35 + i * 0.045,
+                  ease: [0.22, 0.68, 0, 1],
+                }}
+                className="inline-block"
+              >
+                {word}
+              </motion.span>
+            ),
+          )}
+        </motion.span>
+      ) : null}
+    </span>
+  );
+}
+
+/** Tiny typewriter hook: returns the substring of `text` revealed so
+ *  far. Resets to empty whenever `runId` changes. */
+function useTypewriter(text: string, active: boolean, runId: number) {
+  const [shown, setShown] = useState("");
+  useEffect(() => {
+    setShown("");
+    if (!active) return;
+    const dur = getTypingDuration(text);
+    const perChar = dur / Math.max(1, text.length);
+    let i = 0;
+    const id = window.setInterval(() => {
+      i += 1;
+      setShown(text.slice(0, i));
+      if (i >= text.length) {
+        window.clearInterval(id);
+      }
+    }, perChar);
+    return () => window.clearInterval(id);
+  }, [text, active, runId]);
+  return shown;
 }
 
 function AgentStepRow({ step, delay }: { step: AgentStep; delay: number }) {

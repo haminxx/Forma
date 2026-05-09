@@ -213,3 +213,33 @@ body {
   }
 }
 
+/* ---------------------------------------------------------------------------
+ * Grammarly-style wavy underline used in the demo's Vibe-mode prompt
+ * to flag the vague phrase Forma is about to fix. Yellow gold, matches
+ * the brand accent. The optional pulsing keyframe is what reads as a
+ * "breaking" / live cue that the underline is freshly drawn.
+ * ------------------------------------------------------------------------ */
+.forma-vague-underline {
+  text-decoration: underline wavy var(--color-forma-gold);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+  text-decoration-skip-ink: none;
+  animation: forma-vague-flicker 2.4s ease-in-out infinite;
+}
+
+@keyframes forma-vague-flicker {
+  0%,
+  100% {
+    text-decoration-color: var(--color-forma-gold);
+  }
+  50% {
+    text-decoration-color: rgba(var(--color-forma-gold-rgb), 0.45);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .forma-vague-underline {
+    animation: none;
+  }
+}
+

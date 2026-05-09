@@ -80,6 +80,18 @@ export function HomePage() {
         >
           <DemoStage />
         </section>
+
+        {/* Bottom seam — fades the shared gold gradient into the dark
+            PoweredBy band so home → demo → marquee reads as one
+            continuous backdrop instead of cutting at the demo edge. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[28vh] z-0"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(10,10,12,0) 0%, rgba(10,10,12,0.55) 55%, rgba(10,10,12,1) 100%)",
+          }}
+        />
       </div>
 
       {/* Powered-by marquee — narrow dark band acting as a transition

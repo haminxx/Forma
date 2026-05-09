@@ -70,15 +70,12 @@ export function DemoStage({ className }: { className?: string }) {
               }}
             />
 
-            {/* macOS-style window frame around the demo content. The
-                window is the only opaque element in this section — it
-                "floats" above the home gradient that bleeds through. */}
+            {/* macOS-style window frame around the demo content. Fully
+                opaque so the floating window reads as a solid card; the
+                gold home gradient is visible *around* the window, not
+                through it. */}
             <div
               className="relative overflow-hidden rounded-[1.25rem] border border-white/10 bg-[#0d0e12] shadow-[0_40px_120px_-30px_rgba(0,0,0,0.7)] sm:rounded-[1.5rem]"
-              style={{
-                backdropFilter: "blur(20px) saturate(140%)",
-                WebkitBackdropFilter: "blur(20px) saturate(140%)",
-              }}
             >
               <DemoSplit />
             </div>
