@@ -6,29 +6,31 @@ import { PaperShaderHero } from "../components/PaperShaderHero";
 import { PoweredBy } from "../components/PoweredBy";
 import { ProblemTestimonial } from "../components/ProblemTestimonial";
 import { SolutionSection } from "../components/SolutionSection";
-import AnimatedGradientBackground from "../components/ui/animated-gradient-background";
 import { BlurText } from "../components/ui/blur-text";
 import { FeatureShowcase } from "../components/ui/feature-showcase";
 import { LogoCloud } from "../components/ui/logo-cloud";
 import { Reveal } from "../components/ui/reveal";
+import { EdgeGlow } from "../components/ui/section-fade";
 
 /**
  * Section order:  home → demo → sandbox → problem → solution → about → docs
  *
- * Two shared-background wrappers replace the previous per-section
- * radial backdrops:
+ * Background architecture (latest direction):
  *
- *   1. Hero block  (#home + #demo) — wrapped in one
- *      `AnimatedGradientBackground` (warm-gold spectrum, breathing).
- *   2. Lower block (#sandbox → #docs) — wrapped in one continuous
- *      vertical gradient that flows sandbox-gold → problem-deep →
- *      solution-gold → about-teal → docs-deep-teal with NO visible
- *      seam between any section. Each section keeps a *subtle* local
- *      tint overlay for character but no longer competes with a hard
- *      coloured backdrop.
+ *   - Home + Demo: each section now mounts its OWN AnimatedGradient-
+ *     Background (inside PaperShaderHero and inside DemoStage's sticky
+ *     panel). The page-level wrapper is gone; the two instances share
+ *     the same warm-gold palette so visually they read as one
+ *     continuous gradient when scrolling between them.
+ *   - Sandbox / Problem / Solution / About / Docs: per the latest
+ *     "revert" instruction, each section paints its OWN distinctive
+ *     backdrop again. The previous shared continuous gradient wrapper
+ *     was removed — every screen is back to having its own colour
+ *     identity (sandbox gold radial, problem gold-bridge, solution
+ *     gold dome, about teal, docs deep-teal).
  *
- * Every section uses `scroll-mt-24` (6rem ≈ 96px) so PillNav clicks
- * land the section's TOP cleanly below the floating navbar.
+ * Every section uses `scroll-mt-24` so PillNav clicks land the
+ * section's TOP cleanly below the floating navbar.
  */
 
 const HEADING_BASE_DELAY = 0.07;
@@ -40,90 +42,55 @@ function postHeadingDelay(tokenCount: number) {
   );
 }
 
-// Shared backdrop for the entire lower flow (sandbox → docs). One
-// long radial-stack gradient pinned to the wrapper so the user
-// scrolls *through* one continuous colour band instead of crossing
-// per-section colour seams.
-const CONTINUOUS_LOWER_BG =
-  "linear-gradient(180deg, " +
-  // Sandbox top — bridges from home/demo gold tail
-  "#1a1612 0%, " +
-  "rgba(212,184,122,0.32) 6%, " +
-  // Sandbox body — Forma gold halo
-  "rgba(212,184,122,0.55) 12%, " +
-  "rgba(120,95,45,0.55) 22%, " +
-  // Problem — gold deepens to bronze
-  "rgba(60,48,30,0.85) 30%, " +
-  "rgba(150,120,70,0.40) 38%, " +
-  // Solution — gold dome
-  "rgba(212,184,122,0.65) 46%, " +
-  "rgba(120,100,60,0.55) 56%, " +
-  // About — warm fades into cool teal
-  "rgba(60,80,90,0.50) 66%, " +
-  "rgba(94,177,191,0.32) 74%, " +
-  // Docs — deepest teal closes the page
-  "rgba(46,126,140,0.30) 86%, " +
-  "rgba(20,32,40,0.95) 100%)";
-
 export function HomePage() {
   return (
     <div>
-      {/* ╭─ Hero block: home + demo share one gold gradient bg ─╮ */}
-      <div className="relative">
-        <AnimatedGradientBackground breathing topOffset={-20} />
+      {/* Home — PaperShaderHero owns its own AnimatedGradientBackground
+          (the breathing one) and fills h-screen. */}
+      <section
+        id="home"
+        className="relative scroll-mt-24"
+        aria-label="Forma — Grammarly for AI builder prompts"
+      >
+        <PaperShaderHero />
+      </section>
 
-        <section
-          id="home"
-          className="relative z-10 scroll-mt-24"
-          aria-label="Forma — Grammarly for AI builder prompts"
-        >
-          <PaperShaderHero />
-        </section>
-
-        {/* Demo — pulled up with -38vh so its sticky frame visually
-            starts halfway through the home fold. The hero gradient
-            bleeds straight through into the demo because both share
-            the wrapper backdrop above. */}
-        <section
-          id="demo"
-          className="relative z-10 scroll-mt-24"
-          style={{ marginTop: "-38vh" }}
-          aria-label="Demo"
-        >
-          <DemoStage />
-        </section>
-      </div>
+      {/* Demo — DemoStage's sticky panel mounts its OWN matching
+          AnimatedGradientBackground so the gold gradient is visible
+          behind the demo for the entire 170vh of scroll. Pulled up
+          with -38vh so the peek-then-expand frame visually starts
+          halfway through the home fold. */}
+      <section
+        id="demo"
+        className="relative z-10 scroll-mt-24"
+        style={{ marginTop: "-38vh" }}
+        aria-label="Demo"
+      >
+        <DemoStage />
+      </section>
 
       {/* Powered-by marquee — narrow dark band acting as a transition
-          beat between the gold hero/demo block and the lower
-          continuous-bg block. */}
+          between the gold hero/demo block and the sandbox below. */}
       <PoweredBy />
 
-      {/* ╭─ Lower flow: sandbox → docs share ONE backdrop ─╮ */}
-      <div
-        className="relative isolate"
-        style={{ background: CONTINUOUS_LOWER_BG }}
+      {/* Sandbox — gold radial backdrop (its dedicated treatment, kept
+          per direction). */}
+      <section
+        id="sandbox"
+        className="relative flex min-h-screen scroll-mt-24 flex-col items-center justify-center overflow-hidden px-6"
+        style={{
+          paddingTop: "clamp(3rem,8vh,6rem)",
+          paddingBottom: "clamp(3rem,8vh,6rem)",
+          gap: "clamp(1rem,2.5vh,2rem)",
+        }}
       >
-        {/* Sandbox — gold radial overlay (per latest direction sandbox
-            keeps its own dedicated bright gold treatment as the
-            exception). All other lower sections only carry a faint
-            local tint so they read as one continuous band with
-            sandbox. */}
-        <section
-          id="sandbox"
-          className="relative flex min-h-screen scroll-mt-24 flex-col items-center justify-center overflow-hidden px-6"
-          style={{
-            paddingTop: "clamp(3rem,8vh,6rem)",
-            paddingBottom: "clamp(3rem,8vh,6rem)",
-            gap: "clamp(1rem,2.5vh,2rem)",
-          }}
-        >
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 -z-10 [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#d4b87a_100%)]"
-          />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#d4b87a_100%)]"
+        />
 
-          <div className="relative z-10 flex flex-col items-center text-center">
+        <Reveal duration={0.7}>
+          <div className="flex flex-col items-center text-center">
             <BlurText
               as="h2"
               align="center"
@@ -146,65 +113,90 @@ export function HomePage() {
               content="Test it on every web vibe-coding platform."
             />
           </div>
-          <div
-            className="relative z-10 flex w-full flex-col items-center"
-            style={{ gap: "clamp(1rem,2.5vh,2rem)" }}
-          >
-            <Reveal delay={postHeadingDelay(3) + 0.5} duration={0.6}>
-              <InstallSteps />
-            </Reveal>
-            <Reveal delay={postHeadingDelay(3) + 0.7} duration={0.6}>
-              <GlassTextarea />
-            </Reveal>
-            <Reveal delay={postHeadingDelay(3) + 0.9} duration={0.6}>
-              <LogoCloud />
-            </Reveal>
-          </div>
-        </section>
+        </Reveal>
 
-        {/* Problem — sits directly on the shared continuous backdrop.
-            No local backdrop div: the wrapper gradient already paints
-            the deep-gold band that this section is meant to occupy. */}
-        <section
-          id="problem"
-          className="relative flex min-h-screen scroll-mt-24 items-center justify-center overflow-hidden px-6"
+        <div
+          className="relative z-10 flex w-full flex-col items-center"
+          style={{ gap: "clamp(1rem,2.5vh,2rem)" }}
+        >
+          <Reveal delay={0.15} duration={0.6}>
+            <InstallSteps />
+          </Reveal>
+          <Reveal delay={0.25} duration={0.6}>
+            <GlassTextarea />
+          </Reveal>
+          <Reveal delay={0.35} duration={0.6}>
+            <LogoCloud />
+          </Reveal>
+        </div>
+      </section>
+
+      {/* Problem — gold-bridge linear gradient backdrop (its own
+          dedicated treatment, restored per the revert instruction). */}
+      <section
+        id="problem"
+        className="relative flex min-h-screen scroll-mt-24 items-center justify-center overflow-hidden px-6"
+        style={{
+          paddingTop: "clamp(3rem,8vh,6rem)",
+          paddingBottom: "clamp(3rem,8vh,6rem)",
+        }}
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10"
           style={{
-            paddingTop: "clamp(3rem,8vh,6rem)",
-            paddingBottom: "clamp(3rem,8vh,6rem)",
+            background:
+              "linear-gradient(180deg, rgba(212,184,122,0.92) 0%, rgba(150,120,70,0.65) 35%, rgba(60,48,30,0.85) 70%, rgba(25,26,31,0.95) 100%)",
           }}
-        >
-          <div className="relative z-10 w-full">
-            <ProblemTestimonial
-              quotes={[
-                "AI builders got dramatically better at generation — but the bottleneck moved upstream to specification quality. Generic prompts still produce generic components.",
-              ]}
-              attributions={[
-                "The input-quality bottleneck — every builder ecosystem competes on output, but they all consume the same low-quality prompt inputs",
-              ]}
-            />
-          </div>
-        </section>
+        />
+        <Reveal duration={0.7}>
+          <ProblemTestimonial />
+        </Reveal>
+      </section>
 
-        {/* Solution — sits directly on the shared backdrop. */}
-        <section
-          id="solution"
-          className="relative flex min-h-screen scroll-mt-24 flex-col items-center justify-center overflow-hidden px-6 py-16"
-          aria-label="Solution"
-        >
+      {/* Solution — gold dome backdrop (restored). */}
+      <section
+        id="solution"
+        className="relative flex min-h-screen scroll-mt-24 flex-col items-center justify-center overflow-hidden px-6 py-16"
+        aria-label="Solution"
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10"
+          style={{
+            background:
+              "radial-gradient(120% 100% at 50% 35%, rgba(212,184,122,0.92) 0%, rgba(212,184,122,0.78) 45%, rgba(120,100,60,0.70) 80%, rgba(25,26,31,0.85) 100%)",
+          }}
+        />
+        <Reveal duration={0.7}>
           <SolutionSection />
-        </section>
+        </Reveal>
+      </section>
 
-        {/* About — eyebrow "Inside Forma" removed per latest direction;
-            FeatureShowcase prop omitted so the badge above the headline
-            no longer renders. */}
-        <section
-          id="about"
-          className="relative flex min-h-screen scroll-mt-24 flex-col items-center justify-center overflow-hidden px-6"
-          style={{
-            paddingTop: "clamp(3rem,8vh,6rem)",
-            paddingBottom: "clamp(3rem,8vh,6rem)",
-          }}
-        >
+      {/* About — teal radial backdrop (restored). EdgeGlows on both
+          edges so Solution → About + About → Docs seams read as a
+          continuous cool tail. "Inside Forma" eyebrow is omitted. */}
+      <section
+        id="about"
+        className="relative flex min-h-screen scroll-mt-24 flex-col items-center justify-center overflow-hidden px-6"
+        style={{
+          paddingTop: "clamp(3rem,8vh,6rem)",
+          paddingBottom: "clamp(3rem,8vh,6rem)",
+        }}
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 [background:radial-gradient(120%_90%_at_50%_0%,rgba(94,177,191,0.32)_0%,#000_60%)]"
+        />
+        <EdgeGlow
+          position="top"
+          tone="accent"
+          intensity={0.1}
+          height="clamp(8rem, 18vh, 14rem)"
+        />
+        <EdgeGlow position="bottom" tone="accent" intensity={0.08} />
+
+        <Reveal duration={0.7}>
           <FeatureShowcase
             title="One GPU. Two model tiers. One product flow."
             description="Forma's freemium experience requires both inference paths to be live at the same time on the same backend. Llama 3.1 8B handles per-keystroke scoring for free users; Llama 3.1 70B AWQ powers the 7-agent deep analysis for Pro users. Both fit in 89 GiB of MI300X — H100 80GB cannot host both with usable concurrency."
@@ -256,28 +248,35 @@ export function HomePage() {
             defaultTab="free"
             panelMinHeight={480}
           />
-        </section>
+        </Reveal>
+      </section>
 
-        {/* Docs — sticky 200vh section closes the cool tail. The
-            shared backdrop gradient already paints the deep teal band
-            this section sits in, so there is no local backdrop here
-            either. */}
-        <section
-          id="docs"
-          className="relative scroll-mt-24"
-          style={{ height: "200vh" }}
+      {/* Docs — sticky 200vh section. Deep-teal radial backdrop
+          (restored). "Docs · AMD AI Hackathon · Track 1" eyebrow was
+          removed inside DocsPanel itself. */}
+      <section
+        id="docs"
+        className="relative scroll-mt-24"
+        style={{ height: "200vh" }}
+      >
+        <div
+          className="sticky top-24 flex h-[calc(100vh-6rem)] items-center justify-center overflow-hidden px-6"
+          style={{
+            paddingTop: "clamp(3rem,8vh,6rem)",
+            paddingBottom: "clamp(3rem,8vh,6rem)",
+          }}
         >
           <div
-            className="sticky top-24 flex h-[calc(100vh-6rem)] items-center justify-center overflow-hidden px-6"
-            style={{
-              paddingTop: "clamp(3rem,8vh,6rem)",
-              paddingBottom: "clamp(3rem,8vh,6rem)",
-            }}
-          >
+            aria-hidden
+            className="pointer-events-none absolute inset-0 -z-10 [background:radial-gradient(120%_85%_at_50%_100%,rgba(94,177,191,0.22)_0%,#000_55%)]"
+          />
+          <EdgeGlow position="top" tone="accent" intensity={0.08} />
+          <EdgeGlow position="bottom" tone="accent" intensity={0.06} />
+          <Reveal duration={0.7}>
             <DocsPanel />
-          </div>
-        </section>
-      </div>
+          </Reveal>
+        </div>
+      </section>
     </div>
   );
 }

@@ -1,160 +1,195 @@
-import type { HTMLAttributes, SVGProps } from "react";
-import { forwardRef, useRef } from "react";
-import { LayoutGroup, motion, useInView } from "framer-motion";
+import { useState } from "react";
+import { Code2, Sparkles, Users, type LucideIcon } from "lucide-react";
+
 import { cn } from "../lib/cn";
-import { DotPattern } from "./ui/dot-pattern";
-import { TextRotate } from "./ui/text-rotate";
 
 /**
- * Problem-screen statement with dot-pattern frame and a single quote +
- * attribution. Per spec:
- *   - On first scroll-into-view, the per-character stagger animation
- *     plays once.
- *   - No outer fade-in / blur entry on the wrapper itself.
- *   - No auto-rotation through quotes.
- *   - When the user scrolls out and back in, the in-view key changes so
- *     the stagger replays from its initial state ("animation reverts").
+ * Problem-screen statement.
+ *
+ * Layout pattern (clickable persona pickers + sliding-blur quote +
+ * active author info row) is a common testimonial-component layout —
+ * uncopyrightable as an idea, implemented here from scratch with
+ * Forma-original Tailwind classes, lucide icons in place of avatar
+ * photos, and quotes paraphrased from Forma's own README problem
+ * section. The personas are composite illustrative roles (the vibe-
+ * coder / team lead / researcher), NOT real customer testimonials.
+ *
+ * Per latest direction the quote text is BIG + BOLD (was font-black
+ * sf-display in the previous TextRotate variant); each persona icon
+ * swaps the visible quote on click with a fade + blur transition.
  */
-type ProblemTestimonialProps = HTMLAttributes<HTMLDivElement> & {
-  quotes: string[];
-  attributions: string[];
+
+type Persona = {
+  id: string;
+  quote: string;
+  name: string;
+  role: string;
+  Icon: LucideIcon;
+  /** Hex used for the persona's icon tint + active-ring glow. */
+  accent: string;
 };
 
-const SF_DISPLAY_STACK =
-  '"SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter", "Helvetica Neue", system-ui, sans-serif';
+const PERSONAS: Persona[] = [
+  {
+    id: "vibe",
+    quote:
+      "I keep typing 'popup that slides in' and getting six different flavours of generic component back. The model isn't broken — my prompt is.",
+    name: "The Vibe-Coder",
+    role: "Solo builder · ships from v0 daily",
+    Icon: Code2,
+    accent: "#d4b87a",
+  },
+  {
+    id: "team",
+    quote:
+      "Every team has a 'modal' that's actually a sheet, a dialog, and a popover all wearing the same name. Naming collisions ship to production.",
+    name: "The Team Lead",
+    role: "8-person product team · multiple builders",
+    Icon: Users,
+    accent: "#ff9c5a",
+  },
+  {
+    id: "researcher",
+    quote:
+      "Builders got dramatically better at generation. The bottleneck moved upstream — to the vocabulary of the prompt itself.",
+    name: "The Researcher",
+    role: "Studied AI-builder workflows",
+    Icon: Sparkles,
+    accent: "#b58bff",
+  },
+];
 
-export const ProblemTestimonial = forwardRef<HTMLDivElement, ProblemTestimonialProps>(
-  ({ className, quotes, attributions, ...props }, ref) => {
-    const containerRef = useRef<HTMLDivElement | null>(null);
-    const inView = useInView(containerRef, { amount: 0.4 });
+export function ProblemTestimonial() {
+  const [active, setActive] = useState(0);
 
-    const quote = quotes[0] ?? "";
-    const attribution = attributions[0] ?? "";
-
-    const animKey = inView ? "in" : "out";
-
-    return (
+  return (
+    <div className="relative mx-auto w-full max-w-3xl px-6 py-16">
+      {/* Soft warm halo behind the quote — adds vertical lift on the
+          gold backdrop without competing with the text itself. */}
       <div
-        ref={(node) => {
-          containerRef.current = node;
-          if (typeof ref === "function") ref(node);
-          else if (ref) (ref as { current: HTMLDivElement | null }).current = node;
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-1/4 -z-10 h-[60%]"
+        style={{
+          background:
+            "radial-gradient(60% 50% at 50% 50%, rgba(255,215,140,0.20) 0%, rgba(212,184,122,0.10) 35%, rgba(0,0,0,0) 70%)",
+          filter: "blur(8px)",
         }}
-        className={cn("relative isolate w-full max-w-5xl px-4 sm:px-6", className)}
-        {...props}
-      >
-        <DotPattern className="fill-white/15 md:fill-white/20" />
+      />
 
-        {/* Depth / glow halo behind the quote — soft warm radial that
-            adds vertical lift to the testimonial and matches the gold
-            backdrop without competing with it. */}
-        <motion.div
-          aria-hidden
-          key={`halo-${animKey}`}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={
-            inView
-              ? { opacity: 1, scale: 1 }
-              : { opacity: 0, scale: 0.9 }
-          }
-          transition={{ duration: 0.9, ease: [0.22, 0.68, 0, 1] }}
-          className="pointer-events-none absolute inset-x-0 top-1/4 -z-10 h-[60%]"
-          style={{
-            background:
-              "radial-gradient(60% 50% at 50% 50%, rgba(255,215,140,0.22) 0%, rgba(212,184,122,0.10) 35%, rgba(0,0,0,0) 70%)",
-            filter: "blur(8px)",
-          }}
-        />
-
-        <div key={animKey} className="relative z-10">
-          <QuoteGlyph
-            aria-hidden="true"
-            className="mb-6 h-10 w-10 text-[#fff3cf] sm:h-12 sm:w-12"
+      {/* Quote — single absolute-positioned stack, only the active
+          quote is opaque + un-blurred. Big bold display type. */}
+      <div className="relative mb-12 min-h-[260px] sm:min-h-[220px]">
+        {PERSONAS.map((p, i) => (
+          <p
+            key={p.id}
+            aria-hidden={active !== i}
+            className={cn(
+              "absolute inset-0 text-balance text-3xl font-bold leading-[1.15] tracking-tight text-white sm:text-4xl md:text-5xl lg:text-[3.25rem]",
+              "transition-all duration-500 ease-out",
+              active === i
+                ? "translate-y-0 opacity-100 blur-0"
+                : "pointer-events-none translate-y-4 opacity-0 blur-md",
+            )}
             style={{
-              filter:
-                "drop-shadow(0 4px 18px rgba(0,0,0,0.45)) drop-shadow(0 0 12px rgba(212,184,122,0.35))",
+              textShadow:
+                "0 2px 28px rgba(0,0,0,0.55), 0 0 24px rgba(255,215,140,0.18)",
             }}
-          />
+          >
+            <span
+              aria-hidden
+              className="mr-1 inline-block align-top text-[#fff3cf]/85"
+              style={{ fontFamily: "Georgia, serif" }}
+            >
+              “
+            </span>
+            {p.quote}
+            <span
+              aria-hidden
+              className="ml-1 inline-block align-top text-[#fff3cf]/85"
+              style={{ fontFamily: "Georgia, serif" }}
+            >
+              ”
+            </span>
+          </p>
+        ))}
+      </div>
 
-          <LayoutGroup>
-            {inView ? (
-              <TextRotate
-                texts={[quote]}
-                auto={false}
-                splitBy="words"
-                staggerFrom="first"
-                staggerDuration={0.04}
-                initial={{ y: "60%", opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ type: "spring", damping: 28, stiffness: 320 }}
-                animatePresenceMode="wait"
-                animatePresenceInitial
-                mainClassName="text-balance text-3xl font-black leading-[1.05] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-[5rem]"
+      {/* Author row: persona pickers + divider + active author info */}
+      <div className="flex items-center gap-6">
+        {/* Persona picker pills — clickable icon-circles. Active one
+            scales up + glows with the persona's accent. */}
+        <div className="flex -space-x-2">
+          {PERSONAS.map((p, i) => {
+            const Icon = p.Icon;
+            const isActive = active === i;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => setActive(i)}
+                aria-pressed={isActive}
+                aria-label={`Show quote from ${p.name}`}
+                className={cn(
+                  "relative flex h-11 w-11 items-center justify-center rounded-full border-2 ring-2 ring-black/40 backdrop-blur-md transition-all duration-300",
+                  isActive
+                    ? "z-10 scale-110"
+                    : "scale-100 grayscale hover:scale-105 hover:grayscale-0",
+                )}
                 style={{
-                  fontFamily: SF_DISPLAY_STACK,
-                  fontWeight: 900,
-                  letterSpacing: "-0.02em",
-                  // Layered text shadow: deep ambient drop + warm gold
-                  // halo for richness on the gold backdrop.
-                  textShadow:
-                    "0 2px 30px rgba(0,0,0,0.55), 0 0 24px rgba(255,215,140,0.18)",
+                  borderColor: isActive ? p.accent : "rgba(255,255,255,0.20)",
+                  background: isActive
+                    ? `linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.75))`
+                    : "rgba(20,20,24,0.65)",
+                  color: isActive ? p.accent : "rgba(255,255,255,0.55)",
+                  boxShadow: isActive
+                    ? `0 0 26px -4px ${p.accent}aa, inset 0 1px 0 rgba(255,255,255,0.10)`
+                    : "inset 0 1px 0 rgba(255,255,255,0.05)",
                 }}
-              />
-            ) : null}
+              >
+                <Icon size={18} strokeWidth={2} />
+              </button>
+            );
+          })}
+        </div>
 
-            <motion.div
-              layout
-              className="my-8 h-2 w-2 rounded-full bg-[#ff5941] sm:h-3 sm:w-3"
-              style={{
-                boxShadow:
-                  "0 0 14px rgba(255,89,65,0.7), 0 4px 14px rgba(0,0,0,0.5)",
-              }}
-              aria-hidden="true"
-            />
+        {/* Divider */}
+        <div className="h-10 w-px bg-white/15" />
 
-            {inView ? (
-              <TextRotate
-                texts={[attribution]}
-                auto={false}
-                splitBy="characters"
-                staggerFrom="first"
-                staggerDuration={0.018}
-                initial={{ y: "60%", opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{
-                  type: "spring",
-                  damping: 28,
-                  stiffness: 360,
-                  delay: 0.25,
-                }}
-                animatePresenceMode="wait"
-                animatePresenceInitial
-                mainClassName="text-sm text-white/85 sm:text-base"
-                style={{
-                  textShadow: "0 1px 8px rgba(0,0,0,0.5)",
-                }}
-              />
-            ) : null}
-          </LayoutGroup>
+        {/* Active author info — same absolute-stack swap pattern. */}
+        <div className="relative min-h-[44px] flex-1">
+          {PERSONAS.map((p, i) => (
+            <div
+              key={p.id}
+              aria-hidden={active !== i}
+              className={cn(
+                "absolute inset-0 flex flex-col justify-center",
+                "transition-all duration-400 ease-out",
+                active === i
+                  ? "translate-x-0 opacity-100"
+                  : "pointer-events-none -translate-x-2 opacity-0",
+              )}
+            >
+              <span
+                className="text-base font-semibold text-white"
+                style={{ textShadow: "0 1px 6px rgba(0,0,0,0.45)" }}
+              >
+                {p.name}
+              </span>
+              <span className="text-xs text-white/65 sm:text-sm">
+                {p.role}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
-    );
-  },
-);
 
-ProblemTestimonial.displayName = "ProblemTestimonial";
-
-function QuoteGlyph(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      viewBox="0 0 32 32"
-      fill="currentColor"
-      xmlns="http://www.w3.org/2000/svg"
-      {...props}
-    >
-      <path d="M9.5 22H5l3-9h-3v-3h7l-2.5 12Zm12.5 0h-4.5l3-9h-3v-3h7l-2.5 12Z" />
-    </svg>
+      {/* Tiny disclosure — keeps it honest that the personas are
+          illustrative composites, not real customer testimonials. */}
+      <p className="mt-6 text-[10px] uppercase tracking-[0.22em] text-white/35">
+        Composite personas · quotes paraphrased from the Forma README
+      </p>
+    </div>
   );
 }
+
+ProblemTestimonial.displayName = "ProblemTestimonial";

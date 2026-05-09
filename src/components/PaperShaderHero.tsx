@@ -1,23 +1,23 @@
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 
+import AnimatedGradientBackground from "@/components/ui/animated-gradient-background";
 import { cn } from "@/lib/utils";
 
 /**
- * Forma home hero — centered text stack on top of the shared
- * gold-radial backdrop.
+ * Forma home hero.
  *
- * Note: the `AnimatedGradientBackground` is now mounted ONCE at the
- * Home.tsx page level so it can span both #home and #demo with no
- * visible seam (per the latest direction). This component contributes
- * only the local scrim + the centered content stack.
+ * Architecture (per latest direction): every screen that needs the
+ * gold gradient mounts its OWN `AnimatedGradientBackground`. The
+ * page-level wrapper around #home + #demo no longer carries one.
+ * That guarantees:
+ *   1. The gradient actually renders at viewport size on the hero
+ *      instead of stretching across home + demo and washing out.
+ *   2. The breathing animation on this hero's instance can run
+ *      independently of the demo's instance.
  *
- * Centred layout:
- *   - Title is now vertically centred in the full hero (was confined
- *     to the upper 62%). The user wanted the text shifted down so it
- *     reads as the visual centre of the home screen, not the top.
- *   - 3-col footer info row is gone; just title + divider + subtitle
- *     + CTA.
+ * Both instances use the same warm-gold palette so visually they
+ * read as one continuous gradient when scrolling between them.
  */
 export function PaperShaderHero() {
   const containerVariants = {
@@ -38,17 +38,17 @@ export function PaperShaderHero() {
 
   return (
     <motion.section
-      className={cn(
-        "relative h-screen w-full overflow-hidden text-white",
-      )}
+      className={cn("relative h-screen w-full overflow-hidden bg-black text-white")}
       initial="hidden"
       animate="visible"
       variants={containerVariants}
     >
-      {/* Vertical scrim — light at top + bottom, hollow in the
-          middle — keeps the navbar / centred text legible against
-          the brightest part of the gradient without eating the gold
-          tones at the edges. */}
+      {/* The gold gradient itself. `breathing` keeps the soft pulse
+          alive; `topOffset` nudges the radial centre slightly upward. */}
+      <AnimatedGradientBackground breathing topOffset={-20} />
+
+      {/* Vertical scrim — light at top, transparent at bottom — so
+          the navbar / centred title stay legible against the gradient. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
@@ -58,8 +58,7 @@ export function PaperShaderHero() {
         }}
       />
 
-      {/* Centred content stack. Full-height flex container so the
-          stack lands at the vertical centre of the hero. */}
+      {/* Centred content stack. */}
       <div className="relative z-10 mx-auto flex h-full w-full max-w-3xl flex-col items-center justify-center px-6 text-center">
         <motion.div
           variants={containerVariants}

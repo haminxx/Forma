@@ -4,24 +4,27 @@ import { Reveal } from "./ui/reveal";
 const handleNavClick = (sectionId: string) => (e: React.MouseEvent) => {
   e.preventDefault();
   const node = document.getElementById(sectionId);
-  node?.scrollIntoView({ behavior: "smooth", block: "center" });
+  node?.scrollIntoView({ behavior: "smooth", block: "start" });
 };
 
 /**
- * Slim footer. Three rows stacked top-to-bottom:
- *   1. Brand row     — F-badge + "Forma" word-mark + © + author credits
- *   2. Tagline row   — 2-line description, max-w-3xl so it wraps cleanly
- *   3. Section nav   — Home -> Docs as a single horizontal flex-wrap row
+ * Slim footer (latest direction):
+ *   1. Brand + credits row     — F-badge + word-mark on the left,
+ *                                © + author credits on the right
+ *   2. Section nav menu        — Home → Docs as a horizontal flex-wrap
+ *                                row directly UNDER the credits, so it
+ *                                visually reads as a "menu sector"
+ *                                attached to the credits line
+ *   3. Tagline (optional)      — 2-line description at the bottom
  *
- * Per the latest direction the previous 2-column layout (with the nav
- * stacked vertically on the right) was retired in favour of this
- * narrower, fully-horizontal footer.
+ * `mt-0` on the footer (was `mt-20`) removes the grey gap that used
+ * to sit between the docs section's bottom and the footer's top.
  */
 export function SiteFooter() {
   return (
-    <footer className="relative z-10 mt-20 border-t border-white/10 bg-[#0a0a0c] px-6 pb-10 pt-12 text-sm text-white/60">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        {/* Row 1: brand + © + credits */}
+    <footer className="relative z-10 mt-0 border-t border-white/10 bg-[#0a0a0c] px-6 pb-10 pt-10 text-sm text-white/60">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
+        {/* Row 1: brand on the left, credits on the right */}
         <Reveal duration={0.55}>
           <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
             <div className="flex items-center gap-2 text-white">
@@ -59,10 +62,31 @@ export function SiteFooter() {
           </div>
         </Reveal>
 
-        {/* Row 2: tagline. max-w-3xl + leading-snug renders this as a
+        {/* Row 2: section nav menu — directly under the credits line.
+            flex-row + flex-wrap so the row reflows cleanly on narrow
+            viewports without ever stacking vertically. */}
+        <nav aria-label="Footer section navigation">
+          <ul className="flex flex-row flex-wrap items-center gap-x-6 gap-y-2 border-t border-white/5 pt-4">
+            {NAV_ITEMS.map((item, index) => (
+              <li key={item.id}>
+                <Reveal delay={0.1 + index * 0.04} duration={0.4} as="span">
+                  <a
+                    href={`#${item.id}`}
+                    onClick={handleNavClick(item.id)}
+                    className="text-sm font-semibold text-white/80 transition-colors hover:text-[#d4b87a]"
+                  >
+                    {item.label}
+                  </a>
+                </Reveal>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        {/* Row 3: tagline. max-w-3xl + leading-snug renders this as a
             2-line paragraph at desktop widths instead of the previous
             3-line wrap. */}
-        <Reveal duration={0.55} delay={0.1}>
+        <Reveal duration={0.55} delay={0.2}>
           <p className="max-w-3xl text-sm leading-snug text-white/55">
             A real-time translation layer between human intent and the AI
             tools that build UI. Forma watches your prompts and silently
@@ -70,25 +94,6 @@ export function SiteFooter() {
             for.
           </p>
         </Reveal>
-
-        {/* Row 3: horizontal section nav. flex-row + flex-wrap so the
-            row reflows cleanly on narrow viewports without ever
-            stacking vertically. */}
-        <ul className="flex flex-row flex-wrap items-center gap-x-6 gap-y-2 border-t border-white/5 pt-5">
-          {NAV_ITEMS.map((item, index) => (
-            <li key={item.id}>
-              <Reveal delay={0.25 + index * 0.04} duration={0.4} as="span">
-                <a
-                  href={`#${item.id}`}
-                  onClick={handleNavClick(item.id)}
-                  className="text-sm font-semibold text-white/80 transition-colors hover:text-[#d4b87a]"
-                >
-                  {item.label}
-                </a>
-              </Reveal>
-            </li>
-          ))}
-        </ul>
       </div>
     </footer>
   );
