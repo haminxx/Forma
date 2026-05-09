@@ -73,10 +73,11 @@ export function LogoCloud({ className, ...props }: LogoCloudProps) {
           isMdLastRow ? "md:border-b-0" : "md:border-b",
         );
 
-        // Subtle bg-secondary checkerboard so cells alternate brightness —
-        // matches the reference's "bg-secondary" wash.
+        // Subtle solid gradient tiles (not transparent) so logos read on gold sandbox bloom.
         const checker = (i + Math.floor(i / 4)) % 2 === 0;
-        const cellBg = checker ? "bg-white/[0.025]" : "bg-transparent";
+        const cellBg = checker
+          ? "bg-gradient-to-br from-[#23241c] via-[#1c1d18] to-[#14151a]"
+          : "bg-gradient-to-br from-[#1e1f26] via-[#181924] to-[#12131a]";
 
         // PlusIcon at the centre horizontal line ONLY — the bottom-right
         // of top-row cells (i = 0, 2) sits on the divider between rows.

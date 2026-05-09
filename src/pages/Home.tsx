@@ -27,7 +27,8 @@ import { EdgeGlow, SectionFade } from "../components/ui/section-fade";
  *   - The Problem section uses `ProblemTestimonial` — dot-pattern
  *     background, large quote with `TextRotate` word stagger, and
  *     attribution; animation replays when re-entering the viewport.
- *   - The Solution section is reserved for future content (placeholder).
+ *   - The Solution section uses SolutionSection — bento grid (individual
+ *     builders) with shadcn-style cards.
  *   - The About section uses `FeatureShowcase` (left-column accordion
  *     + right-column tab images, gold theme).
  *   - The Docs section uses gold `GlowCard` spotlights for each card.
@@ -76,10 +77,16 @@ export function HomePage() {
           <InteractiveCanvas />
         </div>
 
-        <div className="relative z-20 mx-auto grid w-full max-w-[min(98vw,92rem)] gap-12 md:grid-cols-[1.2fr_1fr] md:items-center md:gap-12">
-          <HomeHero />
-          <div className="md:justify-self-end">
-            <LoopingWords />
+        {/* 12-col shell: grid is invisible (no borders) — positions hero vs
+            motion per DESIGN.md “Home hero (invisible positioning grid)”. */}
+        <div className="relative z-20 mx-auto w-full max-w-[min(98vw,92rem)]">
+          <div className="grid grid-cols-1 gap-12 md:grid-cols-12 md:items-start md:gap-x-8 md:gap-y-12">
+            <div className="md:col-span-7 lg:col-span-6">
+              <HomeHero />
+            </div>
+            <div className="md:col-span-5 md:col-start-8 lg:col-span-6 lg:col-start-7 md:justify-self-end">
+              <LoopingWords />
+            </div>
           </div>
         </div>
 
