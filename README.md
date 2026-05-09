@@ -181,6 +181,7 @@ As users type prompts across v0, Cursor, Lovable, Bolt, and base44, Forma builds
 - Animation library for all 60 canonical UI components × 3 alternatives each
 - Multi-site extension support: Cursor, Lovable, Bolt, base44 (currently v0.app only)
 - contenteditable site support (ChatGPT, Claude, builders that don't use textarea)
+- Refinement nudges: when a canonical suggestion is "almost right," users type a short adjustment ("but slide from the left") and the 70B reformulator regenerates the prompt incorporating the nudge — feeds the Memory Engine with high-signal preference signal
 - Detection prompt tuning to reduce false positives on common nouns
 - Cmd+Z undo restoration after Forma's programmatic textarea updates
 - Real SSE streaming for live 7-agent progress (currently a simulated parallel timeline gated on real Consensus completion)
