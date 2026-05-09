@@ -65,7 +65,11 @@ export const BentoGridShowcase = ({
       variants={containerVariants}
       {...motionProps}
       className={cn(
-        "grid w-full grid-cols-1 gap-6 md:grid-cols-3 md:grid-rows-3 auto-rows-[minmax(180px,auto)]",
+        // Capped row min/max so the entire 3×3 grid fits in one viewport
+        // when nav-jumping to #solution. The integration card spans 3
+        // rows (≈ 3×140 + 2×gap = ~432 px), the rest are 140 px each;
+        // grid total ≈ 460 px + headline + section padding.
+        "grid w-full grid-cols-1 gap-4 md:grid-cols-3 md:grid-rows-3 auto-rows-[minmax(140px,150px)]",
         className,
       )}
     >

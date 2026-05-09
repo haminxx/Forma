@@ -12,6 +12,7 @@ import { BlurText } from "../components/ui/blur-text";
 import { FeatureShowcase } from "../components/ui/feature-showcase";
 import { LogoCloud } from "../components/ui/logo-cloud";
 import { Reveal } from "../components/ui/reveal";
+import { ScrollColorBackground } from "../components/ui/scroll-color-background";
 import { EdgeGlow, SectionFade } from "../components/ui/section-fade";
 
 /**
@@ -61,13 +62,18 @@ function postHeadingDelay(tokenCount: number) {
 export function HomePage() {
   return (
     <div>
+      {/* harmonic.ai-style fixed page background. Interpolates between
+          eight palette stops as the user scrolls so every section seam
+          is a continuous gradient instead of a hard boundary. */}
+      <ScrollColorBackground />
+
       <section
         id="home"
         className="relative isolate flex min-h-screen scroll-mt-20 flex-col items-center overflow-hidden px-6"
         style={{
           paddingTop: "5.5rem",
           paddingBottom: "clamp(2rem, 6vh, 5rem)",
-          justifyContent: "flex-start",
+          justifyContent: "center",
         }}
       >
         <div className="pointer-events-none absolute inset-0 z-0">
@@ -77,14 +83,14 @@ export function HomePage() {
           <InteractiveCanvas />
         </div>
 
-        {/* 12-col shell: grid is invisible (no borders) — positions hero vs
-            motion per DESIGN.md “Home hero (invisible positioning grid)”. */}
+        {/* seasa.com-style two-column hero: bigger left rail (text + CTA
+            + stats) and a tighter right column for the visual. */}
         <div className="relative z-20 mx-auto w-full max-w-[min(98vw,92rem)]">
-          <div className="grid grid-cols-1 gap-12 md:grid-cols-12 md:items-start md:gap-x-8 md:gap-y-12">
-            <div className="md:col-span-7 lg:col-span-6">
+          <div className="grid grid-cols-1 gap-10 md:grid-cols-12 md:items-center md:gap-x-10 md:gap-y-12">
+            <div className="md:col-span-7 lg:col-span-7">
               <HomeHero />
             </div>
-            <div className="md:col-span-5 md:col-start-8 lg:col-span-6 lg:col-start-7 md:justify-self-end">
+            <div className="md:col-span-5 lg:col-span-5 md:justify-self-end">
               <LoopingWords />
             </div>
           </div>
@@ -108,9 +114,9 @@ export function HomePage() {
         <EdgeGlow position="bottom" />
       </section>
 
-      {/* Demo — compact stage so the prompts row + outputs row both
-          fit in one viewport. Tighter padding + tighter gap inside
-          DemoSplit, with output cards on a fixed 16:10 aspect. */}
+      {/* Demo — eyebrow + H2 removed per the latest direction; the
+          Vibe Coder / Forma User toggle inside DemoSplit now sits at
+          the top-center as the only header for the section. */}
       <section
         id="demo"
         className="relative flex min-h-screen scroll-mt-20 flex-col items-center justify-center overflow-hidden px-6"
@@ -122,30 +128,7 @@ export function HomePage() {
       >
         <EdgeGlow position="top" />
         <EdgeGlow position="bottom" />
-        <div className="w-full max-w-[min(98vw,92rem)] px-3 sm:px-4">
-          <Reveal duration={0.5}>
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-white/55">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#d4b87a]" />
-              Demo · same intent, two prompts
-            </span>
-          </Reveal>
-          <div className="mt-3">
-            <BlurText
-              as="h2"
-              baseDelay={HEADING_BASE_DELAY}
-              duration={HEADING_DURATION}
-              underline
-              underlineWidth="min(18rem, 65%)"
-              className="text-balance text-2xl font-semibold tracking-tight text-white sm:text-3xl md:text-4xl"
-              content="Watch the same idea land twice — once vague, once precise."
-            />
-          </div>
-        </div>
-        <Reveal
-          delay={postHeadingDelay(11)}
-          duration={0.6}
-          className="flex w-full justify-center"
-        >
+        <Reveal duration={0.6} className="flex w-full justify-center">
           <DemoSplit />
         </Reveal>
       </section>

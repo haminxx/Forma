@@ -88,7 +88,11 @@ export function DemoSplit() {
 
   return (
     <div className="w-full max-w-[min(98vw,92rem)]">
-      <ModeToggle mode={mode} setMode={setMode} />
+      {/* Top-center toggle — the only header for the demo section now
+          that the eyebrow + H2 in Home.tsx are removed. */}
+      <div className="flex w-full justify-center">
+        <ModeToggle mode={mode} setMode={setMode} />
+      </div>
 
       <div className="mt-4 flex min-h-0 w-full flex-col gap-3 lg:mt-5 lg:h-[min(72vh,780px)] lg:flex-row lg:gap-4">
         {/* Left: brief + precision strip + docked prompt */}

@@ -202,3 +202,27 @@ body {
     scroll-behavior: auto;
   }
 }
+
+/* Hero CTA + stats stagger. Used by HomeHero with explicit `animation-delay`
+ * inline so each row lands after the BlurText copy resolves. The intermediate
+ * keyframe step locks `opacity: 1` so the inline `opacity: 0` (used to keep
+ * the elements hidden before their delay starts) doesn't override the
+ * post-animation fill. */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [class*="animate-[fadeUp"] {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
