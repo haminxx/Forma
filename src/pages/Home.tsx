@@ -10,7 +10,7 @@ import { BlurText } from "../components/ui/blur-text";
 import { FeatureShowcase } from "../components/ui/feature-showcase";
 import { LogoCloud } from "../components/ui/logo-cloud";
 import { Reveal } from "../components/ui/reveal";
-import { EdgeGlow, SectionFade } from "../components/ui/section-fade";
+import { EdgeGlow } from "../components/ui/section-fade";
 
 /**
  * Section order:
@@ -52,10 +52,10 @@ function postHeadingDelay(tokenCount: number) {
 export function HomePage() {
   return (
     <div>
-      {/* Home — the PaperShaderHero owns its own h-screen canvas. The
-          AppShell navbar/brand are absolute/fixed (out of flow), so
-          the section starts at y=0 of <main> and fills the viewport
-          with no top gap and no negative-margin trick. */}
+      {/* Home — full-bleed animated gradient hero. The lower 38% of
+          the viewport is intentionally transparent (the hero only
+          fills its top 62%) so the DemoStage section directly below
+          peeks through the bottom of the home fold. */}
       <section
         id="home"
         className="relative scroll-mt-20"
@@ -64,18 +64,18 @@ export function HomePage() {
         <PaperShaderHero />
       </section>
 
-      {/* Demo — sticky peek-then-expand stage. The DemoStage's first
-          paint at the top of #home (because of the 170vh shell + the
-          sticky child) lets the cursor-style demo window peek up
-          from below the home fold; as the user scrolls in, scale +
-          translate animate the panel to its full size. */}
+      {/* Demo — pulled up with -38vh so its sticky frame visually
+          starts halfway through the home fold. The peek-then-expand
+          scroll mechanic in DemoStage handles the scale-up as the
+          user scrolls into the section. The hero gradient bleeds
+          straight through into the demo because there's no SectionFade
+          band between them now. */}
       <section
         id="demo"
-        className="relative scroll-mt-20"
+        className="relative z-10 scroll-mt-20"
+        style={{ marginTop: "-38vh" }}
         aria-label="Demo"
       >
-        <EdgeGlow position="top" />
-        <EdgeGlow position="bottom" />
         <DemoStage />
       </section>
 
@@ -85,9 +85,9 @@ export function HomePage() {
           the install/grid flow that follows. */}
       <PoweredBy />
 
-      {/* Sandbox — gold radial. Bottom of the section bleeds gold into
-          the Problem section's top, where the gold-bridge backdrop
-          continues warmth all the way through Solution. */}
+      {/* Sandbox — gold radial. SectionFade dividers removed so the
+          warm tone bleeds straight into Problem (which opens with
+          the same gold). */}
       <section
         id="sandbox"
         className="relative flex min-h-screen scroll-mt-20 flex-col items-center justify-center overflow-hidden px-6"
@@ -101,8 +101,6 @@ export function HomePage() {
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10 h-full w-full items-center px-5 py-24 [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#d4b87a_100%)]"
         />
-        <SectionFade position="top" blur={6} />
-        <SectionFade position="bottom" blur={6} />
 
         <div className="relative z-10 flex flex-col items-center text-center">
           <BlurText
@@ -144,9 +142,9 @@ export function HomePage() {
       </section>
 
       {/* Problem — gold-bridge backdrop carries the warm sandbox tone
-          through into Solution. The IsoLevelWarp moving-line canvas
-          was removed per the latest direction; the testimonial sits
-          directly on the gold-bridge gradient. */}
+          through into Solution. SectionFade dividers removed so the
+          three warm sections (sandbox -> problem -> solution) read
+          as one continuous gold band. */}
       <section
         id="problem"
         className="relative flex min-h-screen scroll-mt-20 items-center justify-center overflow-hidden px-6"
@@ -163,8 +161,6 @@ export function HomePage() {
               "linear-gradient(180deg, rgba(212,184,122,0.92) 0%, rgba(150,120,70,0.65) 35%, rgba(60,48,30,0.85) 70%, rgba(25,26,31,0.95) 100%)",
           }}
         />
-        <SectionFade position="top" blur={4} />
-        <SectionFade position="bottom" blur={4} />
         <div className="relative z-10 w-full">
           <ProblemTestimonial
             quotes={[
@@ -177,8 +173,8 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Solution — full gold backdrop. The bottom hands off to teal
-          via an EdgeGlow whose top counterpart lives in About. */}
+      {/* Solution — full gold backdrop. SectionFade dividers removed
+          so warm-half (sandbox/problem/solution) reads as one band. */}
       <section
         id="solution"
         className="relative flex min-h-screen scroll-mt-20 flex-col items-center justify-center overflow-hidden px-6 py-16"
@@ -192,9 +188,6 @@ export function HomePage() {
               "radial-gradient(120% 100% at 50% 35%, rgba(212,184,122,0.92) 0%, rgba(212,184,122,0.78) 45%, rgba(120,100,60,0.70) 80%, rgba(25,26,31,0.85) 100%)",
           }}
         />
-        <SectionFade position="top" blur={5} />
-        <SectionFade position="bottom" blur={5} />
-        <EdgeGlow position="bottom" tone="accent" intensity={0.08} />
         <SolutionSection />
       </section>
 

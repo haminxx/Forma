@@ -43,12 +43,14 @@ export function DemoStage({ className }: { className?: string }) {
     offset: ["start end", "end end"],
   });
 
-  // Compress the meaningful motion into the first half of the scroll
-  // so the panel locks at progress 0.5 and stays expanded for the
-  // remaining scroll travel.
-  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.86, 1, 1]);
-  const y = useTransform(scrollYProgress, [0, 0.5, 1], [80, 0, 0]);
-  const opacity = useTransform(scrollYProgress, [0, 0.25, 1], [0.7, 1, 1]);
+  // Tighter peek + larger expansion. The panel starts at scale 0.7
+  // (clearly smaller, peeking from the bottom of the home fold) and
+  // grows to full 1.0 by the time the user has scrolled half the
+  // section. y starts at +30 so the smaller panel sits visually
+  // tucked underneath home's lower edge.
+  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.7, 1, 1]);
+  const y = useTransform(scrollYProgress, [0, 0.5, 1], [30, 0, 0]);
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 1], [0.85, 1, 1]);
 
   return (
     <div
