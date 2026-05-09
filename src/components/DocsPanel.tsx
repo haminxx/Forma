@@ -59,13 +59,7 @@ export function DocsPanel() {
   return (
     <div className="mx-auto w-full max-w-5xl px-4 sm:px-6">
       <div className="flex flex-col items-start gap-4">
-        <Reveal duration={0.35}>
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-white/55">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#d4b87a]" />
-            Docs · AMD AI Hackathon · Track 1
-          </span>
-        </Reveal>
-
+        {/* Eyebrow pill removed per latest direction. */}
         <BlurText
           as="h2"
           baseDelay={HEADING_BASE_DELAY}

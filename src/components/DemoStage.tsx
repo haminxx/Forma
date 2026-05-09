@@ -76,9 +76,11 @@ export function DemoStage({ className }: { className?: string }) {
         }}
       />
 
-      {/* Sticky frame: the peek-expand panel is pinned to the viewport
-          while the user scrolls through the section's tall flow. */}
-      <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden px-3 sm:px-6">
+      {/* Sticky frame: pinned to the viewport while the user scrolls
+          through the section's tall flow. `top-24` (6rem ≈ 96px)
+          pushes the panel down so it never collides with the floating
+          PillNav + brand / GitHub bar above (~88px tall). */}
+      <div className="sticky top-24 flex h-[calc(100vh-6rem)] items-center justify-center overflow-hidden px-3 sm:px-6">
         <motion.div
           style={
             reduced

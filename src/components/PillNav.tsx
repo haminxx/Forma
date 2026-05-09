@@ -137,11 +137,15 @@ export const PillNav: React.FC = () => {
     // otherwise mid-scroll sections would temporarily flip the label.
     userScrollLockUntil.current = Date.now() + 800;
 
-    // Scroll so the section's vertical centre lands at the viewport
-    // centre — every page's content sits in the middle of its section,
-    // so this puts the heading / hero / panel directly behind the pill.
+    // Scroll the section's TOP to the viewport top. Each section
+    // carries a `scroll-mt-*` matching the fixed-navbar height (~96px)
+    // so the actual landing position lands the section's content
+    // cleanly below the floating pill instead of underneath it.
+    // (Was `block: "center"` — that left the demo / sandbox content
+    // partially obscured by the navbar after the previous header
+    // refactor moved the brand + GitHub buttons out of flow.)
     const node = document.getElementById(sectionId);
-    node?.scrollIntoView({ behavior: "smooth", block: "center" });
+    node?.scrollIntoView({ behavior: "smooth", block: "start" });
 
     // Reset transition state after animation completes
     setTimeout(() => {
