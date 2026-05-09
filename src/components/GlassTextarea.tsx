@@ -1,11 +1,11 @@
 import { useState } from "react";
-import TextareaAutosize from "react-textarea-autosize";
 import { ArrowUp, Paperclip } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 
 /**
  * Sandbox-section prompt input — liquid-glass frame inspired by the
  * `ruixen-moon-chat` reference. A frosted-glass card with:
- *   - auto-resizing textarea
+ *   - shared `Textarea` from `@/components/ui/textarea`
  *   - paperclip attach button on the left
  *   - gold "Send" pill on the right that activates only when text exists
  *
@@ -35,14 +35,14 @@ export function GlassTextarea() {
           className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/12 to-transparent"
         />
 
-        <TextareaAutosize
+        <Textarea
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          minRows={2}
-          maxRows={7}
+          onChange={(v) => setMessage(v ?? "")}
+          size="large"
           placeholder="Describe your UI component and animation"
           aria-label="Forma sandbox prompt"
-          className="relative block w-full resize-none border-0 bg-transparent px-[clamp(1rem,3.5vw,2rem)] pt-[clamp(0.75rem,2.5vw,1.25rem)] pb-1 text-[clamp(0.9rem,2.2vw,1.05rem)] leading-relaxed text-white placeholder:text-white/45 focus:outline-none focus:ring-0"
+          style={{ minHeight: 100 }}
+          className="relative !h-auto min-h-[100px] !border-0 !bg-transparent px-[clamp(1rem,3.5vw,2rem)] pb-1 pt-[clamp(0.75rem,2.5vw,1.25rem)] text-[clamp(0.9rem,2.2vw,1.05rem)] leading-relaxed !text-white placeholder:!text-white/45 hover:!border-transparent focus:!border-transparent focus:!shadow-none !ring-0 focus:!ring-0"
         />
 
         <div className="relative flex items-center justify-between px-[clamp(0.9rem,3vw,1.75rem)] pb-[clamp(0.65rem,2vw,0.85rem)] pt-0.5">
