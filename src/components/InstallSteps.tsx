@@ -95,14 +95,8 @@ export function InstallSteps() {
   return (
     <div className="w-full max-w-[min(calc(100vw-3rem),96rem)] px-2 py-2 sm:px-4">
       <div
-        className="rounded-2xl border border-white/[0.22] p-4 sm:p-5"
-        style={{
-          background: "rgba(18, 19, 24, 0.94)",
-          backdropFilter: "blur(32px) saturate(160%)",
-          WebkitBackdropFilter: "blur(32px) saturate(160%)",
-          boxShadow:
-            "inset 0 1px 0 rgba(255,255,255,0.10), inset 0 0 0 1px rgba(255,255,255,0.05)",
-        }}
+        className="rounded-2xl p-4 sm:p-5"
+        style={{ background: "#121318" }}
       >
         <ol className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-4">
         {STEPS.map((step, index) => {
@@ -152,7 +146,7 @@ export function InstallSteps() {
               aria-disabled={isLocked}
               disabled={isLocked}
               onClick={(e) => handleClick(index, step, e)}
-              className={`flex w-full flex-col items-start gap-2 rounded text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4b87a]/60 ${
+              className={`flex w-full flex-col items-start gap-2 rounded text-left transition-colors focus-visible:outline-none ${
                 isLocked
                   ? "cursor-not-allowed"
                   : "hover:bg-white/[0.04]"
