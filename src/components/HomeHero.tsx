@@ -1,12 +1,13 @@
 import { BlurText } from "./ui/blur-text";
 
 /**
- * Left-side hero copy.
+ * Left-side hero copy. Identity matches the GitHub README:
+ * "Grammarly for AI builder prompts. Built on AMD MI300X."
+ *
  *   - Eyebrow blur-words in immediately on mount.
  *   - Title types in word-by-word with the per-word blur-in pattern from
- *     `animations/blurText.md`. Anchor links are passed as token nodes
- *     so they blur-in alongside the regular words while keeping their
- *     real `<a>` semantics + underline decoration.
+ *     `animations/blurText.md`. The "AI builder prompts" anchor jumps
+ *     to the live product (Chrome Web Store launch surface = README).
  *   - Subtitle blur-words in after the title underline draws.
  */
 const ANCHOR_BASE =
@@ -14,11 +15,10 @@ const ANCHOR_BASE =
 
 const TITLE_BASE_DELAY = 0.085;
 const TITLE_DURATION = 0.85;
-// Heuristic for when the title finishes — used to delay the subtitle so
-// it lands AFTER the underline draws.
-const TITLE_TOKEN_COUNT = 11;
+// Title now reads: "Grammarly for AI builder prompts." (5 word-tokens)
+const TITLE_TOKEN_COUNT = 5;
 const TITLE_LAST_DELAY =
-  (TITLE_TOKEN_COUNT - 1) * TITLE_BASE_DELAY + TITLE_DURATION; // ≈ 1.7 s
+  (TITLE_TOKEN_COUNT - 1) * TITLE_BASE_DELAY + TITLE_DURATION;
 const SUBTITLE_DELAY = TITLE_LAST_DELAY + 0.15;
 
 export function HomeHero() {
@@ -31,7 +31,7 @@ export function HomeHero() {
         blur={8}
         y={10}
         className="text-xs font-medium uppercase tracking-[0.32em] text-white/45"
-        content="Forma · beta UI"
+        content="Forma · Built on AMD MI300X"
       />
 
       <BlurText
@@ -46,31 +46,19 @@ export function HomeHero() {
         className="mt-5 text-balance text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.5rem]"
         style={{ color: "#d4b87a" }}
         content={[
-          "Design",
-          "language",
+          "Grammarly",
+          "for",
           <a
-            key="research"
-            href="#"
+            key="builders"
+            href="https://forma-production-c800.up.railway.app/"
+            target="_blank"
+            rel="noopener noreferrer"
             className={ANCHOR_BASE}
-            aria-label="Read about Forma research (TBD)"
+            aria-label="Open the Forma live demo on Railway"
           >
-            research
+            AI builder
           </a>,
-          "and",
-          "tools",
-          "that",
-          "put",
-          <a
-            key="precision"
-            href="#"
-            className={ANCHOR_BASE}
-            aria-label="Read about Forma precision (TBD)"
-          >
-            precision
-          </a>,
-          "at",
-          "the",
-          "frontier.",
+          "prompts.",
         ]}
       />
 
@@ -82,7 +70,7 @@ export function HomeHero() {
         blur={8}
         y={10}
         className="mt-5 max-w-md text-base leading-relaxed text-white/65 sm:text-lg"
-        content="Forma turns vague UI words into precise, generation-ready vocabulary — so your prompts produce the component you actually meant."
+        content="Forma flags vague UI words as you type and rewrites them into canonical components with concrete motion and accessibility specs — so your prompts produce the component you actually meant."
       />
     </div>
   );

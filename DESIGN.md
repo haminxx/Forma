@@ -1,6 +1,8 @@
 # Forma — DESIGN.md
 
-`DESIGN.md` for Forma's marketing surface. Follows the 9-section structure popularised by [VoltAgent / awesome-claude-design](https://github.com/VoltAgent/awesome-claude-design) so design agents (Claude Design, Stitch, Cursor) can scaffold new screens that stay on-system.
+`DESIGN.md` for the Forma marketing site. Follows the 9-section structure popularised by [VoltAgent / awesome-claude-design](https://github.com/VoltAgent/awesome-claude-design) so design agents (Claude Design, Stitch, Cursor) can scaffold new screens that stay on-system.
+
+**Product identity** — Forma is a Chrome extension that improves AI-builder prompts by inline-detecting vague UI vocabulary and rewriting it into canonical components with motion + a11y specs (the "Grammarly for AI builder prompts" tagline from the GitHub README). The marketing site is the hackathon submission surface for AMD AI Hackathon · Track 1; copy on every section should map back to a real product surface (`/amd`, `/memory`, GitHub, the Chrome extension on v0.app).
 
 Pair this file with `src/index.css` (`@theme` tokens) — the `@theme` block is the executable source of truth; this doc carries the *why*.
 

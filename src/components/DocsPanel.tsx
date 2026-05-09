@@ -1,59 +1,51 @@
-import { ArrowUpRight, BookOpen, GitBranch, Terminal } from "lucide-react";
+import { ArrowUpRight, Brain, Cpu, Github } from "lucide-react";
 import { BlurText } from "./ui/blur-text";
 import { GlowCard } from "./ui/spotlight-card";
 import { Reveal } from "./ui/reveal";
 
 /**
- * Docs section placeholder. Three "starting point" cards (Quickstart,
- * Vocabulary packs, Brain CLI) plus a small "version" pill above the
- * heading. Pure copy + visual scaffolding for now.
- *
- * Animation: eyebrow + heading + subtitle blur-words in (per the
- * `animations/blurText.md` pattern), then cards stagger-Reveal in.
- *
- * Card surface: each card is a gold-tinted `GlowCard` (spotlight-card
- * snippet adopted from the user request). The cursor anywhere on the
- * page warms a radial gold spotlight on every card simultaneously,
- * with a brighter "border ridge" at the cursor's nearest point.
+ * Docs section. Three live entry-points — every link goes to a real
+ * surface in the deployed product (Railway live demo + GitHub repo)
+ * matching the README's "Submission Details" anchors.
  */
 type DocCard = {
   title: string;
   description: string;
   href: string;
-  Icon: typeof BookOpen;
+  Icon: typeof Brain;
   meta: string;
 };
 
 const DOC_CARDS: DocCard[] = [
   {
-    title: "Quickstart",
+    title: "AMD architecture",
     description:
-      "Install the extension, point it at your AI chat surface, and watch the suggestions surface in 30 seconds.",
-    href: "https://github.com/haminxx/forma",
-    Icon: BookOpen,
-    meta: "5 min read",
+      "Interactive VRAM bars, the dual-model concurrency math, and the SVG architecture diagram — the technical case for why Forma is structurally an MI300X product.",
+    href: "https://forma-production-c800.up.railway.app/amd",
+    Icon: Cpu,
+    meta: "/amd · live",
   },
   {
-    title: "Vocabulary packs",
+    title: "Memory Engine",
     description:
-      "Author your own UI dictionary in YAML, ship it as a pack, and let teammates layer it on top of the defaults.",
-    href: "https://github.com/haminxx/forma/tree/main/packs",
-    Icon: GitBranch,
-    meta: "schema · examples",
+      "Pro-tier showcase: the 70B AWQ inference path running real consensus on a personalised user history. The animation is real; the seed history is illustrative for now.",
+    href: "https://forma-production-c800.up.railway.app/memory",
+    Icon: Brain,
+    meta: "/memory · pro tier",
   },
   {
-    title: "Brain CLI",
+    title: "Source on GitHub",
     description:
-      "A scriptable matcher you can run from any terminal — pipe a prompt in, get back the canonical UI vocabulary.",
-    href: "https://github.com/haminxx/forma#brain-cli-harness-test-matcher-without-ui",
-    Icon: Terminal,
-    meta: "cargo run",
+      "Chrome Manifest V3 extension, FastAPI backend, vLLM 0.17.1 on ROCm 7.0, and the canonical-60 vocabulary. README is the source of truth for what's real today.",
+    href: "https://github.com/haminxx/Forma",
+    Icon: Github,
+    meta: "MIT · public",
   },
 ];
 
 const HEADING_BASE_DELAY = 0.07;
 const HEADING_DURATION = 0.85;
-const HEADING_TOKENS = 8;
+const HEADING_TOKENS = 7;
 const POST_HEADING =
   (HEADING_TOKENS - 1) * HEADING_BASE_DELAY + HEADING_DURATION + 0.1;
 
@@ -64,7 +56,7 @@ export function DocsPanel() {
         <Reveal duration={0.5}>
           <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-white/55">
             <span className="h-1.5 w-1.5 rounded-full bg-[#d4b87a]" />
-            Docs · v0.0.1-alpha
+            Docs · AMD AI Hackathon · Track 1
           </span>
         </Reveal>
 
@@ -76,7 +68,7 @@ export function DocsPanel() {
           underline
           underlineWidth="min(16rem, 60%)"
           className="text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl"
-          content="Read the source. Then teach Forma your stack."
+          content="Read the source. Verify the architecture."
         />
 
         <BlurText
@@ -87,7 +79,7 @@ export function DocsPanel() {
           blur={8}
           y={10}
           className="max-w-2xl text-base leading-relaxed text-white/60 sm:text-lg"
-          content="Forma's vocabulary lives in plain YAML, the matcher is a Rust crate you can call from a CLI, and every part of the pipeline can be replaced with one of your own. The pages below are the places most teams start."
+          content="Forma is a working product, not a demo. Both inference paths run on production AMD MI300X hardware on DigitalOcean, with the FastAPI orchestrator deployed to Railway. The pages below are the live entry-points used in the hackathon submission."
         />
       </div>
 

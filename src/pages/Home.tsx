@@ -234,14 +234,10 @@ export function HomePage() {
         <EdgeGlow position="bottom" intensity={0.1} />
         <ProblemTestimonial
           quotes={[
-            "Building UI by prompt feels fast — until 'card' means six different things and you spend an hour clarifying which one you actually meant.",
-            "Every team has a 'modal' that's actually a sheet, a dialog, and a popover all wearing the same name.",
-            "The fastest way to ship the wrong component is to describe it in three vague words.",
+            "AI builders got dramatically better at generation — but the bottleneck moved upstream to specification quality. Generic prompts still produce generic components.",
           ]}
           attributions={[
-            "The vibecoder problem — What we hear from teams every week",
-            "The naming-collision problem — Same word, three implementations",
-            "The vague-prompt problem — Precision beats speed",
+            "The input-quality bottleneck — every builder ecosystem competes on output, but they all consume the same low-quality prompt inputs",
           ]}
         />
       </section>
@@ -295,51 +291,51 @@ export function HomePage() {
         <EdgeGlow position="top" tone="accent" intensity={0.1} height="clamp(8rem, 18vh, 14rem)" />
         <EdgeGlow position="bottom" tone="accent" intensity={0.08} />
         <FeatureShowcase
-          eyebrow="About Forma"
-          title="Design-language research, shipped as a tool."
-          description="Forma is a translation layer between human intent and the AI tools that build UI — opinionated, open, pointed at the precision frontier of generative interfaces."
-          stats={["Open vocab packs", "Local CLI matcher", "Pro Mode templates"]}
+          eyebrow="Inside Forma"
+          title="One GPU. Two model tiers. One product flow."
+          description="Forma's freemium experience requires both inference paths to be live at the same time on the same backend. Llama 3.1 8B handles per-keystroke scoring for free users; Llama 3.1 70B AWQ powers the 7-agent deep analysis for Pro users. Both fit in 89 GiB of MI300X — H100 80GB cannot host both with usable concurrency."
+          stats={["192 GiB HBM3", "89 GiB used · 102 GiB headroom", "vLLM · ROCm 7.0"]}
           steps={[
             {
-              id: "research",
-              title: "Research the language",
+              id: "free",
+              title: "Free tier — Llama 3.1 8B Instruct",
               text:
-                "We study how teams describe components in natural language and where the words break down — turning that into a precision map of UI vocabulary.",
+                "15.1 GiB weights, 11.2 GiB KV cache. Drives the inline score badge, /detect-vague offsets, and the Grammarly-style underline on every keystroke. 44× concurrent users at 2048-token max.",
             },
             {
-              id: "vocab",
-              title: "Ship open vocabulary packs",
+              id: "pro",
+              title: "Pro tier — Llama 3.1 70B AWQ-INT4",
               text:
-                "Canonical UI terms, anchors, and motion specs in plain YAML. Start with the defaults, layer your team's pack on top.",
+                "37.3 GiB weights (4-bit quantized), 26.3 GiB KV cache. Runs the 7-agent consensus pipeline (Detector → Critic → Reformulator → Style → Memory → Coach → Consensus) and rewrites prompts with motion + a11y specs.",
             },
             {
-              id: "tooling",
-              title: "Wire it into every surface",
+              id: "memory",
+              title: "Memory Engine — your style follows you",
               text:
-                "A Rust matcher, a Chrome extension, and Pro Mode templates that translate vague prompts into production-ready briefs.",
+                "Each accept teaches Forma your aesthetic. After 100 prompts, Forma knows you reach for Off-Canvas Drawer over Modal Overlay. That profile lives one level above any specific builder — switch from v0 to Cursor and your defaults come with you.",
             },
           ]}
           tabs={[
             {
-              value: "research",
-              label: "Research",
-              src: "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1280&q=80",
-              alt: "Type specimen and research notes",
-            },
-            {
-              value: "vocab",
-              label: "Vocabulary",
-              src: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1280&q=80",
-              alt: "Source code on screen",
-            },
-            {
-              value: "tooling",
-              label: "Tooling",
+              value: "free",
+              label: "Free · 8B",
               src: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1280&q=80",
-              alt: "Programming environment with multiple monitors",
+              alt: "Real-time inline scoring on a developer workstation",
+            },
+            {
+              value: "pro",
+              label: "Pro · 70B",
+              src: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1280&q=80",
+              alt: "Multi-agent server stack",
+            },
+            {
+              value: "memory",
+              label: "Memory",
+              src: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1280&q=80",
+              alt: "Personalized analytics dashboard",
             },
           ]}
-          defaultTab="research"
+          defaultTab="free"
           panelMinHeight={480}
         />
       </section>

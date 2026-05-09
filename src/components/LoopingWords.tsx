@@ -23,16 +23,21 @@ import { AnimatePresence, motion } from "framer-motion";
 const ROW_HEIGHT = 72;
 const WORD_INTERVAL_MS = 2400;
 
+// Subset of Forma's canonical-60 UI vocabulary (full set lives in
+// `backend/pro_templates.py`). The looping list shows the canonical
+// names — i.e. the words Forma rewrites vague phrases *into*, not the
+// vague originals. Order biased toward the most common ambiguity
+// (popup → Off-Canvas Drawer, sticky thing → Toast, etc.).
 const COMPONENT_WORDS = [
-  "Button",
-  "Card",
-  "Modal",
-  "Drawer",
-  "Tabs",
-  "Accordion",
-  "Popover",
-  "Tooltip",
+  "Off-Canvas Drawer",
+  "Modal Overlay",
+  "Bottom Sheet",
   "Toast",
+  "Tooltip",
+  "Popover",
+  "Accordion",
+  "Tabs",
+  "Card",
   "Avatar",
 ] as const;
 type ComponentWord = (typeof COMPONENT_WORDS)[number];
@@ -91,10 +96,10 @@ export function LoopingWords() {
     >
       <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-5 shadow-[0_20px_60px_-40px_rgba(0,0,0,0.55)] sm:p-6">
         <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.32em] text-white/45">
-          UI vocabulary
+          Canonical-60
         </p>
         <p className="mb-4 text-xs text-white/50">
-          Canonical component names — the words models reach for first.
+          The component vocabulary Forma rewrites vague prompts <em>into</em>.
         </p>
 
         <div
@@ -190,17 +195,6 @@ function WordPreviewCard({ word }: { word: ComponentWord }) {
 
 function ComponentDemo({ word }: { word: ComponentWord }): ReactNode {
   switch (word) {
-    case "Button":
-      return (
-        <motion.button
-          initial={{ scale: 0.92, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.25 }}
-          className="rounded-md bg-white px-4 py-1.5 text-sm font-medium text-black"
-        >
-          Click me
-        </motion.button>
-      );
     case "Card":
       return (
         <motion.div
@@ -214,7 +208,7 @@ function ComponentDemo({ word }: { word: ComponentWord }): ReactNode {
           <div className="mt-1 h-1 w-16 rounded-full bg-white/15" />
         </motion.div>
       );
-    case "Modal":
+    case "Modal Overlay":
       return (
         <motion.div
           initial={{ scale: 0.85, opacity: 0 }}
@@ -230,7 +224,7 @@ function ComponentDemo({ word }: { word: ComponentWord }): ReactNode {
           <div className="mt-1 h-1 w-20 rounded-full bg-white/15" />
         </motion.div>
       );
-    case "Drawer":
+    case "Off-Canvas Drawer":
       return (
         <div className="relative h-16 w-40 overflow-hidden rounded-md border border-white/10 bg-white/[0.02]">
           <motion.div
@@ -241,6 +235,21 @@ function ComponentDemo({ word }: { word: ComponentWord }): ReactNode {
           >
             <div className="m-2 h-1 w-12 rounded-full bg-white/30" />
             <div className="mx-2 mt-1 h-1 w-10 rounded-full bg-white/15" />
+          </motion.div>
+        </div>
+      );
+    case "Bottom Sheet":
+      return (
+        <div className="relative h-16 w-40 overflow-hidden rounded-md border border-white/10 bg-white/[0.02]">
+          <motion.div
+            initial={{ y: 32 }}
+            animate={{ y: 0 }}
+            transition={{ type: "spring", stiffness: 200, damping: 22 }}
+            className="absolute inset-x-0 bottom-0 h-10 rounded-t-md bg-white/[0.08]"
+          >
+            <div className="mx-auto mt-1 h-1 w-8 rounded-full bg-white/40" />
+            <div className="mx-2 mt-1.5 h-1 w-20 rounded-full bg-white/15" />
+            <div className="mx-2 mt-1 h-1 w-14 rounded-full bg-white/15" />
           </motion.div>
         </div>
       );

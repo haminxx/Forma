@@ -17,28 +17,28 @@ import {
 import { PromptInput } from "./PromptInput";
 import { cn } from "../lib/cn";
 
-const VIBE_PROMPT =
-  "make something that shows up while my app is loading data, just so it doesn't look empty";
+// Lifted directly from the README's "30-Second Pitch" example so the
+// demo on the marketing site matches what `/detect-vague` actually does
+// against Forma's canonical-60 vocabulary.
+const VIBE_PROMPT = "Build a popup that slides in from the side";
 const FORMA_PROMPT =
-  "Skeleton Loader with shimmer gradient sweep animation 1.5s infinite, matching the layout shape of the content being loaded, gray-200 base color";
+  "Build an Off-Canvas Drawer (slides from right edge, 320px width, 250ms ease-in-out, semi-transparent backdrop, focus-trap on open, ESC to dismiss)";
 
 type Mode = "vibe" | "forma";
 
-/** Vibe: vague bullets. Forma: precise build spec (storefront-style). */
+/** Vibe: a vague brief. Forma: the brief Forma expands the prompt INTO. */
 const SPEC_LINES: Record<Mode, string[]> = {
   vibe: [
-    "Landing with a hero and some buttons.",
-    "Middle area with cards or a grid — structure TBD.",
-    "Footer with links or social icons.",
+    "Some kind of popup that slides in from the side.",
+    "Make it look modern.",
+    "Should close when you click outside, I think.",
   ],
   forma: [
-    "Hero: Large section with elegant typography, featured image, and floating product badge.",
-    "Feature Banner: Highlights for shipping, returns, checkout, and quality.",
-    "Categories: Interactive cards for Dresses, Accessories, and Outerwear.",
-    "Featured Products: Grid with ratings, favorites, and sale badges.",
-    "Testimonials: Carousel slider with navigation dots.",
-    "Newsletter: Dark section with an email signup form.",
-    "Footer: Complete footer with links and social media.",
+    "Component: Off-Canvas Drawer (1 of 60 canonical UI terms).",
+    "Motion: slides from right edge, 320px width, 250ms ease-in-out.",
+    "Backdrop: semi-transparent overlay, click-outside dismisses.",
+    "A11y: focus-trap on open, ESC to close, aria-modal=\"true\".",
+    "Stack: shadcn/ui + React, Tailwind tokens, no extra deps.",
   ],
 };
 
@@ -47,24 +47,27 @@ interface ChecklistItem {
   hint: string;
 }
 
+// The 5 "precision dimensions" Forma's Detector + Critic score against.
 const CHECKLIST: ChecklistItem[] = [
-  { label: "Component type", hint: "Skeleton Loader" },
-  { label: "Animation spec", hint: "shimmer · 1.5s infinite" },
-  { label: "Layout anchor", hint: "matches content shape" },
-  { label: "Color token", hint: "gray-200 base" },
+  { label: "Canonical component", hint: "Off-Canvas Drawer" },
+  { label: "Motion spec", hint: "250ms · ease-in-out" },
+  { label: "Layout anchor", hint: "right edge · 320px" },
+  { label: "Accessibility", hint: "focus-trap · ESC · aria-modal" },
   { label: "Library target", hint: "shadcn / React" },
 ];
 
+// Status pill in the preview shows Forma's quality score (per the
+// README example): vague prompt = 30/100, precise prompt = 95/100.
 const PREVIEW_META: Record<Mode, { url: string; status: string; src: string }> =
   {
     vibe: {
       url: "preview.forma.dev/vague",
-      status: "generic spinner",
+      status: "score 30 / 100 · vague",
       src: "/vague-output.png",
     },
     forma: {
       url: "preview.forma.dev/precise",
-      status: "skeleton with shimmer",
+      status: "score 95 / 100 · precise",
       src: "/precise-output.png",
     },
   };
