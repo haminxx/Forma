@@ -7,7 +7,6 @@ import { ProblemTestimonial } from "../components/ProblemTestimonial";
 import { SolutionSection } from "../components/SolutionSection";
 import { BlurText } from "../components/ui/blur-text";
 import { FeatureShowcase } from "../components/ui/feature-showcase";
-import { IsoLevelWarp } from "../components/ui/isometric-wave-grid-background";
 import { LogoCloud } from "../components/ui/logo-cloud";
 import { Reveal } from "../components/ui/reveal";
 import { EdgeGlow, SectionFade } from "../components/ui/section-fade";
@@ -52,14 +51,16 @@ function postHeadingDelay(tokenCount: number) {
 export function HomePage() {
   return (
     <div>
+      {/* Home — the PaperShaderHero owns its own h-screen black canvas.
+          We pull the section up by the navbar height (~88px) so the
+          shader fills the very top of the viewport (no body-bg gap
+          above it), and the navbar floats on top of the shader. */}
       <section
         id="home"
         className="relative scroll-mt-20"
+        style={{ marginTop: "-88px" }}
         aria-label="Forma — Grammarly for AI builder prompts"
       >
-        {/* The PaperShaderHero owns its own black canvas + theme toggle.
-            We just frame it as the #home section and let the existing
-            section bg fade chain handle the home → demo seam below. */}
         <PaperShaderHero />
         <EdgeGlow position="bottom" />
       </section>
@@ -139,9 +140,9 @@ export function HomePage() {
       </section>
 
       {/* Problem — gold-bridge backdrop carries the warm sandbox tone
-          through into Solution. IsoLevelWarp paints a violet animated
-          topographic grid behind the testimonial as the moody decor
-          shadow. */}
+          through into Solution. The IsoLevelWarp moving-line canvas
+          was removed per the latest direction; the testimonial sits
+          directly on the gold-bridge gradient. */}
       <section
         id="problem"
         className="relative flex min-h-screen scroll-mt-20 items-center justify-center overflow-hidden px-6"
@@ -150,9 +151,6 @@ export function HomePage() {
           paddingBottom: "clamp(3rem,8vh,6rem)",
         }}
       >
-        {/* Gold-bridge: top of the section opens with the same gold the
-            sandbox bottom ends on, then darkens toward the bottom so
-            Solution's deeper gold reads as a continuation. */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10"
@@ -161,13 +159,6 @@ export function HomePage() {
               "linear-gradient(180deg, rgba(212,184,122,0.92) 0%, rgba(150,120,70,0.65) 35%, rgba(60,48,30,0.85) 70%, rgba(25,26,31,0.95) 100%)",
           }}
         />
-        {/* IsoLevelWarp — violet topographic grid mounted as the inner
-            decorative layer. `mix-blend-mode: screen` so the violet
-            lines glow through the gold backdrop instead of fighting
-            it. */}
-        <div className="absolute inset-0 z-0 mix-blend-screen opacity-60">
-          <IsoLevelWarp color="139, 92, 246" density={50} speed={1.2} />
-        </div>
         <SectionFade position="top" blur={4} />
         <SectionFade position="bottom" blur={4} />
         <div className="relative z-10 w-full">

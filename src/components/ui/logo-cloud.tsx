@@ -4,20 +4,18 @@ import { cn } from "../../lib/cn";
 import { HoverPeek } from "../HoverPeek";
 
 /**
- * LogoCloud — adopted from the user-pasted shadcn reference, adapted for
- * Forma's 8 supported AI design/IDE platforms (Cursor swapped for Tempo per
- * the latest spec).
+ * LogoCloud — Forma's 8 supported AI design/IDE platforms.
  *
- * Visual rules:
- *   - Each cell renders a brand PNG + business name. The PNG is grayscale
- *     by default and reverts to its original colour on hover (group state).
- *   - The cell tints to a subtle gold "selected" wash on hover.
- *   - Borders form a 4 × 2 grid with 8-pointed PlusIcon decorations at the
- *     interior intersections — same spirit as the reference snippet.
- *   - Each cell is wrapped in HoverPeek so a Microlink screenshot pops on
- *     hover; clicking the cell opens the platform's prompt page.
- *
- * Drop higher-resolution brand assets into /public/logos/<name>.png to swap.
+ * Visual rules (per latest spec):
+ *   - Each cell renders the brand PNG in **full colour by default**.
+ *   - When the user hovers anywhere in the grid, the hovered cell stays
+ *     full colour while every other cell dims (grayscale + opacity 40%).
+ *     Implemented with a `group/cloud` parent + per-card
+ *     `group-hover/cloud:* hover:!revert` so no JS state is needed.
+ *   - Cells are uniform-sized frosted-glass tiles so logo widths
+ *     normalise inside the same bounding box.
+ *   - Each cell is wrapped in HoverPeek for the Microlink-style preview
+ *     pop; clicking opens the platform's prompt page.
  */
 
 type Platform = {
@@ -41,9 +39,11 @@ type LogoCloudProps = ComponentProps<"div">;
 
 export function LogoCloud({ className, ...props }: LogoCloudProps) {
   return (
+    /* `group/cloud` lets each cell react to a sibling card being
+       hovered — used to dim the non-hovered cells. */
     <div
       className={cn(
-        "relative grid w-full max-w-3xl grid-cols-2 border-x border-white/10 md:grid-cols-4",
+        "group/cloud relative grid w-full max-w-3xl grid-cols-2 border-x border-white/10 md:grid-cols-4",
         className,
       )}
       {...props}
@@ -130,20 +130,29 @@ function LogoCard({ href, src, alt, className, children }: LogoCardProps) {
         rel="noopener noreferrer"
         aria-label={`Open ${alt}`}
         className={cn(
-          "group relative flex items-center justify-center px-4 py-8 transition-colors duration-200",
+          "group/cell relative flex items-center justify-center px-4 py-8 transition-colors duration-200",
           "hover:bg-[#d4b87a]/10 md:p-10",
           className,
         )}
       >
-        {/* Fixed bounding box gives every logo the same visual weight: square
-            marks render small inside it, wide wordmarks fill the width.
-            object-contain centres each mark inside this 140 × 36 cell. */}
-        <span className="relative flex h-9 w-[140px] items-center justify-center md:h-10 md:w-[160px]">
+        {/* Uniform 11 × 44px (mobile) / 12 × 48px (desktop) frame so
+            every logo carries the same visual weight regardless of
+            wordmark vs square-mark aspect ratio. object-contain
+            centres the mark within. */}
+        <span className="relative flex h-11 w-[160px] items-center justify-center md:h-12 md:w-[180px]">
           <img
             src={src}
             alt={alt}
             loading="lazy"
-            className="pointer-events-none max-h-full max-w-full select-none object-contain grayscale transition duration-300 group-hover:grayscale-0"
+            // Default: full colour. When the *grid* is hovered, dim
+            // every cell with grayscale + low opacity. The cell that
+            // is *itself* hovered overrides back to full colour with
+            // !important so it stays the focal point.
+            className={cn(
+              "pointer-events-none max-h-full max-w-full select-none object-contain transition duration-300",
+              "group-hover/cloud:opacity-40 group-hover/cloud:grayscale",
+              "group-hover/cell:!opacity-100 group-hover/cell:!grayscale-0",
+            )}
           />
         </span>
         {children}

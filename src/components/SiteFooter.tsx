@@ -9,19 +9,18 @@ const handleNavClick = (sectionId: string) => (e: React.MouseEvent) => {
 
 /**
  * Footer with two columns:
- *   1. Brand block (Forma word-mark + tagline + copyright + author
- *      credits to LinkedIn).
- *   2. Section nav — same anchors as the PillNav, names only (no
- *      per-section description copy).
+ *   1. Brand block (Forma word-mark + copyright + author credits).
+ *   2. Right-aligned column: tagline sentence on top, section nav
+ *      (Home → Docs) listed below the sentence.
  *
- * Animation: brand block + each section name fade in as the footer
+ * Animation: brand block + each nav row fades in as the footer
  * scrolls into view, with a small stagger so the eye lands on the
- * brand first and walks across the section grid.
+ * brand first and walks down the right column.
  */
 export function SiteFooter() {
   return (
     <footer className="relative z-10 mt-20 border-t border-white/10 bg-[#0a0a0c] px-6 pb-12 pt-16 text-sm text-white/60">
-      <div className="mx-auto grid w-full max-w-6xl gap-12 md:grid-cols-[1.1fr_2fr]">
+      <div className="mx-auto grid w-full max-w-6xl gap-12 md:grid-cols-[1fr_1.4fr]">
         <Reveal duration={0.55}>
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2 text-white">
@@ -33,12 +32,6 @@ export function SiteFooter() {
               </span>
               <span className="text-lg font-semibold tracking-tight">Forma</span>
             </div>
-            <p className="max-w-sm leading-relaxed text-white/55">
-              A real-time translation layer between human intent and the AI
-              tools that build UI. Forma watches your prompts and silently
-              suggests the precise vocabulary the model is actually waiting
-              for.
-            </p>
             <p className="text-xs leading-relaxed text-white/35">
               © 2026 Forma. Built by{" "}
               <a
@@ -63,23 +56,34 @@ export function SiteFooter() {
           </div>
         </Reveal>
 
-        <div className="flex flex-wrap gap-x-8 gap-y-3 md:items-start md:justify-end">
-          {NAV_ITEMS.map((item, index) => (
-            <Reveal
-              key={item.id}
-              delay={0.15 + index * 0.06}
-              duration={0.45}
-              as="span"
-            >
-              <a
-                href={`#${item.id}`}
-                onClick={handleNavClick(item.id)}
-                className="text-sm font-semibold text-white/80 transition-colors hover:text-[#d4b87a]"
-              >
-                {item.label}
-              </a>
-            </Reveal>
-          ))}
+        {/* Right column: tagline first, then the section nav listed
+            below as a one-per-row list. md:items-end keeps the whole
+            block right-aligned at desktop sizes. */}
+        <div className="flex flex-col gap-6 md:items-end">
+          <Reveal duration={0.55} delay={0.1}>
+            <p className="max-w-md text-right leading-relaxed text-white/55">
+              A real-time translation layer between human intent and the AI
+              tools that build UI. Forma watches your prompts and silently
+              suggests the precise vocabulary the model is actually waiting
+              for.
+            </p>
+          </Reveal>
+
+          <ul className="flex flex-col gap-2 md:items-end">
+            {NAV_ITEMS.map((item, index) => (
+              <li key={item.id}>
+                <Reveal delay={0.25 + index * 0.05} duration={0.4} as="span">
+                  <a
+                    href={`#${item.id}`}
+                    onClick={handleNavClick(item.id)}
+                    className="text-sm font-semibold text-white/80 transition-colors hover:text-[#d4b87a]"
+                  >
+                    {item.label}
+                  </a>
+                </Reveal>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </footer>
