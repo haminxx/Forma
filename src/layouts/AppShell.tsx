@@ -6,20 +6,20 @@ import { SiteFooter } from "../components/SiteFooter";
 /**
  * Header layout (revised per latest direction):
  *
- *   - Brand mark + GitHub button: ABSOLUTE at top: 5 of the page.
- *     They scroll with the page, so they're visible while the home
- *     hero is in view and naturally leave the viewport once the user
- *     scrolls past it. They are NOT sticky.
+ *   - Brand mark + GitHub button + PillNav are ALL `position: fixed`
+ *     in the same row at top: 5 of the viewport. The whole header
+ *     floats together as the user scrolls — none of the three
+ *     elements scroll out of view.
+ *   - Single grid wrapper (`1fr auto 1fr`) keeps the pill perfectly
+ *     centred regardless of brand / button widths, exactly like the
+ *     pre-split layout.
+ *   - The wrapper is `pointer-events-none` so its empty centre column
+ *     never blocks clicks on hero content beneath; the children re-
+ *     enable pointer events on themselves.
  *
- *   - PillNav: FIXED at top: 5 of the viewport. Always visible,
- *     "floats" down with the user as they scroll through every
- *     section.
- *
- * Both layers sit at z-50 and are in their own stacking row so neither
- * pushes flow content. <main> starts at the very top of the document,
- * which lets the home hero (`h-screen`) fill the viewport from y=0
- * with no body-bg gap above it — closing the prior "small empty
- * space" at the top.
+ * <main> starts at y=0 of the document because the header is out of
+ * flow (fixed). The home hero (`h-screen`) fills the viewport from
+ * the very top.
  */
 export function AppShell() {
   return (
@@ -27,25 +27,13 @@ export function AppShell() {
       data-app-shell
       className="relative flex min-h-full flex-col text-[var(--color-stitch-fg)]"
     >
-      {/* Static brand bar — only visible while scrolled to home,
-          scrolls away with the page after that. `pointer-events-none`
-          on the wrapper so the empty centre column never blocks
-          clicks on whatever is underneath; the children re-enable
-          pointer events. */}
-      <div className="pointer-events-none absolute inset-x-0 top-5 z-50 grid grid-cols-[1fr_auto_1fr] items-center gap-4 px-6">
+      <header className="pointer-events-none fixed inset-x-0 top-5 z-50 grid grid-cols-[1fr_auto_1fr] items-center gap-4 px-6">
         <BrandMark />
-        <div />
-        <GithubButton />
-      </div>
-
-      {/* Floating PillNav — fixed at top: 5 of the viewport so it
-          stays put as the user scrolls. Wrapped in a pointer-events-
-          none container so the empty flanks don't block content. */}
-      <div className="pointer-events-none fixed inset-x-0 top-5 z-50 flex justify-center px-6">
-        <div className="pointer-events-auto">
+        <div className="pointer-events-auto justify-self-center">
           <PillNav />
         </div>
-      </div>
+        <GithubButton />
+      </header>
 
       <main className="flex-1">
         <Outlet />

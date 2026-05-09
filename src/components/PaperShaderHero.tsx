@@ -47,28 +47,11 @@ export function PaperShaderHero() {
       animate="visible"
       variants={containerVariants}
     >
-      {/* Left: content panel */}
+      {/* Left: content panel. The previous F-badge + FORMA word-mark
+          + slogan eyebrow were removed per the latest direction; the
+          title is now the first element on the panel. */}
       <div className="relative z-10 flex w-full flex-col justify-between p-8 pt-24 md:w-1/2 md:p-12 md:pt-28 lg:w-3/5 lg:p-16 lg:pt-32">
         <div>
-          <motion.header className="mb-10" variants={itemVariants}>
-            <div className="flex items-center gap-3">
-              <span
-                aria-hidden
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#d4b87a] text-sm font-bold text-black shadow-[0_4px_14px_-4px_rgba(212,184,122,0.7)]"
-              >
-                F
-              </span>
-              <div>
-                <p className="text-base font-bold tracking-tight text-white">
-                  FORMA
-                </p>
-                <p className="text-[10px] font-medium uppercase tracking-[0.32em] text-white/55">
-                  Grammarly for AI builder prompts
-                </p>
-              </div>
-            </div>
-          </motion.header>
-
           <motion.div variants={containerVariants}>
             <motion.h1
               className="text-4xl font-bold leading-[1.05] tracking-tight text-white md:text-5xl lg:text-6xl"
@@ -129,13 +112,19 @@ export function PaperShaderHero() {
         </motion.footer>
       </div>
 
-      {/* Right: paper-design Dithering shader, exact settings from the
-          user's reference (pink-on-black cat silhouette, slow speed). */}
+      {/* Right: paper-design Dithering shader. Same `cat` silhouette
+          as the user's reference, but re-toned to Forma gold/amber so
+          the shader belongs to the warm half of the site palette
+          instead of the previous magenta. The Dithering API only
+          exposes two colour stops (back/front); we layer a CSS radial
+          gradient overlay (mix-blend-mode: overlay) for the "different
+          gradient colours" the brief asked for so the field reads as
+          a multi-stop gold→amber→deep-bronze, not a flat 2-tone. */}
       <div className="relative hidden md:block md:w-1/2 lg:w-2/5">
         <Dithering
           style={{ height: "100%", width: "100%" }}
-          colorBack="hsl(0, 0%, 0%)"
-          colorFront="hsl(320, 100%, 70%)"
+          colorBack="hsl(28, 60%, 8%)"
+          colorFront="hsl(43, 95%, 65%)"
           // `cat` is supported at runtime by the shader but not in the
           // published type union; cast through unknown so TS lets it
           // pass while runtime keeps the user's exact reference.
@@ -147,6 +136,18 @@ export function PaperShaderHero() {
           scale={0.8}
           rotation={0}
           speed={0.1}
+        />
+        {/* Multi-stop gold gradient overlay — adds the bronze →
+            amber → bright-gold range to the otherwise 2-tone
+            shader. mix-blend-mode: overlay keeps the shader pattern
+            intact, only re-toning the field. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 mix-blend-overlay"
+          style={{
+            background:
+              "radial-gradient(120% 100% at 30% 30%, rgba(255,215,140,0.45) 0%, rgba(212,184,122,0.25) 35%, rgba(110,80,30,0.30) 65%, rgba(40,25,10,0.55) 100%)",
+          }}
         />
         {/* Soft inner edge so the seam between text panel and shader
             doesn't read as a hard vertical line. */}

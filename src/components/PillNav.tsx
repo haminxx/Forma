@@ -37,10 +37,11 @@ function clampExpandedWidth(viewport: number): number {
   return Math.max(COLLAPSED_W + 60, Math.min(EXPANDED_MAX, usable));
 }
 
-// Pixels of scroll past which the pill auto-collapses. Below this we
-// consider the user "still at the top of the home hero" and keep every
-// section label visible in the expanded pill.
-const SCROLL_COLLAPSE_THRESHOLD = 80;
+// Pixels of scroll past which the pill auto-collapses. Set tight so
+// the very first scroll movement (~16px) collapses the pill — per
+// the latest direction, the pill should "immediately get small" the
+// moment the user starts scrolling.
+const SCROLL_COLLAPSE_THRESHOLD = 16;
 
 export const PillNav: React.FC = () => {
   const [activeSection, setActiveSection] = useState("home");
@@ -52,7 +53,6 @@ export const PillNav: React.FC = () => {
     typeof window === "undefined" ? 1280 : window.innerWidth,
   );
   const containerRef = useRef<HTMLDivElement>(null);
-  const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevSectionRef = useRef("home");
   const userScrollLockUntil = useRef<number>(0);
 
@@ -97,30 +97,14 @@ export const PillNav: React.FC = () => {
 
   const expandedWidth = clampExpandedWidth(vw);
 
-  // The pill is expanded whenever the user is at the top OR is hovering
-  // it. Otherwise it collapses to the active-section label after a
-  // short grace period (so a quick mouse-out doesn't snap it shut).
+  // Pill is expanded whenever the user is at the top OR is hovering.
+  // No grace period: as soon as either condition flips false (e.g. the
+  // cursor leaves the pill or the scroll passes the threshold) the
+  // pill snaps back to its collapsed active-section label.
   useEffect(() => {
     const shouldExpand = hovering || atTop;
-    if (shouldExpand) {
-      setExpanded(true);
-      pillWidth.set(expandedWidth);
-      if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current);
-        hoverTimeoutRef.current = null;
-      }
-    } else {
-      hoverTimeoutRef.current = setTimeout(() => {
-        setExpanded(false);
-        pillWidth.set(COLLAPSED_W);
-      }, 500);
-    }
-
-    return () => {
-      if (hoverTimeoutRef.current) {
-        clearTimeout(hoverTimeoutRef.current);
-      }
-    };
+    setExpanded(shouldExpand);
+    pillWidth.set(shouldExpand ? expandedWidth : COLLAPSED_W);
   }, [hovering, atTop, pillWidth, expandedWidth]);
 
   // Re-snap the spring target if the viewport changes while expanded so

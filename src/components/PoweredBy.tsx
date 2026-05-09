@@ -3,59 +3,44 @@ import { useScroll, useTransform, motion, useReducedMotion } from "framer-motion
 import { cn } from "@/lib/utils";
 
 /**
- * "Powered by" — scroll-driven horizontal logo marquee inspired by
- * Anchor.ai's "Trusted by leading Sales, Solutions, and Security
- * teams" rail.
+ * "Powered by" — scroll-driven horizontal marquee.
+ *
+ * Per latest direction:
+ *   - PNG logos removed; the strip now scrolls brand NAMES as text
+ *     labels (cleaner against the dark page bg, no per-logo invert
+ *     juggling).
+ *   - Heading reduced to just "Powered by".
  *
  * Direction is bound to page scroll:
- *   - Scrolling DOWN (scrollY ↑)  → strip translates LEFT (logos move
+ *   - Scrolling DOWN (scrollY ↑) → strip translates LEFT (labels move
  *     right relative to viewport).
- *   - Scrolling UP (scrollY ↓)    → strip translates RIGHT (logos move
+ *   - Scrolling UP (scrollY ↓)   → strip translates RIGHT (labels move
  *     left relative to viewport).
  *
- * Implementation: framer-motion `useScroll` returns the live scrollY
- * progress; `useTransform` maps it linearly to translateX. We render
- * three copies of the logo set so the strip looks continuous even at
- * the extremes of the scroll range.
- *
- * `prefers-reduced-motion` short-circuits to a static centred row so
- * vestibular-sensitive users still see every brand.
+ * `prefers-reduced-motion` short-circuits to a static centred row.
  */
 
-type LogoEntry = {
-  name: string;
-  src: string;
-  invert?: boolean;
-};
-
-// Same 8 brand marks as `LogoCloud`, plus the same `invert` config so
-// the black-on-anything PNGs (v0, bolt, manus) render light against
-// the dark page bg.
-const LOGOS: LogoEntry[] = [
-  { name: "Vercel v0", src: "/logos/v0.png", invert: true },
-  { name: "Replit", src: "/logos/replit.png" },
-  { name: "Bolt", src: "/logos/bolt.png", invert: true },
-  { name: "Lovable", src: "/logos/lovable.png" },
-  { name: "Manus", src: "/logos/manus.png", invert: true },
-  { name: "Figma Make", src: "/logos/figma-make.png" },
-  { name: "Base 44", src: "/logos/base44.png" },
-  { name: "Tempo", src: "/logos/tempo.png" },
-];
+const PLATFORMS = [
+  "Vercel v0",
+  "Replit",
+  "Bolt",
+  "Lovable",
+  "Manus",
+  "Figma Make",
+  "Base 44",
+  "Tempo",
+] as const;
 
 export function PoweredBy({ className }: { className?: string }) {
   const reduced = useReducedMotion();
   const { scrollY } = useScroll();
 
-  // Map every 4 px of scroll to 1 px of horizontal travel so the
-  // strip drifts at a comfortable, readable pace. The negative sign
-  // means scroll-down moves the strip left (logos visually right).
-  // Total addressable scroll for the marquee is the section height
-  // plus a little buffer; 8000 px covers the full landing scroll.
+  // Comfortable drift: every 4 px of scroll → 1 px of horizontal travel.
   const x = useTransform(scrollY, [0, 8000], [0, -2000]);
 
-  // Render the logo list 3× so the marquee never visually "ends" at
-  // either extreme of the scroll range.
-  const tripled = [...LOGOS, ...LOGOS, ...LOGOS];
+  // Triple the list so the strip never visually "ends" at either
+  // extreme of the addressable scroll range.
+  const tripled = [...PLATFORMS, ...PLATFORMS, ...PLATFORMS];
 
   return (
     <section
@@ -71,7 +56,7 @@ export function PoweredBy({ className }: { className?: string }) {
           className="h-px w-12 bg-gradient-to-r from-transparent via-[#d4b87a]/40 to-transparent"
         />
         <p className="text-[10px] font-semibold uppercase tracking-[0.32em] text-white/55">
-          Powered by · 8 vibe-coding surfaces Forma understands
+          Powered by
         </p>
         <span
           aria-hidden
@@ -80,7 +65,7 @@ export function PoweredBy({ className }: { className?: string }) {
       </div>
 
       <div className="relative">
-        {/* Edge-mask: fade out at both sides so logos enter / exit on
+        {/* Edge-mask: fade out at both sides so labels enter / exit on
             soft seams instead of hitting a hard viewport edge. */}
         <div
           aria-hidden
@@ -95,22 +80,20 @@ export function PoweredBy({ className }: { className?: string }) {
           className="flex w-max items-center gap-12 px-12 sm:gap-16 sm:px-16"
           style={reduced ? undefined : { x }}
         >
-          {tripled.map((logo, i) => (
+          {tripled.map((name, i) => (
             <li
-              key={`${logo.name}-${i}`}
-              className="flex h-12 shrink-0 items-center justify-center"
+              key={`${name}-${i}`}
+              className="shrink-0"
             >
-              <img
-                src={logo.src}
-                alt={logo.name}
-                loading="lazy"
-                style={
-                  logo.invert
-                    ? { filter: "invert(1) brightness(1.05)" }
-                    : undefined
-                }
-                className="pointer-events-none h-9 w-auto select-none object-contain opacity-80 transition-opacity duration-200 hover:opacity-100 sm:h-10"
-              />
+              <span
+                className="select-none text-base font-semibold tracking-[0.18em] text-white/70 transition-colors duration-200 hover:text-white sm:text-lg"
+                style={{
+                  fontFamily:
+                    'Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif',
+                }}
+              >
+                {name}
+              </span>
             </li>
           ))}
         </motion.ul>
