@@ -40,6 +40,16 @@
   --color-forma-accent-deep: #2e7e8c;
   --color-forma-accent-rgb: 94, 177, 191;
 
+  /* Third-tier accent — violet/purple. Used by the IsoLevelWarp grid
+   * behind the problem testimonial and the Dithering shader on the
+   * paper-shader hero. Sits next to gold (warm) and steel-teal (cool)
+   * so the palette reads as gold ↔ violet ↔ blue, all over a near-
+   * black canvas. */
+  --color-forma-violet: #8b5cf6;
+  --color-forma-violet-soft: #a78bfa;
+  --color-forma-violet-deep: #6d28d9;
+  --color-forma-violet-rgb: 139, 92, 246;
+
   --color-aurora-purple: #b58bff;
   --color-aurora-pink: #ff9ec5;
 
@@ -203,26 +213,3 @@ body {
   }
 }
 
-/* Hero CTA + stats stagger. Used by HomeHero with explicit `animation-delay`
- * inline so each row lands after the BlurText copy resolves. The intermediate
- * keyframe step locks `opacity: 1` so the inline `opacity: 0` (used to keep
- * the elements hidden before their delay starts) doesn't override the
- * post-animation fill. */
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  [class*="animate-[fadeUp"] {
-    animation: none !important;
-    opacity: 1 !important;
-    transform: none !important;
-  }
-}

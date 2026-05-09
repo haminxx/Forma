@@ -1,55 +1,45 @@
 import { DemoSplit } from "../components/DemoSplit";
 import { DocsPanel } from "../components/DocsPanel";
 import { GlassTextarea } from "../components/GlassTextarea";
-import { HomeHero } from "../components/HomeHero";
 import { InstallSteps } from "../components/InstallSteps";
-import { SolutionSection } from "../components/SolutionSection";
-import { InteractiveCanvas } from "../components/InteractiveCanvas";
-import { LoopingWords } from "../components/LoopingWords";
-import { PixelWave } from "../components/PixelWave";
+import { PaperShaderHero } from "../components/PaperShaderHero";
 import { ProblemTestimonial } from "../components/ProblemTestimonial";
+import { SolutionSection } from "../components/SolutionSection";
 import { BlurText } from "../components/ui/blur-text";
 import { FeatureShowcase } from "../components/ui/feature-showcase";
+import { IsoLevelWarp } from "../components/ui/isometric-wave-grid-background";
 import { LogoCloud } from "../components/ui/logo-cloud";
 import { Reveal } from "../components/ui/reveal";
-import { ScrollColorBackground } from "../components/ui/scroll-color-background";
 import { EdgeGlow, SectionFade } from "../components/ui/section-fade";
 
 /**
  * Section order:
  *   home → demo → sandbox → problem → solution → about → docs
  *
- * Choreography overview:
- *   - All headings + subtitles use `BlurText` (per-word blur-in,
- *     adopted from `animations/blurText.md`). Headings get a gold
- *     flourish underline that draws after the last word lands.
- *   - Cards / grids / interactive blocks use `Reveal` (one observer
- *     per block, fade-up).
- *   - The Problem section uses `ProblemTestimonial` — dot-pattern
- *     background, large quote with `TextRotate` word stagger, and
- *     attribution; animation replays when re-entering the viewport.
- *   - The Solution section uses SolutionSection — bento grid (individual
- *     builders) with shadcn-style cards.
- *   - The About section uses `FeatureShowcase` (left-column accordion
- *     + right-column tab images, gold theme).
- *   - The Docs section uses gold `GlowCard` spotlights for each card.
+ * Palette:
+ *   - Canvas: black / charcoal (60%).
+ *   - Warm 30%: Forma gold (#d4b87a). Bridges sandbox-bottom into the
+ *     problem and solution sections so all three read as one warm
+ *     band. Solution caps the warm half with a deep gold panel.
+ *   - Cool 10%: violet/blue accents in the home shader and the iso
+ *     wave grid behind the problem testimonial; teal in About + Docs.
  *
- * Section boundaries are softened with two helpers from
- * `ui/section-fade`:
- *   - `SectionFade` paints a vertical page-bg gradient (with optional
- *     backdrop-blur) at section edges so distinctive backgrounds —
- *     primarily the Sandbox's gold radial — bleed into the page bg
- *     instead of ending at a hard horizontal line.
- *   - `EdgeGlow` paints a low-opacity gold radial bloom at the section
- *     edge with `mix-blend-mode: screen`. When two adjacent sections
- *     both place an `EdgeGlow` at the boundary, the blooms overlap and
- *     create the illusion of warmth flowing continuously across the
- *     divide. Used everywhere the bg is flat dark on both sides.
+ * Section choreography:
+ *   - Home is now the PaperShaderHero (left text panel + right paper-
+ *     design Dithering shader). Replaces the previous PixelWave +
+ *     InteractiveCanvas + LoopingWords stack.
+ *   - Demo: top-centered Vibe Coder / Forma User toggle (eyebrow + H2
+ *     removed in a previous pass).
+ *   - Sandbox: gold radial backdrop + InstallSteps + GlassTextarea +
+ *     LogoCloud.
+ *   - Problem: gold-bridge backdrop + IsoLevelWarp violet topographic
+ *     animation behind the testimonial quote.
+ *   - Solution: full gold backdrop + bento (cards capped to 140-150px
+ *     so the whole grid fits in one viewport).
+ *   - About / Docs: cool/teal tail of the palette via radial overlays
+ *     and EdgeGlow `tone="accent"`.
  */
 
-// Common per-word blur stagger values — used to compute the right
-// post-heading delay so subtitles/content land AFTER the underline
-// finishes drawing.
 const HEADING_BASE_DELAY = 0.07;
 const HEADING_DURATION = 0.85;
 
@@ -62,61 +52,18 @@ function postHeadingDelay(tokenCount: number) {
 export function HomePage() {
   return (
     <div>
-      {/* harmonic.ai-style fixed page background. Interpolates between
-          eight palette stops as the user scrolls so every section seam
-          is a continuous gradient instead of a hard boundary. */}
-      <ScrollColorBackground />
-
       <section
         id="home"
-        className="relative isolate flex min-h-screen scroll-mt-20 flex-col items-center overflow-hidden px-6"
-        style={{
-          paddingTop: "5.5rem",
-          paddingBottom: "clamp(2rem, 6vh, 5rem)",
-          justifyContent: "center",
-        }}
+        className="relative scroll-mt-20"
+        aria-label="Forma — Grammarly for AI builder prompts"
       >
-        <div className="pointer-events-none absolute inset-0 z-0">
-          <PixelWave />
-        </div>
-        <div className="absolute inset-0 z-10">
-          <InteractiveCanvas />
-        </div>
-
-        {/* seasa.com-style two-column hero: bigger left rail (text + CTA
-            + stats) and a tighter right column for the visual. */}
-        <div className="relative z-20 mx-auto w-full max-w-[min(98vw,92rem)]">
-          <div className="grid grid-cols-1 gap-10 md:grid-cols-12 md:items-center md:gap-x-10 md:gap-y-12">
-            <div className="md:col-span-7 lg:col-span-7">
-              <HomeHero />
-            </div>
-            <div className="md:col-span-5 lg:col-span-5 md:justify-self-end">
-              <LoopingWords />
-            </div>
-          </div>
-        </div>
-
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-56"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(25, 26, 31, 0) 0%, rgba(25, 26, 31, 0.55) 50%, rgba(25, 26, 31, 0.98) 100%)",
-            maskImage:
-              "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 60%)",
-            WebkitMaskImage:
-              "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 60%)",
-          }}
-        />
-        {/* Gold bloom at the home → demo seam — pairs with the
-            EdgeGlow at demo's top so the warmth of the wave reads as
-            continuous instead of cutting off at the fade. */}
+        {/* The PaperShaderHero owns its own black canvas + theme toggle.
+            We just frame it as the #home section and let the existing
+            section bg fade chain handle the home → demo seam below. */}
+        <PaperShaderHero />
         <EdgeGlow position="bottom" />
       </section>
 
-      {/* Demo — eyebrow + H2 removed per the latest direction; the
-          Vibe Coder / Forma User toggle inside DemoSplit now sits at
-          the top-center as the only header for the section. */}
       <section
         id="demo"
         className="relative flex min-h-screen scroll-mt-20 flex-col items-center justify-center overflow-hidden px-6"
@@ -133,10 +80,9 @@ export function HomePage() {
         </Reveal>
       </section>
 
-      {/* Sandbox — single radial-gradient backdrop (gold instead of
-          purple, adopted from the user-pasted `tailwind-css-background-snippet`).
-          The graphic + image overlay are gone; we keep the chat-frame
-          GlassTextarea (the "describe your UI component" textbox). */}
+      {/* Sandbox — gold radial. Bottom of the section bleeds gold into
+          the Problem section's top, where the gold-bridge backdrop
+          continues warmth all the way through Solution. */}
       <section
         id="sandbox"
         className="relative flex min-h-screen scroll-mt-20 flex-col items-center justify-center overflow-hidden px-6"
@@ -146,17 +92,10 @@ export function HomePage() {
           gap: "clamp(1rem,2.5vh,2rem)",
         }}
       >
-        {/* Tailwind arbitrary background — black core fading to gold
-            via a 125% × 125% radial pinned at 50% / 10%. */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10 h-full w-full items-center px-5 py-24 [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#d4b87a_100%)]"
         />
-
-        {/* Soft frosted fade at top + bottom — bleeds the gold radial
-            into the page bg over a clamp(4rem..8rem) strip and frosts
-            content scrolling past the boundary so the Demo→Sandbox
-            and Sandbox→Problem transitions don't read as hard edges. */}
         <SectionFade position="top" blur={6} />
         <SectionFade position="bottom" blur={6} />
 
@@ -199,44 +138,57 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Problem — dot-pattern framed quote with gold pixel corners
-          and a per-line stagger reveal. The TOP edge intentionally
-          carries a stronger gold bloom (intensity ~2× default) so the
-          warmth at the bottom of Sandbox reads as if it's continuing
-          INTO Problem instead of stopping at the section seam — the
-          harmonic.ai colour-bleed pattern. */}
+      {/* Problem — gold-bridge backdrop carries the warm sandbox tone
+          through into Solution. IsoLevelWarp paints a violet animated
+          topographic grid behind the testimonial as the moody decor
+          shadow. */}
       <section
         id="problem"
-        className="relative flex min-h-screen scroll-mt-20 items-center justify-center px-6"
+        className="relative flex min-h-screen scroll-mt-20 items-center justify-center overflow-hidden px-6"
         style={{
           paddingTop: "clamp(3rem,8vh,6rem)",
           paddingBottom: "clamp(3rem,8vh,6rem)",
         }}
       >
-        <EdgeGlow position="top" intensity={0.12} height="clamp(8rem, 18vh, 14rem)" />
-        <EdgeGlow position="bottom" intensity={0.1} />
-        <ProblemTestimonial
-          quotes={[
-            "AI builders got dramatically better at generation — but the bottleneck moved upstream to specification quality. Generic prompts still produce generic components.",
-          ]}
-          attributions={[
-            "The input-quality bottleneck — every builder ecosystem competes on output, but they all consume the same low-quality prompt inputs",
-          ]}
+        {/* Gold-bridge: top of the section opens with the same gold the
+            sandbox bottom ends on, then darkens toward the bottom so
+            Solution's deeper gold reads as a continuation. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-10"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(212,184,122,0.92) 0%, rgba(150,120,70,0.65) 35%, rgba(60,48,30,0.85) 70%, rgba(25,26,31,0.95) 100%)",
+          }}
         />
+        {/* IsoLevelWarp — violet topographic grid mounted as the inner
+            decorative layer. `mix-blend-mode: screen` so the violet
+            lines glow through the gold backdrop instead of fighting
+            it. */}
+        <div className="absolute inset-0 z-0 mix-blend-screen opacity-60">
+          <IsoLevelWarp color="139, 92, 246" density={50} speed={1.2} />
+        </div>
+        <SectionFade position="top" blur={4} />
+        <SectionFade position="bottom" blur={4} />
+        <div className="relative z-10 w-full">
+          <ProblemTestimonial
+            quotes={[
+              "AI builders got dramatically better at generation — but the bottleneck moved upstream to specification quality. Generic prompts still produce generic components.",
+            ]}
+            attributions={[
+              "The input-quality bottleneck — every builder ecosystem competes on output, but they all consume the same low-quality prompt inputs",
+            ]}
+          />
+        </div>
       </section>
 
-      {/* Solution — full-gold backdrop. The user wants this section to
-          read entirely as the warm half of the palette (the 30%), so
-          the radial is dialled up to ~85% gold with only a small dark
-          core for legibility behind the bento panel. The bottom fade
-          still hands off to the cool/teal About+Docs tail. */}
+      {/* Solution — full gold backdrop. The bottom hands off to teal
+          via an EdgeGlow whose top counterpart lives in About. */}
       <section
         id="solution"
         className="relative flex min-h-screen scroll-mt-20 flex-col items-center justify-center overflow-hidden px-6 py-16"
         aria-label="Solution"
       >
-        {/* Gold-dominant backdrop: warm gold fills the section with a
-            soft dark vignette so card text retains contrast. */}
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10"
@@ -251,14 +203,9 @@ export function HomePage() {
         <SolutionSection />
       </section>
 
-      {/* About — FeatureShowcase. Eyebrow + headline + accordion on
-          the left, image-tab panel on the right.
-          About is the first section in the cool/teal half of the
-          palette (the 10% accent). A subtle teal radial sits behind
-          the content; both EdgeGlows use `tone="accent"` so the
-          Solution→About seam feels like one continuous gradient hand-
-          off (teal bloom on Solution bottom + teal bloom on About top
-          line up at the seam). */}
+      {/* About — first cool/teal section. Teal radial + accent EdgeGlows
+          on both edges so the Solution→About + About→Docs seams read
+          as a single continuous cool tail. */}
       <section
         id="about"
         className="relative flex min-h-screen scroll-mt-20 flex-col items-center justify-center overflow-hidden px-6"
@@ -271,13 +218,22 @@ export function HomePage() {
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10 [background:radial-gradient(120%_90%_at_50%_0%,rgba(94,177,191,0.32)_0%,#000_60%)]"
         />
-        <EdgeGlow position="top" tone="accent" intensity={0.1} height="clamp(8rem, 18vh, 14rem)" />
+        <EdgeGlow
+          position="top"
+          tone="accent"
+          intensity={0.1}
+          height="clamp(8rem, 18vh, 14rem)"
+        />
         <EdgeGlow position="bottom" tone="accent" intensity={0.08} />
         <FeatureShowcase
           eyebrow="Inside Forma"
           title="One GPU. Two model tiers. One product flow."
           description="Forma's freemium experience requires both inference paths to be live at the same time on the same backend. Llama 3.1 8B handles per-keystroke scoring for free users; Llama 3.1 70B AWQ powers the 7-agent deep analysis for Pro users. Both fit in 89 GiB of MI300X — H100 80GB cannot host both with usable concurrency."
-          stats={["192 GiB HBM3", "89 GiB used · 102 GiB headroom", "vLLM · ROCm 7.0"]}
+          stats={[
+            "192 GiB HBM3",
+            "89 GiB used · 102 GiB headroom",
+            "vLLM · ROCm 7.0",
+          ]}
           steps={[
             {
               id: "free",
@@ -323,10 +279,7 @@ export function HomePage() {
         />
       </section>
 
-      {/* Docs — sticky 200 vh section closes the cool/teal tail of the
-          palette. EdgeGlows now use the same `tone="accent"` as About
-          so the About→Docs seam continues the cool half without
-          dipping back through the warm gold. */}
+      {/* Docs — sticky 200 vh section closes the cool tail. */}
       <section
         id="docs"
         className="relative scroll-mt-20"
@@ -334,15 +287,15 @@ export function HomePage() {
       >
         <div
           className="sticky top-0 flex h-screen items-center justify-center overflow-hidden px-6"
-          style={{ paddingTop: "clamp(3rem,8vh,6rem)", paddingBottom: "clamp(3rem,8vh,6rem)" }}
+          style={{
+            paddingTop: "clamp(3rem,8vh,6rem)",
+            paddingBottom: "clamp(3rem,8vh,6rem)",
+          }}
         >
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 -z-10 [background:radial-gradient(120%_85%_at_50%_100%,rgba(94,177,191,0.22)_0%,#000_55%)]"
           />
-          {/* EdgeGlow lives inside the sticky panel so the bloom moves
-              with the visible viewport as the panel sticks during the
-              200 vh scroll buffer. */}
           <EdgeGlow position="top" tone="accent" intensity={0.08} />
           <EdgeGlow position="bottom" tone="accent" intensity={0.06} />
           <DocsPanel />

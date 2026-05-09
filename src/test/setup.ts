@@ -1,5 +1,20 @@
 import "@testing-library/jest-dom/vitest";
 
+import { createElement } from "react";
+import { vi } from "vitest";
+
+/**
+ * `@paper-design/shaders-react` mounts a WebGL ShaderMount on first
+ * render. jsdom has no WebGL, which throws an unhandled rejection
+ * during tests even though the calling component renders fine. We
+ * stub the `Dithering` named export with a no-op div so the test
+ * suite stays quiet.
+ */
+vi.mock("@paper-design/shaders-react", () => ({
+  Dithering: (props: Record<string, unknown>) =>
+    createElement("div", { "data-testid": "dithering-stub", ...props }),
+}));
+
 function mockIntersectionEntry(target: Element): IntersectionObserverEntry {
   const empty = (): DOMRectReadOnly =>
     ({
@@ -69,6 +84,9 @@ const stubCanvasGetContext: typeof HTMLCanvasElement.prototype.getContext = func
   _attrs?,
 ) {
   if (contextId === "2d") {
+    const gradientStub = {
+      addColorStop: noop,
+    } as unknown as CanvasGradient;
     return {
       canvas: this,
       fillStyle: "",
@@ -85,6 +103,15 @@ const stubCanvasGetContext: typeof HTMLCanvasElement.prototype.getContext = func
       stroke: noop,
       fill: noop,
       setTransform: noop,
+      // IsoLevelWarp + other gradient-stroke canvases need these.
+      createLinearGradient: () => gradientStub,
+      createRadialGradient: () => gradientStub,
+      createPattern: () => null,
+      save: noop,
+      restore: noop,
+      translate: noop,
+      rotate: noop,
+      scale: noop,
     } as unknown as CanvasRenderingContext2D;
   }
   return null;
