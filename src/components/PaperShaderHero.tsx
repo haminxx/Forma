@@ -1,38 +1,27 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { Dithering } from "@paper-design/shaders-react";
-import { ArrowRight, Cpu, Globe, Moon, Sun, Trophy } from "lucide-react";
+import { ArrowRight, Cpu, Globe, Trophy } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 /**
  * Forma home hero — split layout adopted from the user-pasted
- * `hero-section-2` reference (left content only; right side keeps
- * the existing Dithering dot shader from the previous iteration).
+ * `hero-section-2` reference (left content) plus the
+ * `portfolio-hero-with-paper-shaders` reference (right shader).
  *
- * Left text panel:
- *   - Header: Forma F-badge + word-mark + slogan eyebrow
- *   - Main: title (with gold accent), divider bar, subtitle, CTA link
- *   - Footer: 3-col contact-style grid with website / hardware /
- *     hackathon-track signal
+ * Right panel uses the `Dithering` shader with the user's exact
+ * reference settings: pink-on-black `cat` shape, type 4x4, slow
+ * speed 0.1 — this produces the cat-silhouette pink dot field shown
+ * in the reference image. `cat` is not in the package's published
+ * type union but is supported at runtime, so we cast through `any`.
  *
- * Right panel:
- *   - Dithering shader, "moving around dots" feel via shape="dots",
- *     type="random", speed=0.5.
- *
- * Mobile (< md): stacked — text on top, shader below.
- * Desktop (md+): side-by-side, lg gives the text panel 60% of width.
+ * Per the latest direction: the dark/light theme toggle is gone
+ * (the hero is fixed in dark mode) and the bottom edge gradient is
+ * removed so the shader fills the full viewport with no fade band.
  */
 export function PaperShaderHero() {
-  const [isDarkMode, setIsDarkMode] = useState(true);
-
-  const colorBack = isDarkMode ? "hsl(0, 0%, 0%)" : "hsl(0, 0%, 95%)";
-  const colorFront = isDarkMode
-    ? "hsl(265, 90%, 70%)"
-    : "hsl(220, 100%, 65%)";
-
   // Stagger orchestration — kept lightweight so the hero lands fast
-  // even though it sits behind the theme-toggle + shader.
+  // even though it sits behind the shader.
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -58,24 +47,6 @@ export function PaperShaderHero() {
       animate="visible"
       variants={containerVariants}
     >
-      {/* Theme toggle — floats above both panels in the top-right safe
-          area below the navbar so it doesn't collide with the PillNav. */}
-      <button
-        type="button"
-        onClick={() => setIsDarkMode((v) => !v)}
-        className={cn(
-          "absolute right-6 top-24 z-30 inline-flex h-10 w-10 items-center justify-center rounded-full backdrop-blur-md transition-colors md:right-10",
-          isDarkMode
-            ? "bg-white/10 text-white hover:bg-white/15"
-            : "bg-black/10 text-black hover:bg-black/20",
-        )}
-        aria-label={
-          isDarkMode ? "Switch to light theme" : "Switch to dark theme"
-        }
-      >
-        {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-      </button>
-
       {/* Left: content panel */}
       <div className="relative z-10 flex w-full flex-col justify-between p-8 pt-24 md:w-1/2 md:p-12 md:pt-28 lg:w-3/5 lg:p-16 lg:pt-32">
         <div>
@@ -139,10 +110,7 @@ export function PaperShaderHero() {
         {/* 3-col footer info — Forma signals (live URL, hardware,
             hackathon track) in place of the reference's website /
             phone / address. */}
-        <motion.footer
-          className="mt-12 w-full"
-          variants={itemVariants}
-        >
+        <motion.footer className="mt-12 w-full" variants={itemVariants}>
           <div className="grid grid-cols-1 gap-5 text-xs text-white/55 sm:grid-cols-3">
             <FooterInfo Icon={Globe}>
               <span className="font-mono text-white/80">
@@ -150,9 +118,7 @@ export function PaperShaderHero() {
               </span>
             </FooterInfo>
             <FooterInfo Icon={Cpu}>
-              <span className="text-white/80">
-                AMD MI300X · vLLM 0.17.1
-              </span>
+              <span className="text-white/80">AMD MI300X · vLLM 0.17.1</span>
             </FooterInfo>
             <FooterInfo Icon={Trophy}>
               <span className="text-white/80">
@@ -163,24 +129,27 @@ export function PaperShaderHero() {
         </motion.footer>
       </div>
 
-      {/* Right: shader panel. Hidden on mobile (<md) to keep the
-          stacked text-only experience legible. */}
+      {/* Right: paper-design Dithering shader, exact settings from the
+          user's reference (pink-on-black cat silhouette, slow speed). */}
       <div className="relative hidden md:block md:w-1/2 lg:w-2/5">
         <Dithering
           style={{ height: "100%", width: "100%" }}
-          colorBack={colorBack}
-          colorFront={colorFront}
-          shape="dots"
-          type="random"
+          colorBack="hsl(0, 0%, 0%)"
+          colorFront="hsl(320, 100%, 70%)"
+          // `cat` is supported at runtime by the shader but not in the
+          // published type union; cast through unknown so TS lets it
+          // pass while runtime keeps the user's exact reference.
+          shape={"cat" as unknown as "dots"}
+          type="4x4"
           pxSize={3}
           offsetX={0}
           offsetY={0}
-          scale={0.9}
+          scale={0.8}
           rotation={0}
-          speed={0.5}
+          speed={0.1}
         />
         {/* Soft inner edge so the seam between text panel and shader
-            doesn't read as a hard vertical line on the dark theme. */}
+            doesn't read as a hard vertical line. */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-y-0 left-0 w-12"
@@ -190,16 +159,6 @@ export function PaperShaderHero() {
           }}
         />
       </div>
-
-      {/* Bottom-edge fade for the home → demo seam. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-32 z-20"
-        style={{
-          background:
-            "linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(25,26,31,0.85) 70%, rgba(25,26,31,1) 100%)",
-        }}
-      />
     </motion.section>
   );
 }

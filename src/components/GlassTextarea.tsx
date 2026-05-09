@@ -1,53 +1,44 @@
 import { useState } from "react";
 import { ArrowUp, Paperclip } from "lucide-react";
+
 import { Textarea } from "@/components/ui/textarea";
 
 /**
- * Sandbox-section prompt input — liquid-glass frame inspired by the
- * `ruixen-moon-chat` reference. A frosted-glass card with:
- *   - shared `Textarea` from `@/components/ui/textarea`
- *   - paperclip attach button on the left
- *   - gold "Send" pill on the right that activates only when text exists
+ * Sandbox-section prompt input. Built around the user-pasted shadcn
+ * `Textarea` (`@/components/ui/textarea`) with the Geist token system,
+ * wrapped in a thin frame that adds:
+ *   - paperclip "attach" affordance on the left
+ *   - gold "Send" pill on the right that activates only when text
+ *     exists
  *
- * Local component state only — there is no submit target yet, so this
- * is a UI demo of the form factor users will see when Forma's sandbox
- * goes live.
+ * Width is matched to the LogoCloud below so the prompt aligns
+ * edge-to-edge with the 4 × 2 brand grid (`max-w-3xl`). The textarea
+ * itself uses `size="large"` so its base height matches the Geist
+ * spec.
  */
 export function GlassTextarea() {
   const [message, setMessage] = useState("");
   const canSend = message.trim().length > 0;
 
   return (
-    /* Width matches `InstallSteps` outer container so the prompt aligns
-       edge-to-edge with the four numbered step rails directly above it. */
-    <div className="relative w-full max-w-[min(calc(100vw-3rem),96rem)] px-2 sm:px-4">
-      <div
-        className="relative overflow-hidden rounded-2xl border border-white/14 sm:rounded-[1.35rem]"
-        style={{
-          background: "rgba(18, 19, 24, 0.78)",
-          backdropFilter: "blur(24px) saturate(150%)",
-          WebkitBackdropFilter: "blur(24px) saturate(150%)",
-          boxShadow:
-            "inset 0 1px 0 rgba(255,255,255,0.08), inset 0 0 0 1px rgba(255,255,255,0.04)",
-        }}
-      >
-        {/* Narrow top ridge — flatter silhouette than rounded-3xl glass. */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/12 to-transparent"
-        />
-
+    <div className="relative w-full max-w-3xl px-2 sm:px-4">
+      <div className="flex flex-col gap-2">
         <Textarea
           value={message}
           onChange={(v) => setMessage(v ?? "")}
           size="large"
           placeholder="Describe your UI component and animation"
           aria-label="Forma sandbox prompt"
-          style={{ minHeight: 52, maxHeight: 72 }}
-          className="relative !h-[52px] !min-h-[52px] !max-h-[4.5rem] overflow-y-auto !border-0 !bg-transparent px-[clamp(1rem,3.5vw,2rem)] py-2 text-[clamp(0.9rem,2.2vw,1.05rem)] leading-snug !text-white placeholder:!text-white/45 hover:!border-transparent focus:!border-transparent focus:!shadow-none !ring-0 focus:!ring-0"
+          // The shadcn Textarea ships with `bg-background-100` (light
+          // mode) / `var(--ds-background-100)` (dark mode). We override
+          // the height so the bar feels generous on the gold backdrop.
+          className="!h-auto min-h-[88px] !resize-none !rounded-xl !text-base"
         />
 
-        <div className="relative flex items-center justify-between px-[clamp(0.9rem,3vw,1.75rem)] pb-[clamp(0.65rem,2vw,0.85rem)] pt-0.5">
+        {/* Action row sits below the input so the textarea remains the
+            full Geist-spec component, while the send button + attach
+            affordance still feel attached. */}
+        <div className="flex items-center justify-between px-1">
           <button
             type="button"
             aria-label="Attach reference"

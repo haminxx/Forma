@@ -113,7 +113,7 @@ export const PillNav: React.FC = () => {
       hoverTimeoutRef.current = setTimeout(() => {
         setExpanded(false);
         pillWidth.set(COLLAPSED_W);
-      }, 600);
+      }, 500);
     }
 
     return () => {

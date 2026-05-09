@@ -3,6 +3,7 @@ import { DocsPanel } from "../components/DocsPanel";
 import { GlassTextarea } from "../components/GlassTextarea";
 import { InstallSteps } from "../components/InstallSteps";
 import { PaperShaderHero } from "../components/PaperShaderHero";
+import { PoweredBy } from "../components/PoweredBy";
 import { ProblemTestimonial } from "../components/ProblemTestimonial";
 import { SolutionSection } from "../components/SolutionSection";
 import { BlurText } from "../components/ui/blur-text";
@@ -51,19 +52,23 @@ function postHeadingDelay(tokenCount: number) {
 export function HomePage() {
   return (
     <div>
-      {/* Home — the PaperShaderHero owns its own h-screen black canvas.
-          We pull the section up by the navbar height (~88px) so the
-          shader fills the very top of the viewport (no body-bg gap
-          above it), and the navbar floats on top of the shader. */}
+      {/* Home — the PaperShaderHero owns its own h-screen canvas. The
+          AppShell navbar/brand are absolute/fixed (out of flow), so
+          the section starts at y=0 of <main> and fills the viewport
+          with no top gap and no negative-margin trick. */}
       <section
         id="home"
         className="relative scroll-mt-20"
-        style={{ marginTop: "-88px" }}
         aria-label="Forma — Grammarly for AI builder prompts"
       >
         <PaperShaderHero />
-        <EdgeGlow position="bottom" />
       </section>
+
+      {/* Powered by — scroll-driven horizontal logo marquee. Sits
+          between #home and #demo so the same 8 brand marks shown in
+          the Sandbox grid below also appear here, drifting in the
+          scroll direction. */}
+      <PoweredBy />
 
       <section
         id="demo"
