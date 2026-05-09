@@ -479,10 +479,17 @@
         </article>
         <article class="endpoint-card">
           <div class="method-badge">POST</div>
-          <div class="path">/detect-phrases</div>
-          <div class="endpoint-meta">Powered by: dictionary lookup, no LLM</div>
-          <div class="endpoint-meta"><strong>Latency:</strong> &lt;50ms</div>
-          <div class="endpoint-meta">Use: tooltip canonical resolution</div>
+          <div class="path">/detect-vague</div>
+          <div class="endpoint-meta">Powered by: 8B on AMD MI300X (port 30000)</div>
+          <div class="endpoint-meta"><strong>Latency:</strong> ~1-2s typical</div>
+          <div class="endpoint-meta">Use: inline underline detection (Free tier)</div>
+        </article>
+        <article class="endpoint-card">
+          <div class="method-badge">POST</div>
+          <div class="path">/agents/memory-deep</div>
+          <div class="endpoint-meta">Powered by: 70B AWQ on AMD MI300X (port 8000)</div>
+          <div class="endpoint-meta"><strong>Latency:</strong> ~12-25s typical</div>
+          <div class="endpoint-meta">Use: Pro tier Memory Engine personalization</div>
         </article>
       </div>
     </section>

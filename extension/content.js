@@ -1497,7 +1497,7 @@ function initForma() {
     
     ensureDeepProgressStyles();
     const showProgressPanel = deepAnalysisLoading && deepAnalysisSession;
-    const buttonText = '⚡ Run Full Analysis';
+    const buttonText = '⚡ Run Full Analysis <span style="display:inline-block;margin-left:6px;font-size:9px;font-weight:600;letter-spacing:0.08em;color:#0a0a09;background:#c8b89a;padding:1px 5px;border-radius:3px;vertical-align:middle;">PRO</span>';
     const disabledAttr = '';
     const errorHtml = deepAnalysisError
       ? `<div style="font-size:10px;color:#ef4444;margin-top:4px;width:100%;">${escapeHtml(deepAnalysisError)}</div>`
@@ -1508,7 +1508,7 @@ function initForma() {
         ? `
           <div id="forma-deep-progress-panel" class="forma-open" style="position:relative;margin-top:8px;">
             <div style="font-size:13px;color:#ef4444;margin-bottom:12px;">Analysis failed - try again</div>
-            <button id="forma-deep-retry" style="font-size:12px;background:transparent;border:1px solid #c8b89a;color:#c8b89a;padding:6px 10px;border-radius:8px;cursor:pointer;transition:all 0.2s ease;">⚡ Run Full Analysis</button>
+            <button id="forma-deep-retry" style="font-size:12px;background:transparent;border:1px solid #c8b89a;color:#c8b89a;padding:6px 10px;border-radius:8px;cursor:pointer;transition:all 0.2s ease;">${buttonText}</button>
           </div>
         `
         : `
