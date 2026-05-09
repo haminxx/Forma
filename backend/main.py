@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from agents import translate_phrase, analyze_sentence, run_critic_agent, run_reformulator_agent, run_style_agent, run_memory_agent, run_coach_agent, run_consensus_agent, run_all_agents_parallel, run_fast_critic_agent, run_detect_vague_agent
+from agents import translate_phrase, analyze_sentence, run_critic_agent, run_reformulator_agent, run_style_agent, run_memory_agent, run_memory_deep_agent, run_coach_agent, run_consensus_agent, run_all_agents_parallel, run_fast_critic_agent, run_detect_vague_agent
 from patterns import contains_vague_phrase
 from parser import parse_response, parse_analyze_response
 from db import init_db, get_db
@@ -175,6 +175,19 @@ async def memory_endpoint(request: MemoryRequest):
         return {"agent": "memory", "result": result}
     except Exception as e:
         return {"agent": "memory", "error": str(e)}
+
+
+@app.post("/agents/memory-deep")
+async def memory_deep_endpoint():
+    """
+    Pro tier Memory Engine endpoint. Returns a personalization profile based on
+    mocked cross-builder user history. Powers the /memory page.
+    """
+    try:
+        result = await run_memory_deep_agent()
+        return result
+    except Exception as e:
+        return {"error": str(e), "metadata": {"tier": "pro", "status": "failed"}}
 
 
 @app.post("/agents/coach")

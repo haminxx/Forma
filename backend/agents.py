@@ -2,6 +2,7 @@ import os
 import json
 import asyncio
 import time
+import logging
 from typing import Dict, Any
 
 import httpx
@@ -9,6 +10,7 @@ from dotenv import load_dotenv
 from crewai import Agent, Task, Crew, Process, LLM
 
 load_dotenv()
+logger = logging.getLogger(__name__)
 
 AMD_ENDPOINT = os.getenv("AMD_ENDPOINT", "http://165.245.128.5:8000/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "meta-llama/Meta-Llama-3.1-8B-Instruct")
@@ -854,6 +856,128 @@ MOCK_USER_HISTORY = [
     {"builder": "v0", "date": "2026-05-01", "components_accepted": ["Sticky Navbar", "Hamburger Menu", "Glassmorphic Popover"], "components_rejected": []},
     {"builder": "Lovable", "date": "2026-05-03", "components_accepted": ["Glassmorphic Popover"], "components_rejected": ["Modal Dialog"]},
 ]
+
+
+MOCK_USER_HISTORY_DEEP = [
+    {"builder": "v0.app", "prompt": "Build a glassmorphic popover for a notification preview", "accepted_canonical": "Glassmorphic Popover", "timestamp": "2026-04-12T10:24:00Z"},
+    {"builder": "v0.app", "prompt": "Add a sticky navbar with backdrop blur on scroll", "accepted_canonical": "Sticky Navbar", "timestamp": "2026-04-13T14:11:00Z"},
+    {"builder": "Cursor", "prompt": "Make a slide-in panel from the right edge for filters", "accepted_canonical": "Off-Canvas Drawer", "timestamp": "2026-04-15T09:33:00Z"},
+    {"builder": "v0.app", "prompt": "Toast notification that appears in the bottom right", "accepted_canonical": "Toast Notification", "timestamp": "2026-04-16T16:45:00Z"},
+    {"builder": "Lovable", "prompt": "Hero section with large serif heading and warm beige background", "accepted_canonical": "Hero Section", "timestamp": "2026-04-18T11:20:00Z"},
+    {"builder": "v0.app", "prompt": "Card grid layout with hover lift animation", "accepted_canonical": "Card Grid", "timestamp": "2026-04-20T13:50:00Z"},
+    {"builder": "Bolt", "prompt": "Glassmorphic dropdown menu for user settings", "accepted_canonical": "Glassmorphic Popover", "timestamp": "2026-04-22T08:15:00Z"},
+    {"builder": "v0.app", "prompt": "Sticky navbar with logo on left, links on right", "accepted_canonical": "Sticky Navbar", "timestamp": "2026-04-23T15:30:00Z"},
+    {"builder": "Cursor", "prompt": "Off-canvas drawer for mobile menu", "accepted_canonical": "Off-Canvas Drawer", "timestamp": "2026-04-25T10:05:00Z"},
+    {"builder": "v0.app", "prompt": "Toast for success messages with checkmark icon", "accepted_canonical": "Toast Notification", "timestamp": "2026-04-27T17:22:00Z"},
+    {"builder": "Lovable", "prompt": "Hero section with subtle parallax effect", "accepted_canonical": "Hero Section", "timestamp": "2026-04-29T12:48:00Z"},
+    {"builder": "v0.app", "prompt": "Glassmorphic popover for emoji picker", "accepted_canonical": "Glassmorphic Popover", "timestamp": "2026-05-01T09:10:00Z"},
+]
+
+
+async def run_memory_deep_agent() -> Dict[str, Any]:
+    """
+    Pro tier Memory Engine: analyzes user history across builders and generates
+    a personalization profile with style fingerprint, top components, and
+    predicted next-project recommendations. Runs on Llama 3.1 70B AWQ.
+    """
+    import time
+    start_time = time.time()
+
+    # Build the history context from mocked data
+    history_text = "\n".join([
+        f"- [{entry['builder']}] {entry['prompt']} -> accepted: {entry['accepted_canonical']}"
+        for entry in MOCK_USER_HISTORY_DEEP
+    ])
+
+    system_prompt = """You are Forma's Memory Engine, a personalization agent that analyzes a user's prompt history across AI builders and generates a structured design profile.
+
+You will be given a list of past prompts the user has written across builders (v0.app, Cursor, Lovable, Bolt) and the canonical UI components they accepted. Your job is to extract patterns and produce a personalization profile.
+
+Return ONLY valid JSON with this exact schema, no other text:
+
+{
+  "style_fingerprint": {
+    "aesthetic": "<2-4 words describing visual style, e.g. 'Modern · Minimalist · Glassmorphic'>",
+    "spacing": "<short description of spacing preferences, e.g. '8px base · generous padding'>",
+    "motion": "<short description of motion preferences, e.g. '250-300ms · cubic-bezier ease-out'>",
+    "color_bias": "<short description of color preferences, e.g. 'Warm neutrals · single accent'>"
+  },
+  "top_components": [
+    {"name": "<canonical UI component name>", "count": <integer>}
+  ],
+  "predicted_recommendations": [
+    {
+      "term": "<canonical UI term>",
+      "reasoning": "<1-2 sentence reasoning for why this component fits the user's pattern>",
+      "why": "<short tag/category explaining the data signal, e.g. 'Frequent data-heavy layouts without explicit loading affordance.'>"
+    }
+  ],
+  "metadata": {
+    "prompts_analyzed": <integer count of input prompts>
+  }
+}
+
+Rules:
+- top_components: list the 5-6 most frequent canonical components from the history, sorted by count descending
+- predicted_recommendations: exactly 3 items. Recommend canonical UI components the user has NOT yet used in their history but which would fit their established style pattern. Common picks: Skeleton Loader, Floating Label Input, Command Palette, Modal Overlay, Tooltip, Breadcrumb, Tab Group, Dropdown Menu, Avatar Stack
+- Be specific in reasoning; reference actual patterns from the history
+- Output JSON only, no markdown fences, no commentary"""
+
+    user_prompt = f"""Here is the user's prompt history across AI builders:
+
+{history_text}
+
+Generate the personalization profile JSON now."""
+
+    payload = {
+        "model": "hugging-quants/Meta-Llama-3.1-70B-Instruct-AWQ-INT4",
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ],
+        "temperature": 0.3,
+        "max_tokens": 800,
+    }
+
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        try:
+            response = await client.post(VLLM_URL, json=payload)
+            response.raise_for_status()
+            result = response.json()
+            content = result["choices"][0]["message"]["content"].strip()
+
+            # Strip markdown fences if model emits them despite instructions
+            if content.startswith("```"):
+                content = content.split("```")[1]
+                if content.startswith("json"):
+                    content = content[4:]
+                content = content.strip()
+            if content.endswith("```"):
+                content = content.rsplit("```", 1)[0].strip()
+
+            try:
+                profile = json.loads(content)
+            except json.JSONDecodeError as e:
+                logger.error(f"Memory deep agent returned invalid JSON: {content[:500]}")
+                raise ValueError(f"Model returned invalid JSON: {e}")
+
+            # Augment metadata
+            elapsed_ms = int((time.time() - start_time) * 1000)
+            if "metadata" not in profile:
+                profile["metadata"] = {}
+            profile["metadata"]["tier"] = "pro"
+            profile["metadata"]["model"] = "Llama 3.1 70B AWQ-INT4"
+            profile["metadata"]["hardware"] = "AMD MI300X (port 8000)"
+            profile["metadata"]["latency_ms"] = elapsed_ms
+            profile["metadata"]["prompts_analyzed"] = len(MOCK_USER_HISTORY_DEEP)
+
+            return profile
+        except httpx.HTTPError as e:
+            logger.error(f"Memory deep agent HTTP error: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Memory deep agent unexpected error: {e}")
+            raise
 
 
 async def run_memory_agent(prompt_text: str) -> Dict[str, Any]:
