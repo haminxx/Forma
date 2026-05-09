@@ -1,4 +1,4 @@
-import { DemoSplit } from "../components/DemoSplit";
+import { DemoStage } from "../components/DemoStage";
 import { DocsPanel } from "../components/DocsPanel";
 import { GlassTextarea } from "../components/GlassTextarea";
 import { InstallSteps } from "../components/InstallSteps";
@@ -64,27 +64,26 @@ export function HomePage() {
         <PaperShaderHero />
       </section>
 
-      {/* Powered by — scroll-driven horizontal logo marquee. Sits
-          between #home and #demo so the same 8 brand marks shown in
-          the Sandbox grid below also appear here, drifting in the
-          scroll direction. */}
-      <PoweredBy />
-
+      {/* Demo — sticky peek-then-expand stage. The DemoStage's first
+          paint at the top of #home (because of the 170vh shell + the
+          sticky child) lets the cursor-style demo window peek up
+          from below the home fold; as the user scrolls in, scale +
+          translate animate the panel to its full size. */}
       <section
         id="demo"
-        className="relative flex min-h-screen scroll-mt-20 flex-col items-center justify-center overflow-hidden px-6"
-        style={{
-          paddingTop: "clamp(2rem,5vh,4rem)",
-          paddingBottom: "clamp(2rem,5vh,4rem)",
-          gap: "clamp(0.75rem,1.5vh,1.5rem)",
-        }}
+        className="relative scroll-mt-20"
+        aria-label="Demo"
       >
         <EdgeGlow position="top" />
         <EdgeGlow position="bottom" />
-        <Reveal duration={0.6} className="flex w-full justify-center">
-          <DemoSplit />
-        </Reveal>
+        <DemoStage />
       </section>
+
+      {/* Powered by — scroll-driven horizontal name marquee. Moved
+          from after #home to between #demo and #sandbox per the
+          latest direction so the brand rail bridges the demo and
+          the install/grid flow that follows. */}
+      <PoweredBy />
 
       {/* Sandbox — gold radial. Bottom of the section bleeds gold into
           the Problem section's top, where the gold-bridge backdrop
