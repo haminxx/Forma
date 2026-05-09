@@ -742,6 +742,7 @@ function initForma() {
   // ============================================================
   
   let formaScoreBadge = null;
+  let scoreBadgeLayoutListenersAttached = false;
   let deepAnalysisLoading = false;
   let panelOwnsBadge = false;
   let deepAnalysisError = '';
@@ -1489,6 +1490,10 @@ function initForma() {
         transition: 'border-color 0.2s ease'
       });
       document.body.appendChild(formaScoreBadge);
+      if (!scoreBadgeLayoutListenersAttached) {
+        scoreBadgeLayoutListenersAttached = true;
+        attachScoreBadgeLayoutListeners();
+      }
     }
 
     formaScoreBadge.dataset.lastScore = String(score);
@@ -1541,7 +1546,7 @@ function initForma() {
     formaScoreBadge.style.borderColor = color === '#6b6560' ? 'rgba(200,184,154,0.3)' : color;
     formaScoreBadge.style.display = 'flex';
     formaScoreBadge.style.flexWrap = 'wrap';
-    positionFormaScoreBadge();
+    repositionScoreBadge();
 
     const runBtn = formaScoreBadge.querySelector('#forma-run-full-analysis');
     if (runBtn && !showProgressPanel) {
@@ -1588,14 +1593,39 @@ function initForma() {
     }
   }
 
-  function positionFormaScoreBadge() {
-    if (!formaScoreBadge || !targetTextarea) return;
+  function repositionScoreBadge() {
+    if (!formaScoreBadge) return;
+    if (!targetTextarea || !document.contains(targetTextarea)) {
+      hideFormaScoreBadge();
+      return;
+    }
     const rect = targetTextarea.getBoundingClientRect();
     // Position below the textarea, anchored to LEFT edge so it never
     // overlaps with the host site's send button (typically right side).
     formaScoreBadge.style.top = (rect.bottom + window.scrollY + 8) + 'px';
     formaScoreBadge.style.right = 'auto';
     formaScoreBadge.style.left = (rect.left + window.scrollX) + 'px';
+  }
+
+  function attachScoreBadgeLayoutListeners() {
+    const layoutObserver = new MutationObserver(() => {
+      // Throttle to next animation frame
+      requestAnimationFrame(() => {
+        repositionScoreBadge();
+      });
+    });
+
+    // Observe the document body for child list changes (sidebar mount/unmount)
+    // and the textarea's parent for attribute/position changes
+    layoutObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: false  // attributes off to reduce noise
+    });
+
+    window.addEventListener('resize', () => {
+      requestAnimationFrame(repositionScoreBadge);
+    });
   }
 
   function hideFormaScoreBadge() {
