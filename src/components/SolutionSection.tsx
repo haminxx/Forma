@@ -46,19 +46,18 @@ const AGENTS = [
 function IntegrationCard() {
   return (
     <Card className="flex h-full flex-col">
-      <CardHeader>
-        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#d4b87a]/20 text-[#d4b87a]">
-          <Chrome className="h-6 w-6" aria-hidden />
+      <CardHeader className="space-y-2 p-5">
+        <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-[#d4b87a]/20 text-[#d4b87a]">
+          <Chrome className="h-5 w-5" aria-hidden />
         </div>
-        <CardTitle>Chrome extension</CardTitle>
-        <CardDescription>
-          Forma sits inside the prompt workflow you already have. As you type
-          on v0.app, vague UI vocabulary gets a Grammarly-style underline.
-          Hover for the canonical term plus three alternatives, click Accept,
-          and the prompt rewrites in place with concrete motion + a11y specs.
+        <CardTitle className="text-lg">Chrome extension</CardTitle>
+        <CardDescription className="text-[13px] leading-snug">
+          Sits inside your prompt workflow on v0.app. Vague UI words get a
+          Grammarly-style underline; hover for the canonical term, click
+          Accept, and the prompt rewrites with motion + a11y specs.
         </CardDescription>
       </CardHeader>
-      <CardFooter className="mt-auto flex items-center justify-between">
+      <CardFooter className="mt-auto flex items-center justify-between p-5 pt-0">
         <Button variant="outline" size="sm" asChild>
           <a
             href="https://github.com/haminxx/Forma"
@@ -82,7 +81,7 @@ function IntegrationCard() {
 function TrackersCard() {
   return (
     <Card className="h-full">
-      <CardContent className="flex h-full flex-col justify-between p-6">
+      <CardContent className="flex h-full flex-col justify-between p-5">
         <div>
           <CardTitle className="text-base font-medium">
             Builders supported
@@ -116,14 +115,14 @@ function TrackersCard() {
 function FocusCard() {
   return (
     <Card className="h-full">
-      <CardContent className="flex h-full flex-col justify-between p-6">
+      <CardContent className="flex h-full flex-col justify-between p-5">
         <div className="flex items-start justify-between gap-2">
           <div>
             <CardTitle className="text-base font-medium">
               Free tier · 8B
             </CardTitle>
-            <CardDescription>
-              Llama 3.1 8B Instruct · per-keystroke score
+            <CardDescription className="text-[12px]">
+              Llama 3.1 8B · per-keystroke score
             </CardDescription>
           </div>
           <Badge
@@ -134,11 +133,11 @@ function FocusCard() {
           </Badge>
         </div>
         <div className="flex items-baseline gap-2">
-          <span className="text-6xl font-bold tabular-nums">95</span>
+          <span className="text-5xl font-bold tabular-nums">95</span>
           <span className="text-sm text-muted-foreground">/ 100</span>
         </div>
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>Vague prompt = 30</span>
+        <div className="flex justify-between text-[11px] text-muted-foreground">
+          <span>Vague = 30</span>
           <span>One Accept = 95</span>
         </div>
       </CardContent>
@@ -158,11 +157,11 @@ function StatisticCard() {
         }}
         aria-hidden
       />
-      <CardContent className="relative z-10 flex h-full min-h-[140px] flex-col items-center justify-center gap-1 p-6 text-center">
-        <span className="text-5xl font-bold tabular-nums text-foreground/95 sm:text-6xl">
+      <CardContent className="relative z-10 flex h-full flex-col items-center justify-center gap-1 p-5 text-center">
+        <span className="text-4xl font-bold tabular-nums text-foreground/95 sm:text-5xl">
           30 → 95
         </span>
-        <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+        <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
           Prompt quality score
         </span>
       </CardContent>
@@ -173,16 +172,16 @@ function StatisticCard() {
 function ProductivityCard() {
   return (
     <Card className="h-full">
-      <CardContent className="flex h-full flex-col justify-between p-6">
+      <CardContent className="flex h-full flex-col justify-between p-5">
         <div>
           <CardTitle className="text-base font-medium">
             Pro tier · 70B
           </CardTitle>
-          <CardDescription>
-            Llama 3.1 70B AWQ-INT4 · 7-agent consensus
+          <CardDescription className="text-[12px]">
+            70B AWQ-INT4 · 7-agent consensus
           </CardDescription>
         </div>
-        <ul className="mt-3 flex flex-wrap gap-1">
+        <ul className="mt-2 flex flex-wrap gap-1">
           {AGENTS.map((a) => (
             <li
               key={a}
@@ -200,26 +199,26 @@ function ProductivityCard() {
 function ShortcutsCard() {
   return (
     <Card className="h-full">
-      <CardContent className="flex h-full flex-wrap items-center justify-between gap-4 p-6">
-        <div className="min-w-[14rem]">
+      <CardContent className="flex h-full flex-wrap items-center justify-between gap-3 p-5">
+        <div className="min-w-[12rem]">
           <CardTitle className="text-base font-medium">
-            One MI300X · two tiers, concurrent
+            One MI300X · two tiers
           </CardTitle>
-          <CardDescription>
-            8B + 70B AWQ load together in 89 GiB of HBM3 — H100 80GB cannot.
+          <CardDescription className="text-[12px]">
+            8B + 70B AWQ load together — H100 80GB cannot.
           </CardDescription>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex flex-col items-end">
-            <span className="font-mono text-2xl font-bold tabular-nums text-foreground">
+            <span className="font-mono text-xl font-bold tabular-nums text-foreground">
               89
-              <span className="text-base text-muted-foreground"> / 192</span>
+              <span className="text-sm text-muted-foreground"> / 192</span>
             </span>
             <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
               GiB used
             </span>
           </div>
-          <div className="h-10 w-1.5 rounded-full bg-white/10">
+          <div className="h-9 w-1.5 rounded-full bg-white/10">
             <div
               className="h-full w-full rounded-full"
               style={{
@@ -240,10 +239,10 @@ export function SolutionSection() {
     /* No inner panel: the section's gold radial backdrop in `Home.tsx`
        is the surface; dark bento cards float on it for contrast.
        Headline is the section's own — no duplicated sub-headline. */
-    <div className="w-full max-w-[min(calc(100vw-3rem),72rem)] text-foreground">
-      <div className="mb-8 text-center">
+    <div className="w-full max-w-[min(calc(100vw-3rem),68rem)] text-foreground">
+      <div className="mb-5 text-center sm:mb-6">
         <h2
-          className="text-balance text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl"
+          className="text-balance text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl"
           style={{
             color: "#191a1f",
             textShadow: "0 1px 0 rgba(255,255,255,0.18)",
@@ -252,11 +251,10 @@ export function SolutionSection() {
           Built on AMD MI300X.
         </h2>
         <p
-          className="mt-2 text-sm sm:text-base"
+          className="mt-1.5 text-xs sm:text-sm"
           style={{ color: "rgba(25,26,31,0.72)" }}
         >
-          Free 8B + Pro 70B AWQ — both inference tiers live on one GPU, in
-          one product flow.
+          Free 8B + Pro 70B AWQ — both inference tiers live on one GPU.
         </p>
       </div>
 
