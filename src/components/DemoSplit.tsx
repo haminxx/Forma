@@ -386,7 +386,7 @@ function Sidebar({
   return (
     <aside
       className={cn(
-        "flex h-full w-full flex-col overflow-y-auto bg-black/40 px-2 py-3 lg:w-[260px] lg:flex-shrink-0 lg:border-r",
+        "flex h-full w-full flex-col overflow-y-auto bg-[#0a0b0e] px-2 py-3 lg:w-[260px] lg:flex-shrink-0 lg:border-r",
         mode === "vibe" ? "lg:border-white/[0.08]" : "lg:border-[#d4b87a]/15",
       )}
     >
@@ -899,7 +899,7 @@ function AgentPanel({
   return (
     <div
       className={cn(
-        "flex h-full w-full flex-col overflow-hidden bg-black/30 lg:w-[340px] lg:flex-shrink-0 lg:border-l",
+        "flex h-full w-full flex-col overflow-hidden bg-[#0b0c10] lg:w-[340px] lg:flex-shrink-0 lg:border-l",
         mode === "vibe" ? "lg:border-white/[0.08]" : "lg:border-[#d4b87a]/15",
       )}
     >
