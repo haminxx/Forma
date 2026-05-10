@@ -9,6 +9,7 @@ import { ProblemTestimonial } from "../components/ProblemTestimonial";
 import { SolutionSection } from "../components/SolutionSection";
 import AnimatedGradientBackground, {
   cssInvertedHeroTrackBackdrop,
+  HERO_RADIAL_DEFAULT_TOP_OFFSET,
 } from "../components/ui/animated-gradient-background";
 import { BlurText } from "../components/ui/blur-text";
 import { FeatureShowcase } from "../components/ui/feature-showcase";
@@ -32,7 +33,7 @@ import { EdgeGlow } from "../components/ui/section-fade";
  * section's TOP cleanly below the floating navbar.
  */
 
-/** Dark filler for the demo **scroll track only** — inverted home radial (see `cssInvertedHeroTrackBackdrop`). */
+/** Dark filler for the demo **scroll track only** — bottom-anchored mirror of the hero radial (see `cssInvertedHeroTrackBackdrop`). */
 
 /** Match `marginTop` on `#demo` — backdrop must not cover the pulled-up overlap. */
 const DEMO_OVERLAP_CLEAR = "38vh";
@@ -56,7 +57,7 @@ export function HomePage() {
           <div className="sticky top-0 h-screen w-full">
             <AnimatedGradientBackground
               breathing={!reduceMotion}
-              topOffset={-20}
+              topOffset={HERO_RADIAL_DEFAULT_TOP_OFFSET}
             />
           </div>
         </div>

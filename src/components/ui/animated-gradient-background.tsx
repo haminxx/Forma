@@ -38,20 +38,6 @@ interface AnimatedGradientBackgroundProps {
  * marketing accent.
  */
 
-/** Static “inverted” hero field: same palette + stop positions as the home radial, colours reversed, anchor flipped to the bottom (`82%` vs `20%`). */
-export function cssInvertedHeroTrackBackdrop(
-  widthPct = 125,
-  heightPct = 115,
-): string {
-  const colors = [...DEFAULT_HERO_GRADIENT_COLORS];
-  const stops = [...DEFAULT_HERO_GRADIENT_STOPS];
-  const n = colors.length;
-  const pairs = stops
-    .map((stop, i) => `${colors[n - 1 - i]!} ${stop}%`)
-    .join(", ");
-  return `radial-gradient(${widthPct}% ${heightPct}% at 50% 82%, ${pairs})`;
-}
-
 /** Shared with `AnimatedGradientBackground` defaults — single source of truth. */
 const DEFAULT_HERO_GRADIENT_COLORS = [
   "#0A0A0A",
@@ -65,8 +51,28 @@ const DEFAULT_HERO_GRADIENT_COLORS = [
 
 const DEFAULT_HERO_GRADIENT_STOPS = [35, 50, 60, 70, 80, 90, 100] as const;
 
+/** Default ellipse axes — must match `AnimatedGradientBackground` (`startingGap`, `topOffset`). */
+export const HERO_RADIAL_DEFAULT_WIDTH_PCT = 125;
+export const HERO_RADIAL_DEFAULT_TOP_OFFSET = -20;
+
+/**
+ * Static demo-track field: **same** palette + stop order as the home radial
+ * (not colour-reversed). Anchor is flipped to the bottom (`82%` vs `20%`) so
+ * it mirrors the hero: moving away from each centre hits the **same** rim
+ * gold/cream — avoids a dark seam where reversed stops had black on the outer edge.
+ */
+export function cssInvertedHeroTrackBackdrop(
+  widthPct = HERO_RADIAL_DEFAULT_WIDTH_PCT,
+  heightPct = HERO_RADIAL_DEFAULT_WIDTH_PCT + HERO_RADIAL_DEFAULT_TOP_OFFSET,
+): string {
+  const colors = [...DEFAULT_HERO_GRADIENT_COLORS];
+  const stops = [...DEFAULT_HERO_GRADIENT_STOPS];
+  const pairs = stops.map((stop, i) => `${colors[i]!} ${stop}%`).join(", ");
+  return `radial-gradient(${widthPct}% ${heightPct}% at 50% 82%, ${pairs})`;
+}
+
 const AnimatedGradientBackground: FC<AnimatedGradientBackgroundProps> = ({
-  startingGap = 125,
+  startingGap = HERO_RADIAL_DEFAULT_WIDTH_PCT,
   breathing = true,
   gradientColors = [...DEFAULT_HERO_GRADIENT_COLORS],
   gradientStops = [...DEFAULT_HERO_GRADIENT_STOPS],

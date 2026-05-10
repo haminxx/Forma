@@ -49,7 +49,7 @@ export function PoweredBy({ className }: { className?: string }) {
     <section
       aria-label="Powered by"
       className={cn(
-        "relative w-full overflow-hidden bg-[#0a0a0c] py-10 sm:py-14",
+        "relative w-full overflow-hidden bg-black py-10 sm:py-14",
         className,
       )}
     >
@@ -72,11 +72,11 @@ export function PoweredBy({ className }: { className?: string }) {
             soft seams instead of hitting a hard viewport edge. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-[#0a0a0c] to-transparent"
+          className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-black to-transparent"
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-[#0a0a0c] to-transparent"
+          className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-black to-transparent"
         />
 
         <motion.ul

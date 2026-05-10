@@ -181,7 +181,7 @@ body,
  * to the viewport. */
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 68px;
+  scroll-padding-top: 6rem;
   /* Hide scrollbars (Firefox + IE). */
   scrollbar-width: none;
   -ms-overflow-style: none;

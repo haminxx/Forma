@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion, useSpring } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion, useSpring } from "framer-motion";
 
 interface NavItem {
   label: string;
@@ -43,7 +43,11 @@ function clampExpandedWidth(viewport: number): number {
 // moment the user starts scrolling.
 const SCROLL_COLLAPSE_THRESHOLD = 16;
 
+// Matches `scroll-mt-24` on section anchors (6rem ≈ 96px below viewport top).
+const SECTION_SCROLL_TOP_RESERVE_PX = 96;
+
 export const PillNav: React.FC = () => {
+  const reduceMotion = useReducedMotion();
   const [activeSection, setActiveSection] = useState("home");
   const [expanded, setExpanded] = useState(false);
   const [hovering, setHovering] = useState(false);
@@ -144,8 +148,19 @@ export const PillNav: React.FC = () => {
     // (Was `block: "center"` — that left the demo / sandbox content
     // partially obscured by the navbar after the previous header
     // refactor moved the brand + GitHub buttons out of flow.)
+    // `scrollIntoView` can land incorrectly on tall sections with negative
+    // margin (e.g. `#demo`). Manual offset matches each section's `scroll-mt-24`.
     const node = document.getElementById(sectionId);
-    node?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (node) {
+      const y =
+        node.getBoundingClientRect().top +
+        window.scrollY -
+        SECTION_SCROLL_TOP_RESERVE_PX;
+      window.scrollTo({
+        top: Math.max(0, y),
+        behavior: reduceMotion ? "auto" : "smooth",
+      });
+    }
 
     // Reset transition state after animation completes
     setTimeout(() => {
