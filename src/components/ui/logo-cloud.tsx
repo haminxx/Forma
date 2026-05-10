@@ -52,7 +52,7 @@ const PLATFORMS: Platform[] = [
     name: "Tempo",
     src: "/logos/tempo.png",
     href: "https://www.tempo.new/",
-    filter: "brightness(1.5) contrast(1.15)",
+    invert: true,
   },
 ];
 
