@@ -23,18 +23,17 @@ export const NAV_ITEMS: NavItem[] = [
  *   - Active section tracked from scroll via IntersectionObserver.
  *   - Collapsed label animates per-character on change.
  */
-// Pill sizing. Collapsed is fixed; expanded scales with the viewport so
-// the pill never escapes the visible window on narrow screens. Sized so
-// brand + GitHub button (each ~140 px) still get breathing room on the
-// flanks at the smallest viewport we care about (~360 px).
-const COLLAPSED_W = 116;
-const EXPANDED_MAX = 560;
+// Pill sizing. Collapsed is fixed; expanded is capped modestly — four anchors
+// (Home / Demo / Sandbox / Docs) only, so width stays narrower than the old
+// 7-item bar. Flank reserve still clears logo + GitHub CTAs (~360 px).
+const COLLAPSED_W = 108;
+const EXPANDED_MAX = 392;
 const EXPANDED_FLANK_RESERVE = 360;
 
 function clampExpandedWidth(viewport: number): number {
   if (!Number.isFinite(viewport) || viewport <= 0) return EXPANDED_MAX;
   const usable = viewport - EXPANDED_FLANK_RESERVE;
-  return Math.max(COLLAPSED_W + 60, Math.min(EXPANDED_MAX, usable));
+  return Math.max(COLLAPSED_W + 32, Math.min(EXPANDED_MAX, usable));
 }
 
 // Pixels of scroll past which the pill auto-collapses. Set tight so
@@ -205,14 +204,14 @@ export const PillNav: React.FC = () => {
       )}
       style={{
         width: pillWidth,
-        height: "44px",
+        height: "40px",
         x: pillShift,
       }}
     >
         {/* Navigation items container */}
         <div
           ref={containerRef}
-          className="relative z-10 flex h-full items-center justify-center px-4"
+          className="relative z-10 flex h-full items-center justify-center px-2 sm:px-3"
           style={{
             fontFamily:
               'Inter, -apple-system, BlinkMacSystemFont, "SF Pro", Poppins, sans-serif',
@@ -263,7 +262,7 @@ export const PillNav: React.FC = () => {
 
           {/* Expanded state - show all sections with stagger */}
           {expanded && (
-            <div className="flex w-full items-center justify-evenly">
+            <div className="flex w-full items-center justify-center gap-1 sm:gap-1.5">
               {navItems.map((item, index) => {
                 const isActive = item.id === activeSection;
 
@@ -281,11 +280,11 @@ export const PillNav: React.FC = () => {
                     }}
                     onClick={() => handleSectionClick(item.id)}
                     className={cn(
-                      "relative cursor-pointer whitespace-nowrap rounded-full border-none px-[18px] py-2.5 outline-none transition-all duration-200 ease-out antialiased",
-                      "tracking-[0.4px]",
+                      "relative cursor-pointer whitespace-nowrap rounded-full border-none px-[10px] py-2 outline-none transition-all duration-200 ease-out antialiased sm:px-3",
+                      "tracking-[0.35px]",
                       isActive
-                        ? "bg-[rgba(200,184,154,0.12)] text-[12.5px] font-semibold text-[#d4b87a] shadow-[inset_0_1px_0_rgba(200,184,154,0.22)]"
-                        : "text-[12px] font-medium text-white/70 hover:bg-white/[0.08] hover:text-white/95 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]",
+                        ? "bg-[rgba(200,184,154,0.12)] text-[12px] font-semibold text-[#d4b87a] shadow-[inset_0_1px_0_rgba(200,184,154,0.22)]"
+                        : "text-[11.5px] font-medium text-white/70 hover:bg-white/[0.08] hover:text-white/95 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] sm:text-[12px]",
                     )}
                     style={{
                       fontFamily:
