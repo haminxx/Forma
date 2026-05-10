@@ -1,5 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence, useInView } from "framer-motion";
+import {
+  motion,
+  AnimatePresence,
+  useInView,
+  type MotionValue,
+  useTransform,
+} from "framer-motion";
 import {
   CheckCircle2,
   ChevronLeft,
@@ -198,10 +204,26 @@ function getTypingDuration(text: string) {
 const PUSH_MS = 700;
 const THINK_TAIL_MS = 600; // grace after agent steps before "ready"
 
-export function DemoSplit() {
+export function DemoSplit({
+  scrollYProgress,
+  reducedMotion,
+}: {
+  scrollYProgress: MotionValue<number>;
+  reducedMotion?: boolean | null;
+}) {
   const [mode, setMode] = useState<Mode>("vibe");
   const rootRef = useRef<HTMLDivElement>(null);
   const inView = useInView(rootRef, { amount: 0.3, once: true });
+
+  /** Peek: toggle sits partly under overlapping window z-stack. Expanded: slides up & above. */
+  const toggleStackY = useTransform(scrollYProgress, [0, 1], [20, -40]);
+  const toggleStackZ = useTransform(
+    scrollYProgress,
+    [0, 0.34, 0.5, 1],
+    [6, 6, 48, 48],
+  );
+
+  const stackToggle = !reducedMotion;
 
   // Phase state machine: drives the entrance animation. Resets and
   // re-runs on mode toggle so each switch replays prompt → push →
@@ -260,16 +282,29 @@ export function DemoSplit() {
 
   return (
     <div ref={rootRef} className="w-full max-w-[min(98vw,92rem)]">
-      {/* Pill toggle sits *outside* the macOS-frame box — shallow band only. */}
-      <div className="flex w-full justify-center pt-2 pb-1 sm:pt-3 sm:pb-2">
-        <ModeToggle mode={mode} setMode={setMode} />
-      </div>
+      <div className="relative isolate w-full">
+        {/* Pill overlaps window stack: tucked under overlapping chrome while peeking;
+            scroll-linked z + y lifts it cleanly above once the card expands. */}
+        <motion.div
+          className="relative flex w-full justify-center pb-4 pt-2 sm:pb-5 sm:pt-3"
+          style={
+            stackToggle
+              ? {
+                  zIndex: toggleStackZ,
+                  y: toggleStackY,
+                }
+              : undefined
+          }
+        >
+          <ModeToggle mode={mode} setMode={setMode} />
+        </motion.div>
 
-      {/* Window: macOS chrome + 3-pane body. Border tint shifts on
-          mode so the user sees a confident "this is Forma now" cue. */}
-      <div
-        className={cn(
-          "mt-5 flex h-[min(72vh,720px)] w-full flex-col overflow-hidden rounded-[14px] border bg-[#0d0e12] shadow-[0_40px_120px_-32px_rgba(0,0,0,0.72)] transition-colors duration-300 sm:rounded-[15px] sm:shadow-[0_44px_120px_-34px_rgba(0,0,0,0.78)] lg:mt-6",
+        {/* Window: macOS chrome + 3-pane body. Negative margin overlaps toggle row
+            (toggle reads as “behind” until scroll promotes it via z/y). */}
+        <div
+          className={cn(
+            "relative z-[12] flex h-[min(72vh,720px)] w-full flex-col overflow-hidden rounded-[14px] border bg-[#0d0e12] shadow-[0_40px_120px_-32px_rgba(0,0,0,0.72)] transition-colors duration-300 sm:rounded-[15px] sm:shadow-[0_44px_120px_-34px_rgba(0,0,0,0.78)]",
+            stackToggle ? "-mt-12 sm:-mt-14 lg:-mt-16" : "mt-5 lg:mt-6",
           mode === "vibe"
             ? "border-white/[0.09]"
             : "border-[#d4b87a]/25",
@@ -286,6 +321,7 @@ export function DemoSplit() {
         </div>
       </div>
     </div>
+  </div>
   );
 }
 
@@ -398,7 +434,7 @@ function Sidebar({
   return (
     <aside
       className={cn(
-        "flex h-full w-full flex-col overflow-y-auto bg-[#0a0b0e] px-2 py-3 lg:w-[260px] lg:flex-shrink-0 lg:border-r",
+        "flex h-full w-full flex-col overflow-y-auto bg-[#0a0b0e] px-2 py-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden lg:w-[260px] lg:flex-shrink-0 lg:border-r",
         mode === "vibe" ? "lg:border-white/[0.08]" : "lg:border-[#d4b87a]/15",
       )}
     >
@@ -942,7 +978,7 @@ function AgentPanel({
       </div>
 
       {/* Transcript */}
-      <div className="flex-1 overflow-y-auto bg-[#0b0c10] px-3 py-3 text-[12px]">
+      <div className="flex-1 overflow-y-auto bg-[#0b0c10] px-3 py-3 text-[12px] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         {/* User prompt bubble — sticky at top of scroll. Hidden until
             the prompt has been "sent" in the pushing phase. */}
         <div className="sticky top-0 z-10 -mt-3 bg-[#0b0c10] pb-2 pt-3">

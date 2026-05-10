@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
  *   - 170vh outer section. The user scrolls *through* the demo while
  *     a sticky inner panel stays locked to the viewport.
  *   - `useScroll` over the section drives a 0 → 1 progress that's
- *     mapped to scale (0.7 → 1) + y (+30 → 0) — **no opacity** so the
+ *     mapped to scale (0.7 → 1) + y (+18 → 0) — **no opacity** so the
  *     floating window stays fully solid while peeking over the hero.
  *     The panel scales up and locks at viewport centre.
  *   - On initial page load the floating card additionally plays a
@@ -45,7 +45,8 @@ export function DemoStage({ className }: { className?: string }) {
   });
 
   const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.7, 1, 1]);
-  const y = useTransform(scrollYProgress, [0, 0.5, 1], [30, 0, 0]);
+  /** Slightly higher peek than before so the card lands a bit higher on first paint. */
+  const y = useTransform(scrollYProgress, [0, 0.5, 1], [18, 0, 0]);
 
   return (
     <div
@@ -58,14 +59,14 @@ export function DemoStage({ className }: { className?: string }) {
       {/* Pass clicks through empty sticky band so hero CTAs stay clickable where
           this section overlaps `#home` (negative margin on HomePage). */}
       <div className="pointer-events-none sticky top-24 h-[calc(100vh-6rem)] overflow-hidden bg-transparent px-3 sm:px-6">
-        <div className="relative flex h-full w-full items-start justify-center pt-[clamp(0.65rem,2.5vh,2.25rem)] sm:pt-[clamp(0.85rem,3vh,2.75rem)]">
+        <div className="relative flex h-full w-full items-start justify-center pt-[clamp(0.35rem,1.75vh,1.65rem)] sm:pt-[clamp(0.5rem,2.25vh,2rem)]">
           {/* Outer wrapper: one-time slide-up entrance that fires after
               the hero's stagger has finished. Hero entrance is ~1.1s
               from page load (delayChildren 0.18 + 4 × stagger 0.12 +
               duration 0.45), so we delay by 1.4s to land the card last. */}
           <motion.div
             initial={
-              reduced ? undefined : { opacity: 0, y: 120, scale: 0.94 }
+              reduced ? undefined : { opacity: 0, y: 96, scale: 0.94 }
             }
             animate={
               reduced ? undefined : { opacity: 1, y: 0, scale: 1 }
@@ -90,7 +91,10 @@ export function DemoStage({ className }: { className?: string }) {
             >
               {/* Toggle + chrome live in `DemoSplit`: only the 3-pane window
                   is bordered — avoids a tall slab of `#0d0e12` above the pill. */}
-              <DemoSplit />
+              <DemoSplit
+                scrollYProgress={scrollYProgress}
+                reducedMotion={reduced}
+              />
             </motion.div>
           </motion.div>
         </div>
