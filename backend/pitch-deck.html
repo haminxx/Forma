@@ -895,6 +895,7 @@
   .link-item {
     background: var(--bg-1); border: 1px solid var(--amber-faint); border-radius: 8px;
     padding: 10px 16px; display: flex; flex-direction: column; gap: 3px;
+    text-decoration: none; color: inherit;
   }
   .link-item.primary {
     border-color: var(--amber);
@@ -909,11 +910,11 @@
     color: var(--amber); word-break: break-all;
   }
   .closing-ask {
-    margin-top: auto; margin-bottom: 24px; padding: 14px 20px;
+    margin-top: auto; margin-bottom: 56px; padding: 14px 20px;
     background: linear-gradient(135deg, rgba(200,184,154,0.10), var(--bg-1));
     border: 1px solid var(--amber);
     border-radius: 10px;
-    font-family: 'DM Serif Display', serif; font-size: 16px;
+    font-family: 'DM Serif Display', serif; font-size: 15px;
     color: var(--text-bright); line-height: 1.4; text-align: center;
   }
   .closing-ask-label {
@@ -922,6 +923,7 @@
     margin-bottom: 6px; display: block;
   }
   .closing-ask strong { color: var(--amber); font-weight: 400; }
+  .closing-ask a { color: var(--amber); text-decoration: none; }
 
   /* ============ PRINT ============ */
   @page { size: 1280px 720px; margin: 0; }
@@ -1589,31 +1591,27 @@
       <div class="closing-right">
         <div class="closing-section-h">Try It Now · 30 Seconds</div>
         <div class="link-row">
-          <div class="link-item primary">
+          <a class="link-item primary" href="https://forma-ten-bay.vercel.app" target="_blank" rel="noopener">
             <div class="link-item-label">▶ Install Forma · Demo · Instructions</div>
             <div class="link-item-url">forma-ten-bay.vercel.app</div>
-          </div>
-          <div class="link-item">
+          </a>
+          <a class="link-item" href="https://forma-production-c800.up.railway.app/amd" target="_blank" rel="noopener">
             <div class="link-item-label">▼ AMD Architecture Deep-Dive</div>
             <div class="link-item-url">forma-production-c800.up.railway.app/amd</div>
-          </div>
-          <div class="link-item">
-            <div class="link-item-label">Live Backend · Try the Extension</div>
+          </a>
+          <a class="link-item" href="https://forma-production-c800.up.railway.app" target="_blank" rel="noopener">
+            <div class="link-item-label">Live Backend · Status JSON</div>
             <div class="link-item-url">forma-production-c800.up.railway.app</div>
-          </div>
-          <div class="link-item">
+          </a>
+          <a class="link-item" href="https://github.com/haminxx/Forma" target="_blank" rel="noopener">
             <div class="link-item-label">Repo · MIT License</div>
             <div class="link-item-url">github.com/haminxx/Forma</div>
-          </div>
-          <div class="link-item">
-            <div class="link-item-label">Devpost Submission</div>
-            <div class="link-item-url">devpost.com/software/forma</div>
-          </div>
+          </a>
         </div>
 
         <div class="closing-ask">
           <span class="closing-ask-label">▼ Install Forma</span>
-          Full demo, download, and instructions at <strong>forma-ten-bay.vercel.app</strong>
+          Full demo, download, and instructions at <a href="https://forma-ten-bay.vercel.app" target="_blank" rel="noopener"><strong>forma-ten-bay.vercel.app</strong></a>
         </div>
       </div>
     </div>
