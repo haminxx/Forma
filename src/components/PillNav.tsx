@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion, useSpring } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
 import { scrollDocumentToSectionWithRetries } from "../lib/scroll-section";
@@ -23,17 +23,19 @@ export const NAV_ITEMS: NavItem[] = [
  *   - Active section tracked from scroll via IntersectionObserver.
  *   - Collapsed label animates per-character on change.
  */
-// Pill sizing. Collapsed is fixed; expanded is capped modestly — four anchors
-// (Home / Demo / Sandbox / Docs) only, so width stays narrower than the old
-// 7-item bar. Flank reserve still clears logo + GitHub CTAs (~360 px).
+// Pill sizing — collapsed fixed; expanded width is measured from the real
+// button row plus padding (+ small gutter) then clamped so it clears flanks.
 const COLLAPSED_W = 108;
-const EXPANDED_MAX = 392;
+const EXPANDED_ABSOLUTE_CEIL = 520;
 const EXPANDED_FLANK_RESERVE = 360;
+/** Small horizontal slack so the capsule reads slightly wider than the labels */
+const EXPANDED_EDGE_SLOP_PX = 14;
 
-function clampExpandedWidth(viewport: number): number {
-  if (!Number.isFinite(viewport) || viewport <= 0) return EXPANDED_MAX;
+function clampExpandedViewportCeil(viewport: number): number {
+  if (!Number.isFinite(viewport) || viewport <= 0)
+    return EXPANDED_ABSOLUTE_CEIL;
   const usable = viewport - EXPANDED_FLANK_RESERVE;
-  return Math.max(COLLAPSED_W + 32, Math.min(EXPANDED_MAX, usable));
+  return Math.max(COLLAPSED_W + 32, Math.min(EXPANDED_ABSOLUTE_CEIL, usable));
 }
 
 // Pixels of scroll past which the pill auto-collapses. Set tight so
@@ -54,6 +56,7 @@ export const PillNav: React.FC = () => {
     typeof window === "undefined" ? 1280 : window.innerWidth,
   );
   const containerRef = useRef<HTMLDivElement>(null);
+  const expandedRowRef = useRef<HTMLDivElement>(null);
   const prevSectionRef = useRef("home");
   const userScrollLockUntil = useRef<number>(0);
 
@@ -96,24 +99,65 @@ export const PillNav: React.FC = () => {
     };
   }, []);
 
-  const expandedWidth = clampExpandedWidth(vw);
+  const viewportCap = clampExpandedViewportCeil(vw);
 
   // Pill is expanded whenever the user is at the top OR is hovering.
-  // No grace period: as soon as either condition flips false (e.g. the
-  // cursor leaves the pill or the scroll passes the threshold) the
-  // pill snaps back to its collapsed active-section label.
   useEffect(() => {
-    const shouldExpand = hovering || atTop;
-    setExpanded(shouldExpand);
-    pillWidth.set(shouldExpand ? expandedWidth : COLLAPSED_W);
-  }, [hovering, atTop, pillWidth, expandedWidth]);
+    setExpanded(hovering || atTop);
+  }, [hovering, atTop]);
 
-  // Re-snap the spring target if the viewport changes while expanded so
-  // the pill grows / shrinks live with the window instead of waiting
-  // for the next hover.
+  // Collapsed width is fixed; expanded width fits content (see layout effect below).
   useEffect(() => {
-    if (expanded) pillWidth.set(expandedWidth);
-  }, [expandedWidth, expanded, pillWidth]);
+    if (!expanded) pillWidth.set(COLLAPSED_W);
+  }, [expanded, pillWidth]);
+
+  // Match expanded capsule width to the nav buttons (+ padding + slack), capped by viewport.
+  useLayoutEffect(() => {
+    if (!expanded) return;
+
+    const shell = containerRef.current;
+    const row = expandedRowRef.current;
+    if (!shell || !row) {
+      pillWidth.set(viewportCap);
+      return;
+    }
+
+    const update = () => {
+      const s = expandedRowRef.current;
+      const c = containerRef.current;
+      if (!s || !c) return;
+
+      const rowW = Math.ceil(s.getBoundingClientRect().width);
+      const pcs = window.getComputedStyle(c);
+      const padX =
+        Number.parseFloat(pcs.paddingLeft || "0") +
+        Number.parseFloat(pcs.paddingRight || "0");
+      const fitted = Math.max(
+        COLLAPSED_W + 24,
+        Math.min(viewportCap, rowW + padX + EXPANDED_EDGE_SLOP_PX),
+      );
+      pillWidth.set(fitted);
+    };
+
+    update();
+    let raf = 0;
+    const schedule = () => {
+      if (raf) return;
+      raf = window.requestAnimationFrame(() => {
+        raf = 0;
+        update();
+      });
+    };
+
+    const ro = new ResizeObserver(schedule);
+    ro.observe(row);
+    window.addEventListener("resize", schedule);
+    return () => {
+      window.removeEventListener("resize", schedule);
+      ro.disconnect();
+      if (raf) window.cancelAnimationFrame(raf);
+    };
+  }, [expanded, activeSection, viewportCap, pillWidth]);
 
   const handleMouseEnter = () => {
     setHovering(true);
@@ -262,7 +306,10 @@ export const PillNav: React.FC = () => {
 
           {/* Expanded state - show all sections with stagger */}
           {expanded && (
-            <div className="flex w-full items-center justify-center gap-1 sm:gap-1.5">
+            <div
+              ref={expandedRowRef}
+              className="flex w-max flex-shrink-0 items-center gap-1 sm:gap-1.5"
+            >
               {navItems.map((item, index) => {
                 const isActive = item.id === activeSection;
 
@@ -280,7 +327,7 @@ export const PillNav: React.FC = () => {
                     }}
                     onClick={() => handleSectionClick(item.id)}
                     className={cn(
-                      "relative cursor-pointer whitespace-nowrap rounded-full border-none px-[10px] py-2 outline-none transition-all duration-200 ease-out antialiased sm:px-3",
+                      "relative shrink-0 cursor-pointer whitespace-nowrap rounded-full border-none px-[10px] py-2 outline-none transition-all duration-200 ease-out antialiased sm:px-3",
                       "tracking-[0.35px]",
                       isActive
                         ? "bg-[rgba(200,184,154,0.12)] text-[12px] font-semibold text-[#d4b87a] shadow-[inset_0_1px_0_rgba(200,184,154,0.22)]"
