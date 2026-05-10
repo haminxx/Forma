@@ -1,24 +1,16 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import { cn } from "@/lib/utils";
-import { navigateOrScrollToSandbox } from "@/lib/scroll-section";
+
+const MotionLink = motion(Link);
 
 /**
  * Forma home hero — centred title stack + readability scrim. The animated
  * gold field is provided by `HomePage` behind both home and demo.
  */
 export function PaperShaderHero() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const reduceMotion = useReducedMotion();
-
-  const goSandbox = () => {
-    const behavior = reduceMotion ? ("instant" as const) : ("smooth" as const);
-    navigateOrScrollToSandbox(navigate, location.pathname, behavior);
-  };
-
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -84,20 +76,30 @@ export function PaperShaderHero() {
             canonical components with concrete motion and accessibility
           </motion.p>
 
-          <motion.button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              goSandbox();
-            }}
+          <MotionLink
+            to="/"
+            state={{ scrollToSection: "sandbox" }}
+            preventScrollReset
             aria-label="Download Forma — go to Sandbox install steps"
-            className="relative z-30 inline-flex cursor-pointer touch-manipulation select-none items-center gap-2 rounded-full border border-[#d4b87a]/40 bg-black/35 px-5 py-2.5 text-sm font-bold tracking-[0.22em] text-[#f3e0a8] shadow-[0_10px_40px_-14px_rgba(0,0,0,0.75)] backdrop-blur-md transition-all hover:border-[#d4b87a]/70 hover:bg-black/45 hover:text-[#fff3cf]"
             variants={itemVariants}
+            className={cn(
+              "relative z-30 inline-flex cursor-pointer touch-manipulation select-none items-center gap-3 rounded-full border px-8 py-3.5 text-sm font-medium tracking-[0.18em] no-underline transition-all duration-[250ms] ease-out",
+              "border-[rgba(200,184,154,0.3)] bg-[rgba(200,184,154,0.08)] text-[#d4b87a]",
+              "shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_32px_rgba(0,0,0,0.4),0_0_24px_rgba(200,184,154,0.08)]",
+              "backdrop-blur-[20px] backdrop-saturate-150 [-webkit-backdrop-filter:blur(20px)_saturate(150%)]",
+              "hover:border-[rgba(200,184,154,0.5)] hover:bg-[rgba(200,184,154,0.14)] hover:text-[#e8d5a8]",
+              "hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_8px_32px_rgba(0,0,0,0.4),0_0_32px_rgba(200,184,154,0.16)]",
+              "hover:-translate-y-px motion-reduce:hover:translate-y-0",
+            )}
           >
             Download Forma
-            <ArrowRight size={16} strokeWidth={2.4} />
-          </motion.button>
+            <ArrowRight
+              className="shrink-0"
+              size={16}
+              strokeWidth={2.4}
+              aria-hidden
+            />
+          </MotionLink>
         </motion.div>
       </div>
     </motion.section>
