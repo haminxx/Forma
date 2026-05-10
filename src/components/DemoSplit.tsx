@@ -301,13 +301,13 @@ function ModeToggle({
   setMode: (m: Mode) => void;
 }) {
   return (
-    <div className="relative inline-flex w-fit items-center rounded-full border border-white/10 bg-white/[0.03] p-1 backdrop-blur-sm">
+    <div className="relative inline-flex w-fit items-center rounded-full border border-white/15 bg-[#181a22] p-1">
       <motion.span
         aria-hidden
         className={cn(
           "absolute bottom-1 left-1 top-1 rounded-full transition-colors duration-300",
           mode === "vibe"
-            ? "bg-white/[0.10] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06)]"
+            ? "bg-[#2e313c] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]"
             : "bg-gradient-to-r from-[#d4b87a] to-[#e5c98f] shadow-[0_4px_20px_-6px_rgba(212,184,122,0.55)]",
         )}
         style={{ width: "calc(50% - 0.25rem)" }}
@@ -599,10 +599,10 @@ function PreviewPane({
 
       {/* Tab strip — Preview / Code */}
       <div className="flex flex-shrink-0 items-center gap-1 border-b border-white/[0.06] px-2 py-1.5">
-        <span className="inline-flex items-center gap-1.5 rounded bg-white/[0.06] px-2 py-1 text-[11px] font-medium text-white/85">
+        <span className="inline-flex items-center gap-1.5 rounded bg-[#252a33] px-2 py-1 text-[11px] font-medium text-white/85">
           <Eye size={11} /> Preview
         </span>
-        <span className="inline-flex items-center gap-1.5 rounded px-2 py-1 text-[11px] text-white/40 hover:bg-white/[0.04] hover:text-white/70">
+        <span className="inline-flex items-center gap-1.5 rounded px-2 py-1 text-[11px] text-white/40 hover:bg-[#1e2228] hover:text-white/70">
           <Code2 size={11} /> Code
         </span>
       </div>
@@ -661,16 +661,16 @@ function PreviewPane({
                 exit={{ opacity: 0, y: -6 }}
                 transition={{ duration: 0.3 }}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.16em] backdrop-blur-md",
+                  "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.16em]",
                   mode === "vibe"
-                    ? "border-white/15 bg-black/65 text-white/75"
-                    : "border-[#d4b87a]/40 bg-black/65 text-[#d4b87a]",
+                    ? "border-[#3d4350] bg-[#252830] text-white/80"
+                    : "border-[#6b5c3a] bg-[#2a2418] text-[#d4b87a]",
                 )}
               >
                 <span
                   className={cn(
                     "h-1.5 w-1.5 rounded-full",
-                    mode === "vibe" ? "bg-white/60" : "bg-[#d4b87a]",
+                    mode === "vibe" ? "bg-[#d6d9e0]" : "bg-[#d4b87a]",
                   )}
                 />
                 {meta.status}
@@ -721,7 +721,7 @@ function VaguePreview({ rendered }: { rendered: boolean }) {
           rendered ? { opacity: 1, scale: 1 } : { opacity: 0.5, scale: 0.96 }
         }
         transition={{ duration: 0.4, ease: [0.22, 0.68, 0, 1] }}
-        className="w-full max-w-sm rounded-xl border border-white/15 bg-white/[0.06] p-5 shadow-lg"
+        className="w-full max-w-sm rounded-xl border border-[#3a3d4a] bg-[#1e2028] p-5 shadow-lg"
         role="dialog"
         aria-label="Vague popup preview"
       >
@@ -773,7 +773,7 @@ function PrecisePreview({ rendered }: { rendered: boolean }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: rendered ? 1 : 0 }}
         transition={{ duration: 0.3, delay: 0.25 }}
-        className="absolute inset-0 m-2 rounded-lg bg-black/55 backdrop-blur-[1px]"
+        className="absolute inset-0 m-2 rounded-lg bg-[#1c1e24]"
       />
 
       {/* Off-Canvas Drawer — slides in from right once rendered. */}
@@ -873,7 +873,7 @@ function SpecRow({
       initial={{ opacity: 0, y: 4 }}
       animate={rendered ? { opacity: 1, y: 0 } : { opacity: 0, y: 4 }}
       transition={{ duration: 0.3, delay }}
-      className="flex items-center justify-between rounded border border-[#d4b87a]/15 bg-[#d4b87a]/[0.04] px-2 py-1 text-[10px]"
+      className="flex items-center justify-between rounded border border-[#5a4d30] bg-[#1f1c16] px-2 py-1 text-[10px]"
     >
       <span className="font-mono text-[#d4b87a]/75">{label}</span>
       <span className="font-mono text-white/75">{value}</span>
@@ -1113,7 +1113,7 @@ function AgentStepRow({ step, delay }: { step: AgentStep; delay: number }) {
           ) : null}
         </div>
       ) : step.kind === "edit" ? (
-        <div className="flex items-center gap-1.5 rounded border border-white/[0.08] bg-white/[0.03] px-2 py-1.5 text-[11px]">
+        <div className="flex items-center gap-1.5 rounded border border-[#31343f] bg-[#1a1c22] px-2 py-1.5 text-[11px]">
           <Code2 size={11} className="shrink-0 text-white/40" />
           <span className="min-w-0 flex-1 truncate font-mono text-white/80">
             {step.label}
@@ -1130,7 +1130,7 @@ function AgentStepRow({ step, delay }: { step: AgentStep; delay: number }) {
           ) : null}
         </div>
       ) : (
-        <div className="rounded border border-white/[0.06] bg-white/[0.02] px-2 py-1.5 text-[12px] leading-relaxed text-white/80">
+        <div className="rounded border border-[#2c2f38] bg-[#16181f] px-2 py-1.5 text-[12px] leading-relaxed text-white/80">
           {step.label}
         </div>
       )}

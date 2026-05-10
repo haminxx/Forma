@@ -12,15 +12,16 @@ import { cn } from "@/lib/utils";
 /**
  * DemoStage — peek-then-expand scroll wrapper around `DemoSplit`.
  *
- * Backdrop: none — shared gold gradient from `HomePage` covers home+demo.
+ * Backdrop: none in the sticky strip — `#demo` paints `DEMO_SECTION_BACKDROP`
+ * on `HomePage`; shared animated gradient still sits under `#home`.
  *
  * Mechanic:
  *   - 170vh outer section. The user scrolls *through* the demo while
  *     a sticky inner panel stays locked to the viewport.
  *   - `useScroll` over the section drives a 0 → 1 progress that's
- *     mapped to scale (0.7 → 1) + y (+30 → 0) + opacity (0.85 → 1)
- *     so the panel peeks from the bottom of home, then scales up + locks
- *     at viewport centre.
+ *     mapped to scale (0.7 → 1) + y (+30 → 0) — **no opacity** so the
+ *     floating window stays fully solid while peeking over the hero.
+ *     The panel scales up and locks at viewport centre.
  *   - On initial page load the floating card additionally plays a
  *     one-time slide-up entrance, delayed until *after* the hero's
  *     stagger settles — this is the "land last" animation requested
@@ -41,7 +42,6 @@ export function DemoStage({ className }: { className?: string }) {
 
   const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.7, 1, 1]);
   const y = useTransform(scrollYProgress, [0, 0.5, 1], [30, 0, 0]);
-  const opacity = useTransform(scrollYProgress, [0, 0.2, 1], [0.85, 1, 1]);
 
   return (
     <div
@@ -78,7 +78,7 @@ export function DemoStage({ className }: { className?: string }) {
               style={
                 reduced
                   ? undefined
-                  : { scale, y, opacity, transformOrigin: "50% 100%" }
+                  : { scale, y, transformOrigin: "50% 100%" }
               }
               className="relative w-full"
             >

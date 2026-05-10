@@ -19,15 +19,20 @@ import { EdgeGlow } from "../components/ui/section-fade";
  *
  * Background architecture:
  *
- *   - Home + Demo: one shared sticky `AnimatedGradientBackground` behind
- *     both sections; bottom seam eases into PoweredBy. Demo has no flat
- *     fill (reverted from the solid #1a1612 band).
+ *   - Home + Demo: shared sticky `AnimatedGradientBackground` under `#home`;
+ *     `#demo` adds a full-bleed static gold radial on the section so the
+ *     long scroll track (and hero overlap) always paints. Bottom seam
+ *     eases into PoweredBy.
  *   - Sandbox / Problem / Solution / About / Docs: each section has
  *     its own backdrop as usual.
  *
  * Every section uses `scroll-mt-24` so PillNav clicks land the
  * section's TOP cleanly below the floating navbar.
  */
+
+/** Fills `#demo` + full `DemoStage` scroll track so overlap with hero always paints (not “empty” until scroll). */
+const DEMO_SECTION_BACKDROP =
+  "radial-gradient(125% 110% at 50% 0%, #5c4830 0%, #3a2c20 18%, #241c14 38%, #1a1612 58%, #121110 100%)";
 
 const HEADING_BASE_DELAY = 0.07;
 const HEADING_DURATION = 0.85;
@@ -64,7 +69,10 @@ export function HomePage() {
         <section
           id="demo"
           className="relative z-10 scroll-mt-24"
-          style={{ marginTop: "-38vh" }}
+          style={{
+            marginTop: "-38vh",
+            background: DEMO_SECTION_BACKDROP,
+          }}
           aria-label="Demo"
         >
           <DemoStage />
