@@ -1,8 +1,8 @@
 
 /**
- * Sections use Tailwind `scroll-mt-24` so their tops clear the fixed navbar.
- * `scrollIntoView({ block: "start" })` respects that scroll margin (manual
- * subtraction from getBoundingClientRect does not mirror it exactly).
+ * Sections use Tailwind `scroll-mt-*` on `#home` anchors so `#demo`/`#sandbox`
+ * clear the floating navbar (`scroll-mt-32`, `scroll-mt-36` on large screens).
+ * `scrollIntoView({ block: "start" })` respects that scroll margin.
  */
 export function scrollDocumentToSection(
   sectionId: string,
