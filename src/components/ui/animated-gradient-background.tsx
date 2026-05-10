@@ -2,9 +2,6 @@ import { motion } from "framer-motion";
 import { useEffect, useRef } from "react";
 import type { CSSProperties, FC } from "react";
 
-/** Solid demo backdrop: matches `gradientColors[1]` (warm near-black lower band of the hero radial). */
-export const HOME_HERO_DEMO_SOLID_BG = "#1a1612";
-
 interface AnimatedGradientBackgroundProps {
   /** Initial size of the radial gradient (% width). Default 125. */
   startingGap?: number;

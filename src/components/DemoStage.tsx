@@ -7,14 +7,12 @@ import {
 } from "framer-motion";
 
 import { DemoSplit } from "./DemoSplit";
-import { HOME_HERO_DEMO_SOLID_BG } from "@/components/ui/animated-gradient-background";
 import { cn } from "@/lib/utils";
 
 /**
  * DemoStage — peek-then-expand scroll wrapper around `DemoSplit`.
  *
- * Backdrop: flat `HOME_HERO_DEMO_SOLID_BG` from the page — no extra
- * layers here (only the floating window is content).
+ * Backdrop: none — shared gold gradient from `HomePage` covers home+demo.
  *
  * Mechanic:
  *   - 170vh outer section. The user scrolls *through* the demo while
@@ -53,10 +51,7 @@ export function DemoStage({ className }: { className?: string }) {
     >
       {/* Sticky panel — pinned to viewport at top: 6rem so it sits
           below the floating navbar. */}
-      <div
-        className="sticky top-24 h-[calc(100vh-6rem)] overflow-hidden px-3 sm:px-6"
-        style={{ backgroundColor: HOME_HERO_DEMO_SOLID_BG }}
-      >
+      <div className="sticky top-24 h-[calc(100vh-6rem)] overflow-hidden bg-transparent px-3 sm:px-6">
         <div className="relative flex h-full w-full items-center justify-center">
           {/* Outer wrapper: one-time slide-up entrance that fires after
               the hero's stagger has finished. Hero entrance is ~1.1s
