@@ -1,10 +1,9 @@
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
 
 import { cn } from "@/lib/utils";
 
-const MotionLink = motion(Link);
+const MotionA = motion.a;
 
 /**
  * Forma home hero — centred title stack + readability scrim. The animated
@@ -48,7 +47,7 @@ export function PaperShaderHero() {
       <div className="relative z-10 mx-auto flex h-full w-full max-w-3xl flex-col items-center justify-center px-6 text-center">
         <motion.div
           variants={containerVariants}
-          className="relative z-20 flex flex-col items-center pointer-events-auto"
+          className="relative z-20 flex flex-col items-center pointer-events-none"
           style={{ filter: "drop-shadow(0 6px 20px rgba(0,0,0,0.45))" }}
         >
           <motion.h1
@@ -76,14 +75,12 @@ export function PaperShaderHero() {
             canonical components with concrete motion and accessibility
           </motion.p>
 
-          <MotionLink
-            to="/"
-            state={{ scrollToSection: "sandbox" }}
-            preventScrollReset
+          <MotionA
+            href="#sandbox"
             aria-label="Download Forma — go to Sandbox install steps"
             variants={itemVariants}
             className={cn(
-              "relative z-30 inline-flex cursor-pointer touch-manipulation select-none items-center gap-3 rounded-full border px-8 py-3.5 text-sm font-medium tracking-[0.18em] no-underline transition-all duration-[250ms] ease-out",
+              "pointer-events-auto relative z-30 inline-flex cursor-pointer touch-manipulation select-none items-center gap-3 rounded-full border px-8 py-3.5 text-sm font-medium tracking-[0.18em] no-underline transition-all duration-[250ms] ease-out",
               "border-[rgba(200,184,154,0.3)] bg-[rgba(200,184,154,0.08)] text-[#d4b87a]",
               "shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_8px_32px_rgba(0,0,0,0.4),0_0_24px_rgba(200,184,154,0.08)]",
               "backdrop-blur-[20px] backdrop-saturate-150 [-webkit-backdrop-filter:blur(20px)_saturate(150%)]",
@@ -99,7 +96,7 @@ export function PaperShaderHero() {
               strokeWidth={2.4}
               aria-hidden
             />
-          </MotionLink>
+          </MotionA>
         </motion.div>
       </div>
     </motion.section>

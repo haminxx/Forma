@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* Anchor jumps (e.g. hero CTA → #sandbox); respect reduced-motion. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 /* ---------------------------------------------------------------------------
  * Stitch-derived theme (designlang extract, May 2026)
  *   bg:  #191a1f   text: #ffffff   accents: pure #000000 / pure #ffffff
