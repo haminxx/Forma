@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { cn } from "@/lib/utils";
-import { scrollDocumentToSectionWithRetries } from "@/lib/scroll-section";
+import { navigateOrScrollToSandbox } from "@/lib/scroll-section";
 
 /**
  * Forma home hero — centred title stack + readability scrim. The animated
@@ -16,14 +16,7 @@ export function PaperShaderHero() {
 
   const goSandbox = () => {
     const behavior = reduceMotion ? ("instant" as const) : ("smooth" as const);
-    if (location.pathname !== "/") {
-      navigate("/", {
-        state: { scrollToSection: "sandbox" },
-        preventScrollReset: true,
-      });
-      return;
-    }
-    scrollDocumentToSectionWithRetries("sandbox", behavior);
+    navigateOrScrollToSandbox(navigate, location.pathname, behavior);
   };
 
   const containerVariants = {

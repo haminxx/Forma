@@ -107,7 +107,7 @@ export function HomePage() {
 
         <section
           id="demo"
-          className="relative z-10 scroll-mt-44 lg:scroll-mt-[13rem]"
+          className="relative z-10 scroll-mt-36 md:scroll-mt-40 lg:scroll-mt-[10.5rem]"
           style={{ marginTop: `-${DEMO_OVERLAP_CLEAR}` }}
           aria-label="Demo"
         >
@@ -142,7 +142,7 @@ export function HomePage() {
           hero/demo gold gradients elsewhere are unchanged. */}
       <section
         id="sandbox"
-        className="relative flex min-h-screen scroll-mt-44 flex-col items-center justify-center overflow-hidden px-6 lg:scroll-mt-[13rem]"
+        className="relative flex min-h-screen scroll-mt-36 flex-col items-center justify-center overflow-hidden px-6 md:scroll-mt-40 lg:scroll-mt-[10rem]"
         style={{
           paddingTop: "clamp(2rem,5.75vh,4.75rem)",
           paddingBottom: "clamp(3rem,8vh,6rem)",
