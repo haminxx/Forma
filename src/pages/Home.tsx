@@ -138,8 +138,8 @@ export function HomePage() {
           between the gold hero/demo block and the sandbox below. */}
       <PoweredBy />
 
-      {/* Sandbox — gold radial backdrop (its dedicated treatment, kept
-          per direction). */}
+      {/* Sandbox — solid near-black fill so builder logos stay high-contrast;
+          hero/demo gold gradients elsewhere are unchanged. */}
       <section
         id="sandbox"
         className="relative flex min-h-screen scroll-mt-44 flex-col items-center justify-center overflow-hidden px-6 lg:scroll-mt-[13rem]"
@@ -150,7 +150,7 @@ export function HomePage() {
       >
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10 [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#d4b87a_100%)]"
+          className="pointer-events-none absolute inset-0 -z-10 bg-[#0a0a0a]"
         />
 
         <div
