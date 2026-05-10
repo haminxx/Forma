@@ -23,14 +23,11 @@ function downloadFormaExtension() {
 type Step = {
   label: string;
   icon?: ComponentType<SVGProps<SVGSVGElement>>;
-  /** Fires when the user clicks anywhere in the step row (label or icon). */
+  /** Step 1 only: runs on first click (also advances progress). Steps 2+: optional follow-up click. */
   onAction?: (e: ReactMouseEvent<HTMLButtonElement>) => void;
   ariaLabel?: string;
-  /** Animated gradient peek (screenshots swapped out temporarily). */
   previewPlaceholder?: boolean;
-  /** If provided, hovering the step row pops a local-image preview card. */
   previewImage?: string;
-  /** Multi-image preview — vertical stack inside the same hover card. */
   previewImages?: string[];
 };
 
@@ -53,7 +50,7 @@ const STEPS: Step[] = [
       try {
         navigator.clipboard?.writeText(url);
       } catch {
-        // ignore — fall through to window.open
+        // ignore
       }
       window.open(url, "_blank", "noopener,noreferrer");
     },
@@ -69,33 +66,42 @@ const STEPS: Step[] = [
 ];
 
 /**
- * Forma install path: a numeric label sits above each progress bar (1-4),
- * the bar itself, and the step name below.
- *
- * Sequential gating:
- *   - Initially only step 1 is unlocked. Steps 2–4 are visually locked
- *     (lock icon next to the label, bar stays grey, button disabled).
- *   - Clicking an unlocked step fires its `onAction` and turns its bar
- *     gold. The next step is then unlocked.
- *   - The component tracks `clickedCount` — every step with index <
- *     clickedCount has been clicked (gold bar). Step at index ===
- *     clickedCount is the next unlocked step (grey bar). Anything past
- *     that is locked.
+ * Progress model:
+ * - `progress` counts completed steps (gold bars). Range 0 … STEPS.length.
+ * - Step 1 (index 0): **click** completes it and runs `onAction`.
+ * - Steps 2–4 (index ≥ 1): hovering the unlocked row completes that step and unlocks the next.
+ * - After a later step is hovered-done, users can still **click** rows with `onAction` (e.g. open Chrome)
+ *   without advancing progress.
  */
 export function InstallSteps() {
-  const [clickedCount, setClickedCount] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  const handlePointerEnterRow = (index: number) => {
+    if (index < 1) return;
+    setProgress((prev) => {
+      if (prev !== index) return prev;
+      return Math.min(STEPS.length, prev + 1);
+    });
+  };
 
   const handleClick = (
     index: number,
     step: Step,
     event: ReactMouseEvent<HTMLButtonElement>,
   ) => {
-    if (index > clickedCount) {
+    if (progress < index) {
       event.preventDefault();
       return;
     }
-    setClickedCount((prev) => Math.max(prev, index + 1));
-    step.onAction?.(event);
+
+    if (index === 0) {
+      if (progress === 0) setProgress(1);
+      step.onAction?.(event);
+      return;
+    }
+
+    /* Steps 2+: click only fires side effects once that step is complete (hover-first). */
+    if (progress > index) step.onAction?.(event);
   };
 
   return (
@@ -103,15 +109,15 @@ export function InstallSteps() {
       <ol className="grid grid-cols-2 gap-x-4 gap-y-6 py-1 sm:grid-cols-4">
         {STEPS.map((step, index) => {
           const Icon = step.icon;
-          const isClicked = index < clickedCount;
-          const isUnlocked = index <= clickedCount;
-          const isLocked = !isUnlocked;
+          const isPast = index < progress;
+          const isUnlocked = index <= progress;
+          const isLocked = progress < index;
 
           const bar = (
             <div
               className="h-[3px] w-full rounded-full transition-colors duration-300"
               style={{
-                background: isClicked ? "#d4b87a" : "rgba(255, 255, 255, 0.15)",
+                background: isPast ? "#d4b87a" : "rgba(255, 255, 255, 0.15)",
               }}
             />
           );
@@ -119,7 +125,13 @@ export function InstallSteps() {
           const labelRow = (
             <span
               className="flex items-center gap-1.5 text-xs font-medium tracking-wide transition-colors"
-              style={{ color: isClicked ? "#ffffff" : isUnlocked ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.35)" }}
+              style={{
+                color: isPast
+                  ? "#ffffff"
+                  : isUnlocked
+                    ? "rgba(255,255,255,0.8)"
+                    : "rgba(255,255,255,0.35)",
+              }}
             >
               {step.label}
               {Icon ? (
@@ -127,7 +139,9 @@ export function InstallSteps() {
                   aria-hidden="true"
                   className="h-3.5 w-3.5 transition-colors"
                   strokeWidth={2}
-                  style={{ color: isLocked ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.55)" }}
+                  style={{
+                    color: isLocked ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.55)",
+                  }}
                 />
               ) : null}
               {isLocked ? (
@@ -149,9 +163,7 @@ export function InstallSteps() {
               disabled={isLocked}
               onClick={(e) => handleClick(index, step, e)}
               className={`flex w-full flex-col items-start gap-2 rounded text-left transition-colors focus-visible:outline-none ${
-                isLocked
-                  ? "cursor-not-allowed"
-                  : "hover:bg-white/[0.04]"
+                isLocked ? "cursor-not-allowed" : "hover:bg-white/[0.04]"
               }`}
             >
               {bar}
@@ -159,19 +171,18 @@ export function InstallSteps() {
             </button>
           );
 
-          // Preview hover card is only enabled once the step is unlocked,
-          // so locked rows don't hint at content the user can't reach yet.
           const showPreview = isUnlocked;
 
           return (
             <li
               key={step.label}
               className="flex flex-col items-start gap-1.5"
+              onPointerEnter={() => handlePointerEnterRow(index)}
             >
               <span
                 className="text-[11px] font-semibold tracking-[0.18em] transition-colors"
                 style={{
-                  color: isClicked
+                  color: isPast
                     ? "rgba(255,255,255,0.8)"
                     : isUnlocked
                       ? "rgba(255,255,255,0.55)"

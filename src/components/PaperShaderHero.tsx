@@ -63,7 +63,7 @@ export function PaperShaderHero() {
       <div className="relative z-10 mx-auto flex h-full w-full max-w-3xl flex-col items-center justify-center px-6 text-center">
         <motion.div
           variants={containerVariants}
-          className="flex flex-col items-center"
+          className="relative z-20 flex flex-col items-center pointer-events-auto"
           style={{ filter: "drop-shadow(0 6px 20px rgba(0,0,0,0.45))" }}
         >
           <motion.h1
@@ -93,9 +93,13 @@ export function PaperShaderHero() {
 
           <motion.button
             type="button"
-            onClick={goSandbox}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              goSandbox();
+            }}
             aria-label="Download Forma — go to Sandbox install steps"
-            className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-[#d4b87a]/40 bg-black/30 px-5 py-2 text-sm font-bold tracking-[0.22em] text-[#f3e0a8] backdrop-blur-md transition-all hover:border-[#d4b87a]/70 hover:bg-black/40 hover:text-[#fff3cf]"
+            className="relative z-30 inline-flex cursor-pointer touch-manipulation select-none items-center gap-2 rounded-full border border-[#d4b87a]/40 bg-black/35 px-5 py-2.5 text-sm font-bold tracking-[0.22em] text-[#f3e0a8] shadow-[0_10px_40px_-14px_rgba(0,0,0,0.75)] backdrop-blur-md transition-all hover:border-[#d4b87a]/70 hover:bg-black/45 hover:text-[#fff3cf]"
             variants={itemVariants}
           >
             Download Forma

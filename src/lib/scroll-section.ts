@@ -1,8 +1,8 @@
+export type SectionScrollBehavior = ScrollBehavior | "instant";
 
 /**
- * Sections use Tailwind `scroll-mt-*` on `#home` anchors so `#demo`/`#sandbox`
- * clear the floating navbar (`scroll-mt-32`, `scroll-mt-36` on large screens).
- * `scrollIntoView({ block: "start" })` respects that scroll margin.
+ * `scrollIntoView({ block: "start" })` respects each section's Tailwind scroll margin
+ * (`scroll-mt-44`, `scroll-mt-[13rem]` on large screens for `#demo` / `#sandbox`).
  */
 export function scrollDocumentToSection(
   sectionId: string,
@@ -18,7 +18,6 @@ export function scrollDocumentToSection(
   });
   return true;
 }
-export type SectionScrollBehavior = ScrollBehavior | "instant";
 
 /** Re-run briefly so layout (e.g. after route change) isn't missed on first paint. */
 export function scrollDocumentToSectionWithRetries(

@@ -33,7 +33,7 @@ import { EdgeGlow } from "../components/ui/section-fade";
  *     its own backdrop as usual.
  *
  * Every anchored section defaults to `scroll-mt-24`; `#demo` and `#sandbox`
- * use deeper scroll margins so header pill navigation clears more of each block.
+ * use larger scroll margins so pill navigation clears more of each block.
  */
 
 /** Dark filler for the demo **scroll track only** — bottom-anchored mirror of the hero radial (see `cssInvertedHeroTrackBackdrop`). */
@@ -107,7 +107,7 @@ export function HomePage() {
 
         <section
           id="demo"
-          className="relative z-10 scroll-mt-32 lg:scroll-mt-36"
+          className="relative z-10 scroll-mt-44 lg:scroll-mt-[13rem]"
           style={{ marginTop: `-${DEMO_OVERLAP_CLEAR}` }}
           aria-label="Demo"
         >
@@ -142,7 +142,7 @@ export function HomePage() {
           per direction). */}
       <section
         id="sandbox"
-        className="relative flex min-h-screen scroll-mt-32 flex-col items-center justify-center overflow-hidden px-6 lg:scroll-mt-36"
+        className="relative flex min-h-screen scroll-mt-44 flex-col items-center justify-center overflow-hidden px-6 lg:scroll-mt-[13rem]"
         style={{
           paddingTop: "clamp(2rem,5.75vh,4.75rem)",
           paddingBottom: "clamp(3rem,8vh,6rem)",

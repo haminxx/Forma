@@ -56,7 +56,7 @@ export function DemoStage({ className }: { className?: string }) {
       {/* Sticky panel — pinned to viewport at top: 6rem so it sits
           below the floating navbar. */}
       <div className="sticky top-24 h-[calc(100vh-6rem)] overflow-hidden bg-transparent px-3 sm:px-6">
-        <div className="relative flex h-full w-full items-start justify-center pt-[clamp(3.35rem,8.75vh,6.35rem)] sm:pt-[clamp(3.75rem,9.25vh,6.75rem)]">
+        <div className="relative flex h-full w-full items-start justify-center pt-[clamp(2.65rem,7.25vh,5.25rem)] sm:pt-[clamp(3rem,8vh,5.75rem)]">
           {/* Outer wrapper: one-time slide-up entrance that fires after
               the hero's stagger has finished. Hero entrance is ~1.1s
               from page load (delayChildren 0.18 + 4 × stagger 0.12 +

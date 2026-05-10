@@ -140,7 +140,7 @@ export const PillNav: React.FC = () => {
 
     // Lock IO-driven active updates while smooth-scroll is mid-flight,
     // otherwise mid-scroll sections would temporarily flip the label.
-    userScrollLockUntil.current = Date.now() + 1200;
+    userScrollLockUntil.current = Date.now() + 1600;
 
     const behavior = reduceMotion ? "instant" : "smooth";
 
