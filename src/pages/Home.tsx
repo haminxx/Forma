@@ -29,9 +29,8 @@ import { EdgeGlow } from "../components/ui/section-fade";
  *     below the overlap band (~38vh) so the shared gold gradient reads
  *     continuously behind the floating card; the darker demo fill only
  *     covers the long scroll track beneath.
- *   - Sandbox / Problem / Solution / About / Docs: each section has
- *     its own backdrop as usual.
- *
+ *   - `#sandbox`: gold radial backdrop behind frosted prompts / logo grid.
+ *   - `#problem` → `#docs`: gradients per section implementations below.
  * Every anchored section defaults to `scroll-mt-24`; `#demo` and `#sandbox`
  * use larger scroll margins so pill navigation clears more of each block.
  */
@@ -107,7 +106,7 @@ export function HomePage() {
 
         <section
           id="demo"
-          className="relative z-10 scroll-mt-44 lg:scroll-mt-[13rem]"
+          className="relative z-10 scroll-mt-36 md:scroll-mt-40 lg:scroll-mt-[10.5rem]"
           style={{ marginTop: `-${DEMO_OVERLAP_CLEAR}` }}
           aria-label="Demo"
         >
@@ -138,11 +137,10 @@ export function HomePage() {
           between the gold hero/demo block and the sandbox below. */}
       <PoweredBy />
 
-      {/* Sandbox — solid near-black fill so builder logos stay high-contrast;
-          hero/demo gold gradients elsewhere are unchanged. */}
+      {/* Sandbox — gold radial bloom (readable behind frosted prompts + LogoCloud). */}
       <section
         id="sandbox"
-        className="relative flex min-h-screen scroll-mt-44 flex-col items-center justify-center overflow-hidden px-6 lg:scroll-mt-[13rem]"
+        className="relative flex min-h-screen scroll-mt-36 flex-col items-center justify-center overflow-hidden px-6 md:scroll-mt-40 lg:scroll-mt-[10rem]"
         style={{
           paddingTop: "clamp(2rem,5.75vh,4.75rem)",
           paddingBottom: "clamp(3rem,8vh,6rem)",
@@ -150,7 +148,7 @@ export function HomePage() {
       >
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10 bg-black"
+          className="pointer-events-none absolute inset-0 -z-10 [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#d4b87a_100%)]"
         />
 
         <div

@@ -4,8 +4,17 @@ import {
   type SVGProps,
   useState,
 } from "react";
+import { useReducedMotion } from "framer-motion";
 import { Download, ExternalLink, Lock } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+
+import {
+  navigateOrScrollToSandbox,
+  type SectionScrollBehavior,
+} from "@/lib/scroll-section";
+
 import { HoverPeek } from "./HoverPeek";
+import { cn } from "@/lib/utils";
 
 /** Bundled ZIP from `/public`; served by Vite/Railway as a static asset. */
 const FORMA_EXTENSION_ZIP = "/forma-extension.zip";
@@ -23,7 +32,6 @@ function downloadFormaExtension() {
 type Step = {
   label: string;
   icon?: ComponentType<SVGProps<SVGSVGElement>>;
-  /** Step 1 only: runs on first click (also advances progress). Steps 2+: optional follow-up click. */
   onAction?: (e: ReactMouseEvent<HTMLButtonElement>) => void;
   ariaLabel?: string;
   previewPlaceholder?: boolean;
@@ -36,8 +44,8 @@ const STEPS: Step[] = [
     label: "Download Forma",
     icon: Download,
     ariaLabel:
-      "Download Forma Chrome extension as a ZIP (load unpacked after extracting)",
-    onAction: downloadFormaExtension,
+      "Jump to Sandbox, download Forma Chrome extension ZIP, and unlock the install path",
+    /* Step 0: navigate + ZIP handled inside `InstallSteps`; no `onAction` here */
   },
   {
     label: "Visit Chrome Extensions",
@@ -65,16 +73,15 @@ const STEPS: Step[] = [
   },
 ];
 
-/**
- * Progress model:
- * - `progress` counts completed steps (gold bars). Range 0 … STEPS.length.
- * - Step 1 (index 0): **click** completes it and runs `onAction`.
- * - Steps 2–4 (index ≥ 1): hovering the unlocked row completes that step and unlocks the next.
- * - After a later step is hovered-done, users can still **click** rows with `onAction` (e.g. open Chrome)
- *   without advancing progress.
- */
 export function InstallSteps() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const reduceMotion = useReducedMotion();
   const [progress, setProgress] = useState(0);
+
+  const scrollBehavior: SectionScrollBehavior = reduceMotion
+    ? "instant"
+    : "smooth";
 
   const handlePointerEnterRow = (index: number) => {
     if (index < 1) return;
@@ -96,11 +103,11 @@ export function InstallSteps() {
 
     if (index === 0) {
       if (progress === 0) setProgress(1);
-      step.onAction?.(event);
+      navigateOrScrollToSandbox(navigate, location.pathname, scrollBehavior);
+      downloadFormaExtension();
       return;
     }
 
-    /* Steps 2+: click only fires side effects once that step is complete (hover-first). */
     if (progress > index) step.onAction?.(event);
   };
 
@@ -112,6 +119,7 @@ export function InstallSteps() {
           const isPast = index < progress;
           const isUnlocked = index <= progress;
           const isLocked = progress < index;
+          const isPrimaryCta = index === 0;
 
           const bar = (
             <div
@@ -162,9 +170,15 @@ export function InstallSteps() {
               aria-disabled={isLocked}
               disabled={isLocked}
               onClick={(e) => handleClick(index, step, e)}
-              className={`flex w-full flex-col items-start gap-2 rounded text-left transition-colors focus-visible:outline-none ${
-                isLocked ? "cursor-not-allowed" : "hover:bg-white/[0.04]"
-              }`}
+              className={cn(
+                "flex w-full flex-col items-start gap-2 rounded text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4b87a]/50",
+                isLocked
+                  ? "cursor-not-allowed"
+                  : "hover:bg-white/[0.06]",
+                isPrimaryCta &&
+                  isUnlocked &&
+                  "rounded-xl border border-[#d4b87a]/35 bg-[linear-gradient(180deg,rgba(212,184,122,0.12)_0%,rgba(0,0,0,0.12)_100%)] px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]",
+              )}
             >
               {bar}
               {labelRow}

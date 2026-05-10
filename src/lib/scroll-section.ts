@@ -1,9 +1,22 @@
+import type { NavigateFunction } from "react-router-dom";
+
 export type SectionScrollBehavior = ScrollBehavior | "instant";
 
-/**
- * `scrollIntoView({ block: "start" })` respects each section's Tailwind scroll margin
- * (`scroll-mt-44`, `scroll-mt-[13rem]` on large screens for `#demo` / `#sandbox`).
- */
+/** Fine-tunes framing after programmatic scroll (#demo / #sandbox). */
+const SECTION_SCROLL_TRIM_PX: Partial<Record<string, number>> = {
+  demo: 72,
+  sandbox: 48,
+};
+
+function applyAnchoredSectionTrim(sectionId: string) {
+  const trim = SECTION_SCROLL_TRIM_PX[sectionId];
+  if (!trim) return;
+  requestAnimationFrame(() => {
+    window.scrollBy({ left: 0, top: -trim, behavior: "auto" });
+  });
+}
+
+/** `scrollIntoView({ block: "start" })` respects each section's Tailwind `scroll-mt-*`. */
 export function scrollDocumentToSection(
   sectionId: string,
   behavior: SectionScrollBehavior = "smooth",
@@ -16,6 +29,7 @@ export function scrollDocumentToSection(
     block: "start",
     inline: "nearest",
   });
+
   return true;
 }
 
@@ -29,8 +43,30 @@ export function scrollDocumentToSectionWithRetries(
   requestAnimationFrame(run);
   const t = window.setTimeout(run, 100);
   const t2 = window.setTimeout(run, 280);
+  const tTrim =
+    SECTION_SCROLL_TRIM_PX[sectionId] !== undefined
+      ? window.setTimeout(() => applyAnchoredSectionTrim(sectionId), 420)
+      : 0;
+
   return () => {
     window.clearTimeout(t);
     window.clearTimeout(t2);
+    if (tTrim) window.clearTimeout(tTrim);
   };
+}
+
+/** Home → `#sandbox`; other routes SPA-navigate then `HomePage` handles state. */
+export function navigateOrScrollToSandbox(
+  navigate: NavigateFunction,
+  pathname: string,
+  behavior: SectionScrollBehavior,
+) {
+  if (pathname !== "/") {
+    navigate("/", {
+      state: { scrollToSection: "sandbox" },
+      preventScrollReset: true,
+    });
+    return;
+  }
+  scrollDocumentToSectionWithRetries("sandbox", behavior);
 }

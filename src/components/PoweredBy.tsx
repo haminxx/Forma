@@ -29,7 +29,7 @@ type StackLogo = {
 };
 
 const STACK: StackLogo[] = [
-  { name: "Llama", src: "/logos/llama.png", invert: true },
+  { name: "Llama", src: "/logos/llama.png", invert: true, scale: 2 },
   { name: "FastAPI", src: "/logos/fastapi.png" },
   { name: "DigitalOcean", src: "/logos/digitalocean.svg", scale: 1.06 },
   { name: "Railway", src: "/logos/railway.svg", invert: true, scale: 1.06 },
@@ -88,7 +88,7 @@ export function PoweredBy({ className }: { className?: string }) {
           {tripled.map((logo, i) => (
             <li
               key={`${logo.name}-${i}`}
-              className="flex h-14 shrink-0 items-center justify-center"
+              className="flex min-h-[5.25rem] shrink-0 items-center justify-center overflow-visible sm:min-h-[6rem]"
             >
               <span
                 className="flex items-center justify-center overflow-visible"
