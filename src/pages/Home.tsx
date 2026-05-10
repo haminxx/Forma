@@ -29,9 +29,8 @@ import { EdgeGlow } from "../components/ui/section-fade";
  *     below the overlap band (~38vh) so the shared gold gradient reads
  *     continuously behind the floating card; the darker demo fill only
  *     covers the long scroll track beneath.
- *   - Sandbox / Problem / Solution / About / Docs: each section has
- *     its own backdrop as usual.
- *
+ *   - `#sandbox`: gold radial backdrop behind frosted prompts / logo grid.
+ *   - `#problem` → `#docs`: gradients per section implementations below.
  * Every anchored section defaults to `scroll-mt-24`; `#demo` and `#sandbox`
  * use larger scroll margins so pill navigation clears more of each block.
  */
