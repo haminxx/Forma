@@ -56,7 +56,7 @@ export function DemoStage({ className }: { className?: string }) {
       {/* Sticky panel — pinned to viewport at top: 6rem so it sits
           below the floating navbar. */}
       <div className="sticky top-24 h-[calc(100vh-6rem)] overflow-hidden bg-transparent px-3 sm:px-6">
-        <div className="relative flex h-full w-full items-start justify-center pt-[clamp(1.35rem,4.25vh,3.65rem)] sm:pt-[clamp(1.65rem,4.85vh,4.05rem)]">
+        <div className="relative flex h-full w-full items-start justify-center pt-[clamp(0.65rem,2.5vh,2.25rem)] sm:pt-[clamp(0.85rem,3vh,2.75rem)]">
           {/* Outer wrapper: one-time slide-up entrance that fires after
               the hero's stagger has finished. Hero entrance is ~1.1s
               from page load (delayChildren 0.18 + 4 × stagger 0.12 +
@@ -86,11 +86,9 @@ export function DemoStage({ className }: { className?: string }) {
               }
               className="relative w-full"
             >
-              {/* macOS-style window — opaque shell so the demo backdrop
-                  never shows through. */}
-              <div className="relative isolate overflow-hidden rounded-[1.25rem] border border-white/10 bg-[#0d0e12] shadow-[0_40px_120px_-30px_rgba(0,0,0,0.75)] sm:rounded-[1.5rem]">
-                <DemoSplit />
-              </div>
+              {/* Toggle + chrome live in `DemoSplit`: only the 3-pane window
+                  is bordered — avoids a tall slab of `#0d0e12` above the pill. */}
+              <DemoSplit />
             </motion.div>
           </motion.div>
         </div>

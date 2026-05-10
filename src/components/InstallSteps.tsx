@@ -119,8 +119,6 @@ export function InstallSteps() {
           const isPast = index < progress;
           const isUnlocked = index <= progress;
           const isLocked = progress < index;
-          const isPrimaryCta = index === 0;
-
           const bar = (
             <div
               className="h-[3px] w-full rounded-full transition-colors duration-300"
@@ -172,12 +170,7 @@ export function InstallSteps() {
               onClick={(e) => handleClick(index, step, e)}
               className={cn(
                 "flex w-full flex-col items-start gap-2 rounded text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d4b87a]/50",
-                isLocked
-                  ? "cursor-not-allowed"
-                  : "hover:bg-white/[0.06]",
-                isPrimaryCta &&
-                  isUnlocked &&
-                  "rounded-xl border border-[#d4b87a]/35 bg-[linear-gradient(180deg,rgba(212,184,122,0.12)_0%,rgba(0,0,0,0.12)_100%)] px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]",
+                isLocked ? "cursor-not-allowed" : "hover:bg-white/[0.06]",
               )}
             >
               {bar}
