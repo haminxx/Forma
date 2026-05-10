@@ -7,17 +7,28 @@ import {
 import { Download, ExternalLink, Lock } from "lucide-react";
 import { HoverPeek } from "./HoverPeek";
 
+/** Bundled ZIP from `/public`; served by Vite/Railway as a static asset. */
+const FORMA_EXTENSION_ZIP = "/forma-extension.zip";
+
+function downloadFormaExtension() {
+  const a = document.createElement("a");
+  a.href = FORMA_EXTENSION_ZIP;
+  a.download = "forma-extension.zip";
+  a.rel = "noopener";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
 type Step = {
   label: string;
   icon?: ComponentType<SVGProps<SVGSVGElement>>;
   /** Fires when the user clicks anywhere in the step row (label or icon). */
   onAction?: (e: ReactMouseEvent<HTMLButtonElement>) => void;
   ariaLabel?: string;
-  /**
-   * If provided, hovering the step row pops the same Microlink-style
-   * preview card as the LogoCloud cells, but driven by a local image
-   * instead of a URL.
-   */
+  /** Animated gradient peek (screenshots swapped out temporarily). */
+  previewPlaceholder?: boolean;
+  /** If provided, hovering the step row pops a local-image preview card. */
   previewImage?: string;
   /** Multi-image preview — vertical stack inside the same hover card. */
   previewImages?: string[];
@@ -27,21 +38,16 @@ const STEPS: Step[] = [
   {
     label: "Download Forma",
     icon: Download,
-    ariaLabel: "Download Forma extension (coming soon)",
-    onAction: (e) => {
-      // Placeholder — the .crx / zip isn't shipped yet. Keep the row
-      // clickable so the affordance is real, but no-op until then.
-      e.preventDefault();
-    },
+    ariaLabel:
+      "Download Forma Chrome extension as a ZIP (load unpacked after extracting)",
+    onAction: downloadFormaExtension,
   },
   {
     label: "Visit Chrome Extensions",
     icon: ExternalLink,
-    ariaLabel: "Open chrome://extensions/ in a new tab",
-    previewImages: [
-      "/preview/chrome-step-1-puzzle.png",
-      "/preview/chrome-step-2-manage.png",
-    ],
+    ariaLabel:
+      "Copy chrome://extensions/ to clipboard and try to open Extensions",
+    previewPlaceholder: true,
     onAction: () => {
       const url = "chrome://extensions/";
       try {
@@ -54,11 +60,11 @@ const STEPS: Step[] = [
   },
   {
     label: "Enable Developer Mode",
-    previewImage: "/preview/enable-developer-mode.png",
+    previewPlaceholder: true,
   },
   {
     label: "Load unpacked Forma",
-    previewImage: "/preview/load-unpacked-forma.png",
+    previewPlaceholder: true,
   },
 ];
 
@@ -174,7 +180,20 @@ export function InstallSteps() {
               >
                 {String(index + 1).padStart(2, "0")}
               </span>
-              {showPreview && step.previewImages ? (
+              {showPreview && step.previewPlaceholder ? (
+                <HoverPeek
+                  isStatic
+                  placeholder
+                  url=""
+                  preventPreviewNavigation
+                  enableLensEffect
+                  enableMouseFollow={false}
+                  peekWidth={260}
+                  peekHeight={160}
+                >
+                  {trigger}
+                </HoverPeek>
+              ) : showPreview && step.previewImages ? (
                 <HoverPeek
                   isStatic
                   imageSrcs={step.previewImages}
@@ -190,7 +209,9 @@ export function InstallSteps() {
                   isStatic
                   imageSrc={step.previewImage}
                   url={step.previewImage}
-                  enableLensEffect={false}
+                  preventPreviewNavigation
+                  enableLensEffect
+                  enableMouseFollow={false}
                   peekWidth={260}
                   peekHeight={160}
                 >

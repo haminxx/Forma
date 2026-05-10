@@ -93,14 +93,65 @@ type HoverPeekBase = {
   enableLensEffect?: boolean;
   lensZoomFactor?: number;
   lensSize?: number;
+  /**
+   * Static / install-flow previews often should not behave like outbound
+   * links when the peek card receives a click — use this to render a neutral
+   * surface instead of an `<a href>`.
+   */
+  preventPreviewNavigation?: boolean;
 };
 
 type HoverPeekProps = HoverPeekBase &
   (
-    | { isStatic: true; imageSrc: string; imageSrcs?: never }
-    | { isStatic: true; imageSrcs: string[]; imageSrc?: never }
+    | { isStatic: true; imageSrc: string; imageSrcs?: never; placeholder?: never }
+    | {
+        isStatic: true;
+        imageSrcs: string[];
+        imageSrc?: never;
+        placeholder?: never;
+      }
+    | {
+        isStatic: true;
+        placeholder: true;
+        imageSrc?: never;
+        imageSrcs?: never;
+      }
     | { isStatic?: false; imageSrc?: never; imageSrcs?: never }
   );
+
+function PreviewPlaceholderGraphic({
+  width,
+  height,
+}: {
+  width: number;
+  height: number;
+}) {
+  return (
+    <div
+      className="relative overflow-hidden rounded-[5px]"
+      style={{ width, height }}
+    >
+      <div
+        aria-hidden
+        className="absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(135deg, rgba(212,184,122,0.28) 0%, rgba(28,30,38,1) 42%, rgba(212,184,122,0.14) 100%)",
+        }}
+      />
+      <motion.div
+        aria-hidden
+        className="absolute inset-[-40%]"
+        animate={{ rotate: [0, 360] }}
+        transition={{ duration: 36, repeat: Infinity, ease: "linear" }}
+        style={{
+          background:
+            "conic-gradient(from 0deg, transparent 40%, rgba(255,255,255,0.06) 50%, transparent 55%)",
+        }}
+      />
+    </div>
+  );
+}
 
 export function HoverPeek(props: HoverPeekProps) {
   const {
@@ -114,15 +165,25 @@ export function HoverPeek(props: HoverPeekProps) {
     enableLensEffect = true,
     lensZoomFactor = 1.75,
     lensSize = 100,
+    preventPreviewNavigation = false,
   } = props;
-  const imageSrc = "imageSrc" in props ? props.imageSrc ?? "" : "";
-  const imageSrcs = "imageSrcs" in props ? props.imageSrcs : undefined;
+  const isPlaceholder =
+    "placeholder" in props && props.placeholder === true;
+  const imageSrc =
+    !isPlaceholder && "imageSrc" in props ? (props.imageSrc ?? "") : "";
+  const imageSrcs =
+    !isPlaceholder && "imageSrcs" in props ? props.imageSrcs : undefined;
   const isStack = Boolean(imageSrcs && imageSrcs.length > 0);
+  const useNonAnchorPreview =
+    Boolean(preventPreviewNavigation) || isPlaceholder;
 
   const [imageLoadFailed, setImageLoadFailed] = useState(false);
   const finalImageSrc = useMemo(
-    () => buildMicrolinkSrc(url, peekWidth, peekHeight, isStatic, imageSrc),
-    [url, peekWidth, peekHeight, isStatic, imageSrc],
+    () =>
+      isPlaceholder || isStack
+        ? ""
+        : buildMicrolinkSrc(url, peekWidth, peekHeight, isStatic, imageSrc),
+    [url, peekWidth, peekHeight, isStatic, imageSrc, isPlaceholder, isStack],
   );
 
   const { isPeeking, handleOpenChange, handlePointerMove, followX } =
@@ -133,14 +194,14 @@ export function HoverPeek(props: HoverPeekProps) {
 
   useEffect(() => {
     setImageLoadFailed(false);
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || isPlaceholder) return;
     const sources = isStack ? imageSrcs ?? [] : [finalImageSrc];
     sources.filter(Boolean).forEach((src) => {
       const img = new Image();
       img.decoding = "async";
       img.src = src;
     });
-  }, [finalImageSrc, imageSrcs, isStack]);
+  }, [finalImageSrc, imageSrcs, isStack, isPlaceholder]);
 
   useEffect(() => {
     if (!isPeeking) {
@@ -149,7 +210,7 @@ export function HoverPeek(props: HoverPeekProps) {
     }
   }, [isPeeking]);
 
-  const handleLensMouseMove = (e: MouseEvent<HTMLAnchorElement>) => {
+  const handleLensMouseMove = (e: MouseEvent<HTMLElement>) => {
     if (!enableLensEffect) return;
     const rect = e.currentTarget.getBoundingClientRect();
     setLensMousePosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
@@ -172,6 +233,97 @@ export function HoverPeek(props: HoverPeekProps) {
     animate: { opacity: 1, scale: 1 },
     exit: { opacity: 0, scale: 0.7 },
   } as const;
+
+  const previewSurfaceClassName = cn(
+    "relative block overflow-hidden rounded-lg p-0.5",
+    "border border-neutral-700 bg-neutral-900 shadow-lg transition-shadow",
+    useNonAnchorPreview ? "cursor-crosshair hover:shadow-xl" : "hover:shadow-xl",
+  );
+
+  const peekCardBody = (
+    <>
+      {isPlaceholder ? (
+        <PreviewPlaceholderGraphic width={peekWidth} height={peekHeight} />
+      ) : imageLoadFailed ? (
+        <div
+          className="flex items-center justify-center bg-neutral-800 font-sans text-xs text-neutral-400"
+          style={{ width: peekWidth, height: peekHeight }}
+        >
+          Preview unavailable
+        </div>
+      ) : isStack ? (
+        <div
+          className="pointer-events-none flex flex-col gap-2 rounded-[5px] bg-neutral-800 p-2 align-top"
+          style={{ width: peekWidth }}
+        >
+          {(imageSrcs ?? []).map((src, idx) => (
+            <img
+              key={`${src}-${idx}`}
+              src={src}
+              className="block w-full rounded bg-neutral-900 object-contain"
+              alt={`Preview ${idx + 1}`}
+              loading="eager"
+              onError={() => setImageLoadFailed(true)}
+            />
+          ))}
+        </div>
+      ) : (
+        <img
+          src={finalImageSrc}
+          width={peekWidth}
+          height={peekHeight}
+          className="pointer-events-none block rounded-[5px] bg-neutral-800 align-top"
+          alt={`Link preview for ${url}`}
+          onError={() => setImageLoadFailed(true)}
+          loading="eager"
+        />
+      )}
+
+      <AnimatePresence>
+        {enableLensEffect &&
+          !isStack &&
+          isHoveringLens &&
+          (isPlaceholder || !imageLoadFailed) && (
+            <motion.div
+              className="pointer-events-none absolute inset-0 overflow-hidden rounded-lg"
+              variants={lensMotionVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              style={{
+                maskImage: `radial-gradient(circle ${lensSize / 2}px at ${lensMousePosition.x}px ${lensMousePosition.y}px, black ${lensSize / 2}px, transparent ${lensSize / 2}px)`,
+                WebkitMaskImage: `radial-gradient(circle ${lensSize / 2}px at ${lensMousePosition.x}px ${lensMousePosition.y}px, black ${lensSize / 2}px, transparent ${lensSize / 2}px)`,
+              }}
+            >
+              <div
+                className="absolute inset-0"
+                style={{
+                  transform: `scale(${lensZoomFactor})`,
+                  transformOrigin: `${lensMousePosition.x}px ${lensMousePosition.y}px`,
+                }}
+              >
+                {isPlaceholder ? (
+                  <PreviewPlaceholderGraphic
+                    width={peekWidth}
+                    height={peekHeight}
+                  />
+                ) : (
+                  <img
+                    src={finalImageSrc}
+                    width={peekWidth}
+                    height={peekHeight}
+                    className="block rounded-[5px] bg-neutral-800 align-top"
+                    alt=""
+                    aria-hidden="true"
+                  />
+                )}
+              </div>
+            </motion.div>
+          )}
+      </AnimatePresence>
+    </>
+  );
 
   const triggerChild = isValidElement(children)
     ? cloneElement(children as ReactElement<{ className?: string; onPointerMove?: typeof handlePointerMove }>, {
@@ -216,88 +368,30 @@ export function HoverPeek(props: HoverPeekProps) {
                   pointerEvents: "auto",
                 }}
               >
-                <a
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={cn(
-                    "relative block overflow-hidden rounded-lg p-0.5",
-                    "border border-neutral-700 bg-neutral-900",
-                    "shadow-lg transition-shadow hover:shadow-xl",
-                  )}
-                  onMouseEnter={handleLensMouseEnter}
-                  onMouseLeave={handleLensMouseLeave}
-                  onMouseMove={handleLensMouseMove}
-                >
-                  {imageLoadFailed ? (
-                    <div
-                      className="flex items-center justify-center bg-neutral-800 font-sans text-xs text-neutral-400"
-                      style={{ width: peekWidth, height: peekHeight }}
-                    >
-                      Preview unavailable
-                    </div>
-                  ) : isStack ? (
-                    <div
-                      className="pointer-events-none flex flex-col gap-2 rounded-[5px] bg-neutral-800 p-2 align-top"
-                      style={{ width: peekWidth }}
-                    >
-                      {(imageSrcs ?? []).map((src, idx) => (
-                        <img
-                          key={`${src}-${idx}`}
-                          src={src}
-                          className="block w-full rounded bg-neutral-900 object-contain"
-                          alt={`Step ${idx + 1} preview`}
-                          loading="eager"
-                          onError={() => setImageLoadFailed(true)}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <img
-                      src={finalImageSrc}
-                      width={peekWidth}
-                      height={peekHeight}
-                      className="pointer-events-none block rounded-[5px] bg-neutral-800 align-top"
-                      alt={`Link preview for ${url}`}
-                      onError={() => setImageLoadFailed(true)}
-                      loading="eager"
-                    />
-                  )}
-
-                  <AnimatePresence>
-                    {enableLensEffect && !isStack && isHoveringLens && !imageLoadFailed && (
-                      <motion.div
-                        className="pointer-events-none absolute inset-0 overflow-hidden rounded-lg"
-                        variants={lensMotionVariants}
-                        initial="initial"
-                        animate="animate"
-                        exit="exit"
-                        transition={{ duration: 0.2, ease: "easeOut" }}
-                        style={{
-                          maskImage: `radial-gradient(circle ${lensSize / 2}px at ${lensMousePosition.x}px ${lensMousePosition.y}px, black ${lensSize / 2}px, transparent ${lensSize / 2}px)`,
-                          WebkitMaskImage: `radial-gradient(circle ${lensSize / 2}px at ${lensMousePosition.x}px ${lensMousePosition.y}px, black ${lensSize / 2}px, transparent ${lensSize / 2}px)`,
-                        }}
-                      >
-                        <div
-                          className="absolute inset-0"
-                          style={{
-                            transform: `scale(${lensZoomFactor})`,
-                            transformOrigin: `${lensMousePosition.x}px ${lensMousePosition.y}px`,
-                          }}
-                        >
-                          <img
-                            src={finalImageSrc}
-                            width={peekWidth}
-                            height={peekHeight}
-                            className="block rounded-[5px] bg-neutral-800 align-top"
-                            alt=""
-                            aria-hidden="true"
-                          />
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </a>
+                {useNonAnchorPreview ? (
+                  <div
+                    role="presentation"
+                    tabIndex={-1}
+                    className={previewSurfaceClassName}
+                    onMouseEnter={handleLensMouseEnter}
+                    onMouseLeave={handleLensMouseLeave}
+                    onMouseMove={handleLensMouseMove}
+                  >
+                    {peekCardBody}
+                  </div>
+                ) : (
+                  <a
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={previewSurfaceClassName}
+                    onMouseEnter={handleLensMouseEnter}
+                    onMouseLeave={handleLensMouseLeave}
+                    onMouseMove={handleLensMouseMove}
+                  >
+                    {peekCardBody}
+                  </a>
+                )}
               </motion.div>
             )}
           </AnimatePresence>

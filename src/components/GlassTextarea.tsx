@@ -5,9 +5,9 @@ import TextareaAutosize from "react-textarea-autosize";
 /**
  * Sandbox-section prompt input — liquid-glass style.
  *
- * Layout: wide prompt pad at **3:1** width:height via `aspect-[3/1]` and
- * `max-w-[72rem]` so it matches the install / logo row better than the
- * old `max-w-xl` square-ish box.
+ * Layout: wide prompt pad at roughly **5:1** via `aspect-[5/1]` with a
+ * capped height so the sandbox row stays visually low‑profile beside the
+ * install rail.
  */
 export function GlassTextarea() {
   const [message, setMessage] = useState("");
@@ -16,7 +16,7 @@ export function GlassTextarea() {
   return (
     <div className="relative mx-auto w-full max-w-[min(100%,72rem)] px-2 sm:px-4">
       <div
-        className="group relative flex w-full flex-col overflow-hidden rounded-2xl border border-white/15 transition-colors duration-200 focus-within:border-white/30 sm:rounded-[1.25rem] aspect-[3/1] min-h-[11rem] max-h-[min(26rem,42vh)]"
+        className="group relative flex w-full flex-col overflow-hidden rounded-2xl border border-white/15 transition-colors duration-200 focus-within:border-white/30 sm:rounded-[1.25rem] aspect-[5/1] max-h-[min(14rem,28vh)] min-h-[8rem]"
         style={{
           background:
             "linear-gradient(180deg, rgba(28, 30, 38, 0.55) 0%, rgba(18, 19, 24, 0.65) 100%)",
@@ -33,12 +33,12 @@ export function GlassTextarea() {
           className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent"
         />
 
-        {/* Input: flex-1 fills the wide 3:1 frame above the footer. */}
+        {/* Input: fills the shallow 5:1 frame above the footer. */}
         <TextareaAutosize
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          minRows={3}
-          maxRows={6}
+          minRows={2}
+          maxRows={4}
           placeholder="Describe the UI component and animation you want…"
           aria-label="Forma sandbox prompt"
           className="relative min-h-0 w-full flex-1 resize-none border-0 bg-transparent px-5 pt-4 text-base leading-relaxed text-white placeholder:text-white/40 focus:outline-none focus:ring-0 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:px-6 sm:text-[1.05rem]"
