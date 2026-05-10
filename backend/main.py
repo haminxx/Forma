@@ -109,7 +109,48 @@ def health_check():
     return {
         "status": "running",
         "service": "Forma Backend",
-        "amd": "Llama 3.1 8B on MI300X active",
+        "version": "1.0.0",
+        "models": {
+            "free_tier": {
+                "name": "Llama 3.1 8B Instruct",
+                "purpose": "Real-time prompt scoring (~800ms per keystroke)",
+                "endpoint": "internal:30000",
+                "vram_gib": 38,
+            },
+            "pro_tier": {
+                "name": "Llama 3.1 70B Instruct AWQ-INT4",
+                "purpose": "7-agent consensus pipeline (~40s per analysis)",
+                "endpoint": "internal:8000",
+                "vram_gib": 89,
+            },
+        },
+        "infrastructure": {
+            "gpu": "AMD Instinct MI300X",
+            "hbm3_total_gib": 192,
+            "hbm3_bandwidth_tb_per_s": 5.3,
+            "vram_in_use_gib": 148,
+            "vram_headroom_gib": 44,
+            "runtime": "vLLM 0.17.1 + ROCm 7.0",
+            "host": "DigitalOcean GPU Droplet (Atlanta)",
+        },
+        "architecture": {
+            "type": "Asymmetric dual-tier inference",
+            "parameter_asymmetry": "8.75x",
+            "fits_on_h100_80gb": False,
+            "fits_on_mi300x": True,
+        },
+        "endpoints": {
+            "fast_critic": "POST /analyze",
+            "phrase_detection": "POST /detect-phrases",
+            "pro_expansion": "POST /translate-pro",
+            "seven_agent_pipeline": "POST /agents/run-all",
+            "amd_deep_dive": "GET /amd",
+        },
+        "links": {
+            "marketing": "https://forma-ten-bay.vercel.app",
+            "github": "https://github.com/haminxx/Forma",
+            "amd_architecture": "https://forma-production-c800.up.railway.app/amd",
+        },
     }
 
 
