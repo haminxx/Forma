@@ -7,7 +7,7 @@ import { HoverPeek } from "../HoverPeek";
  * LogoCloud — Forma's 8 supported AI design/IDE platforms.
  *
  * Visual rules (per latest spec):
- *   - Each cell renders the brand PNG in **full colour by default**.
+ *   - Each cell renders the brand mark (PNG or SVG) in **full colour by default**.
  *   - When the user hovers anywhere in the grid, the hovered cell stays
  *     full colour while every other cell dims (grayscale + opacity 40%).
  *     Implemented with a `group/cloud` parent + per-card
@@ -23,24 +23,27 @@ type Platform = {
   src: string;
   href: string;
   /**
-   * Set true when the source PNG is a black-on-anything mark. The img
-   * gets `filter: invert(1)` so the black artwork flips to light and
-   * the previously-black "background bake" becomes invisible against
-   * the dark sandbox backdrop. Used for `bolt` whose source PNG has a
-   * mostly-black canvas around the icon.
+   * Set true when the source mark is black-on-transparent. The img gets
+   * `filter: invert(1)` so it reads on the dark grid. Kept for v0.png;
+   * transparent SVG marks are expected to ship contrast-ready.
    */
   invert?: boolean;
+  /**
+   * Uniform cell + `object-contain` still leaves uneven *visual* weight
+   * when SVG viewBoxes differ. `1` = default; nudge toward v0.png size.
+   */
+  scale?: number;
 };
 
 const PLATFORMS: Platform[] = [
   { name: "Vercel v0", src: "/logos/v0.png", href: "https://v0.app", invert: true },
   { name: "Replit", src: "/logos/replit.svg", href: "https://replit.com" },
-  { name: "Bolt", src: "/logos/bolt.png", href: "https://bolt.new", invert: true },
-  { name: "Lovable", src: "/logos/lovable.png", href: "https://lovable.dev" },
-  { name: "Manus", src: "/logos/manus.png", href: "https://manus.im", invert: true },
-  { name: "Figma Make", src: "/logos/figma-make.png", href: "https://www.figma.com/make/" },
-  { name: "Base 44", src: "/logos/base44.png", href: "https://base44.com" },
-  { name: "Tempo", src: "/logos/tempo.png", href: "https://www.tempo.new/" },
+  { name: "Bolt", src: "/logos/bolt.svg", href: "https://bolt.new" },
+  { name: "Lovable", src: "/logos/lovable.svg", href: "https://lovable.dev" },
+  { name: "Manus", src: "/logos/manus.svg", href: "https://manus.im" },
+  { name: "Figma Make", src: "/logos/figma-make.svg", href: "https://www.figma.com/make/" },
+  { name: "Base 44", src: "/logos/Base44.svg", href: "https://base44.com" },
+  { name: "Tempo", src: "/logos/tempo.svg", href: "https://www.tempo.new/" },
 ];
 
 type LogoCloudProps = ComponentProps<"div">;
@@ -103,6 +106,7 @@ export function LogoCloud({ className, ...props }: LogoCloudProps) {
             src={p.src}
             alt={`${p.name} logo`}
             invert={p.invert}
+            scale={p.scale ?? 1}
             className={cn(cellBorder, cellBg)}
           >
             {showPlusBR ? (
@@ -130,9 +134,11 @@ type LogoCardProps = {
   children?: ReactNode;
   /** Apply CSS `filter: invert(1)` for black-on-anything source PNGs. */
   invert?: boolean;
+  /** Visual size nudge vs the shared frame (v0 reference). */
+  scale: number;
 };
 
-function LogoCard({ href, src, alt, className, children, invert }: LogoCardProps) {
+function LogoCard({ href, src, alt, className, children, invert, scale }: LogoCardProps) {
   return (
     <HoverPeek url={href}>
       <a
@@ -147,25 +153,34 @@ function LogoCard({ href, src, alt, className, children, invert }: LogoCardProps
         )}
       >
         {/* Bigger uniform frame: h-14 / w-[200px] mobile, h-16 / w-[240px]
-            desktop. Logos render larger now per the latest direction
-            while object-contain still keeps each mark centred and
-            inside the same bounding box. */}
+            desktop. Each img is `h-full w-full object-contain` inside a
+            scale wrapper so per-brand `scale` can match v0 without
+            changing the grid. */}
         <span className="relative flex h-14 w-[200px] items-center justify-center md:h-16 md:w-[240px]">
-          <img
-            src={src}
-            alt={alt}
-            loading="lazy"
-            style={invert ? { filter: "invert(1) brightness(1.05)" } : undefined}
-            // Default: full colour. When the *grid* is hovered, dim
-            // every cell with grayscale + low opacity. The cell that
-            // is *itself* hovered overrides back to full colour with
-            // !important so it stays the focal point.
-            className={cn(
-              "pointer-events-none max-h-full max-w-full select-none object-contain transition duration-300",
-              "group-hover/cloud:opacity-40 group-hover/cloud:grayscale",
-              "group-hover/cell:!opacity-100 group-hover/cell:!grayscale-0",
-            )}
-          />
+          <span
+            className="flex h-full w-full items-center justify-center overflow-visible"
+            style={
+              scale !== 1
+                ? { transform: `scale(${scale})`, transformOrigin: "center center" }
+                : undefined
+            }
+          >
+            <img
+              src={src}
+              alt={alt}
+              loading="lazy"
+              style={invert ? { filter: "invert(1) brightness(1.05)" } : undefined}
+              // Default: full colour. When the *grid* is hovered, dim
+              // every cell with grayscale + low opacity. The cell that
+              // is *itself* hovered overrides back to full colour with
+              // !important so it stays the focal point.
+              className={cn(
+                "pointer-events-none h-full w-full max-h-full max-w-full select-none object-contain transition duration-300",
+                "group-hover/cloud:opacity-40 group-hover/cloud:grayscale",
+                "group-hover/cell:!opacity-100 group-hover/cell:!grayscale-0",
+              )}
+            />
+          </span>
         </span>
         {children}
       </a>
