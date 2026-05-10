@@ -31,9 +31,7 @@ import { cn } from "@/lib/utils";
  *     scroll-driven transforms on the inner wrapper aren't disturbed.
  *   - prefers-reduced-motion short-circuits to the resting state.
  *   - `top-24` (6rem ≈ 96px) keeps the sticky panel below PillNav (~88px tall).
- *   - The inner flex uses `items-start` + viewport‑relative `padding-top`
- *     so the Vibe / Forma toggle + window chrome sit visibly **lower**
- *     in the band between the navbar and viewport bottom edge.
+ *   - The inner flex centres the floating demo window in the viewport band.
  */
 export function DemoStage({ className }: { className?: string }) {
   const reduced = useReducedMotion();
@@ -89,12 +87,8 @@ export function DemoStage({ className }: { className?: string }) {
               }
               className="relative w-full"
             >
-              {/* Toggle + chrome live in `DemoSplit`: only the 3-pane window
-                  is bordered — avoids a tall slab of `#0d0e12` above the pill. */}
-              <DemoSplit
-                scrollYProgress={scrollYProgress}
-                reducedMotion={reduced}
-              />
+              {/* Vibe / Forma segmented control lives in the window chrome. */}
+              <DemoSplit />
             </motion.div>
           </motion.div>
         </div>
