@@ -7,20 +7,17 @@ import {
 } from "framer-motion";
 
 import { DemoSplit } from "./DemoSplit";
+import AnimatedGradientBackground from "@/components/ui/animated-gradient-background";
 import { cn } from "@/lib/utils";
 
 /**
  * DemoStage — peek-then-expand scroll wrapper around `DemoSplit`.
  *
  * Backdrop:
- *   - The sticky panel paints its own radial gold-→-black gradient,
- *     bound to the visible viewport area. Gold is concentrated at the
- *     top centre, fading to deep black at the sides + bottom, so the
- *     demo screen continues the home palette without bleeding into
- *     the hero overlap region (because the gradient lives inside the
- *     `top-24` sticky panel, not the full 170vh section).
- *   - Home's shared `AnimatedGradientBackground` still pins gold to
- *     the viewport top across home + demo for seam continuity.
+ *   - The sticky panel uses the same `AnimatedGradientBackground` as
+ *     the hero (warm gold palette), bound to the panel — no page-level
+ *     sticky stack and no extra radial overlay (those caused incorrect
+ *     seams / double painting).
  *
  * Mechanic:
  *   - 170vh outer section. The user scrolls *through* the demo while
@@ -66,14 +63,12 @@ export function DemoStage({ className }: { className?: string }) {
             from the hero into a solid black floor for the floating
             card to sit on. Bound to the sticky panel (not the full
             170vh section) so it never paints into the hero overlap. */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10"
-          style={{
-            background:
-              "radial-gradient(110% 95% at 50% 0%, rgba(243,224,168,0.95) 0%, rgba(212,184,122,0.85) 18%, rgba(122,90,42,0.78) 38%, rgba(45,32,18,0.92) 65%, #050505 92%)",
-          }}
-        />
+        <div className="pointer-events-none absolute inset-0 -z-10">
+          <AnimatedGradientBackground
+            breathing={!reduced}
+            topOffset={-20}
+          />
+        </div>
 
         <div className="relative flex h-full w-full items-center justify-center">
           {/* Outer wrapper: one-time slide-up entrance that fires after

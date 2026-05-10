@@ -1,17 +1,16 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import AnimatedGradientBackground from "@/components/ui/animated-gradient-background";
 
 /**
- * Forma home hero — centred title stack only.
- *
- * The shared `AnimatedGradientBackground` lives in `Home.tsx` as a
- * sticky layer behind both #home and #demo, so this component renders
- * just the local readability scrim + the centred content. NO local
- * gradient is mounted here.
+ * Forma home hero — full-bleed animated gold gradient plus centred title
+ * stack. The gradient mounts here (not at page level) so sizing stays
+ * correct and seams match `DemoStage`'s own gradient layer.
  */
 export function PaperShaderHero() {
+  const reduceMotion = useReducedMotion();
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -35,12 +34,17 @@ export function PaperShaderHero() {
       animate="visible"
       variants={containerVariants}
     >
-      {/* Vertical scrim — keeps the navbar and centred copy legible
-          against the brightest part of the gradient that comes from
-          the page-level sticky layer behind this section. */}
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <AnimatedGradientBackground
+          breathing={!reduceMotion}
+          topOffset={-20}
+        />
+      </div>
+
+      {/* Vertical scrim — keeps the navbar and centred copy legible. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0"
+        className="pointer-events-none absolute inset-0 z-[1]"
         style={{
           background:
             "linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.18) 25%, rgba(0,0,0,0) 55%)",

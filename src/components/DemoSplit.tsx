@@ -268,11 +268,6 @@ export function DemoSplit() {
           <AgentPanel mode={mode} phase={phase} runId={runId} />
         </div>
       </div>
-
-      <p className="mt-4 text-center text-xs text-white/55">
-        Same intent. Same model. Forma rewrites the prompt with
-        canonical vocabulary + motion + a11y → score jumps from 30 to 95.
-      </p>
     </div>
   );
 }

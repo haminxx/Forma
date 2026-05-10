@@ -1,7 +1,11 @@
 import { Outlet } from "react-router-dom";
+import { motion, useReducedMotion } from "framer-motion";
 import { Github } from "lucide-react";
 import { PillNav } from "../components/PillNav";
 import { SiteFooter } from "../components/SiteFooter";
+
+/** Seconds after load — lands just after the nav pill finishes widening. */
+const FLANK_ENTRANCE_DELAY = 0.62;
 
 /**
  * Header layout (revised per latest direction):
@@ -16,23 +20,35 @@ import { SiteFooter } from "../components/SiteFooter";
  *   - The wrapper is `pointer-events-none` so its empty centre column
  *     never blocks clicks on hero content beneath; the children re-
  *     enable pointer events on themselves.
+ *   - Logo + GitHub play a delayed fade/slide **after** the pill
+ *     expansion (see `FLANK_ENTRANCE_DELAY`): logo from the right,
+ *     GitHub from the left, as if emerging from the growing bar.
  *
  * <main> starts at y=0 of the document because the header is out of
  * flow (fixed). The home hero (`h-screen`) fills the viewport from
  * the very top.
  */
 export function AppShell() {
+  const reduceMotion = useReducedMotion();
+  const flankTransition = reduceMotion
+    ? { duration: 0.01 }
+    : {
+        delay: FLANK_ENTRANCE_DELAY,
+        duration: 0.48,
+        ease: [0.22, 1, 0.36, 1] as const,
+      };
+
   return (
     <div
       data-app-shell
       className="relative flex min-h-full flex-col text-[var(--color-stitch-fg)]"
     >
       <header className="pointer-events-none fixed inset-x-0 top-5 z-50 grid grid-cols-[1fr_auto_1fr] items-center gap-4 px-6">
-        <BrandMark />
+        <BrandMark transition={flankTransition} reduceMotion={!!reduceMotion} />
         <div className="pointer-events-auto justify-self-center">
           <PillNav />
         </div>
-        <GithubButton />
+        <GithubButton transition={flankTransition} reduceMotion={!!reduceMotion} />
       </header>
 
       <main className="flex-1">
@@ -44,12 +60,21 @@ export function AppShell() {
   );
 }
 
-function BrandMark() {
+function BrandMark({
+  transition,
+  reduceMotion,
+}: {
+  transition: { duration: number; delay?: number; ease?: readonly [number, number, number, number] };
+  reduceMotion: boolean;
+}) {
   return (
-    <a
+    <motion.a
       href="/"
       aria-label="Forma — home"
       className="pointer-events-auto group inline-flex h-11 items-center gap-2 rounded-full px-2 text-white transition-opacity hover:opacity-90"
+      initial={reduceMotion ? false : { opacity: 0, x: 44 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={transition}
     >
       <span
         aria-hidden="true"
@@ -66,18 +91,27 @@ function BrandMark() {
       >
         Forma
       </span>
-    </a>
+    </motion.a>
   );
 }
 
-function GithubButton() {
+function GithubButton({
+  transition,
+  reduceMotion,
+}: {
+  transition: { duration: number; delay?: number; ease?: readonly [number, number, number, number] };
+  reduceMotion: boolean;
+}) {
   return (
-    <a
+    <motion.a
       href="https://github.com/haminxx/forma"
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Forma on GitHub"
       className="pointer-events-auto group inline-flex h-11 items-center gap-2 justify-self-end rounded-full border border-white/15 bg-white/[0.04] px-4 text-sm font-medium text-white/85 backdrop-blur-md transition-colors hover:border-white/25 hover:bg-white/[0.08] hover:text-white"
+      initial={reduceMotion ? false : { opacity: 0, x: -44 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={transition}
     >
       <Github
         size={16}
@@ -85,6 +119,6 @@ function GithubButton() {
         className="text-white/80 transition-colors group-hover:text-white"
       />
       <span className="hidden sm:inline">GitHub</span>
-    </a>
+    </motion.a>
   );
 }

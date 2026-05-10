@@ -6,7 +6,6 @@ import { PaperShaderHero } from "../components/PaperShaderHero";
 import { PoweredBy } from "../components/PoweredBy";
 import { ProblemTestimonial } from "../components/ProblemTestimonial";
 import { SolutionSection } from "../components/SolutionSection";
-import AnimatedGradientBackground from "../components/ui/animated-gradient-background";
 import { BlurText } from "../components/ui/blur-text";
 import { FeatureShowcase } from "../components/ui/feature-showcase";
 import { LogoCloud } from "../components/ui/logo-cloud";
@@ -16,19 +15,15 @@ import { EdgeGlow } from "../components/ui/section-fade";
 /**
  * Section order:  home → demo → sandbox → problem → solution → about → docs
  *
- * Background architecture (latest direction):
+ * Background architecture:
  *
- *   - Home + Demo: each section now mounts its OWN AnimatedGradient-
- *     Background (inside PaperShaderHero and inside DemoStage's sticky
- *     panel). The page-level wrapper is gone; the two instances share
- *     the same warm-gold palette so visually they read as one
- *     continuous gradient when scrolling between them.
- *   - Sandbox / Problem / Solution / About / Docs: per the latest
- *     "revert" instruction, each section paints its OWN distinctive
- *     backdrop again. The previous shared continuous gradient wrapper
- *     was removed — every screen is back to having its own colour
- *     identity (sandbox gold radial, problem gold-bridge, solution
- *     gold dome, about teal, docs deep-teal).
+ *   - Home: `AnimatedGradientBackground` fills the hero inside
+ *     `PaperShaderHero` (full-bleed, breathing).
+ *   - Demo: matching gradient fills the sticky demo panel inside
+ *     `DemoStage` only — no page-level sticky/absolute stack (that
+ *     layout caused broken seams and incorrect sizing).
+ *   - Sandbox / Problem / Solution / About / Docs: each section has
+ *     its own backdrop as usual.
  *
  * Every section uses `scroll-mt-24` so PillNav clicks land the
  * section's TOP cleanly below the floating navbar.
@@ -46,53 +41,22 @@ function postHeadingDelay(tokenCount: number) {
 export function HomePage() {
   return (
     <div>
-      {/* ╭─ Home + Demo: ONE shared sticky gradient backdrop ─╮
-          The gradient is mounted ONCE here and pinned to the viewport
-          via `position: sticky; top: 0; h-screen` (inside an absolute
-          parent so it doesn't take flow space). This gives:
-            1. The gradient is correctly viewport-sized (NOT stretched
-               across ~270vh of combined section height)
-            2. It stays visible behind both #home AND the demo's
-               170vh sticky panel — the demo card now reads as a
-               floating window above the home backdrop
-            3. PaperShaderHero + DemoStage no longer mount their own
-               gradients (each was sized to its own section before) */}
-      <div className="relative">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="sticky top-0 h-screen w-full">
-            <AnimatedGradientBackground breathing topOffset={-20} />
-          </div>
-        </div>
+      <section
+        id="home"
+        className="relative scroll-mt-24"
+        aria-label="Forma — Grammarly for AI builder prompts"
+      >
+        <PaperShaderHero />
+      </section>
 
-        <section
-          id="home"
-          className="relative z-10 scroll-mt-24"
-          aria-label="Forma — Grammarly for AI builder prompts"
-        >
-          <PaperShaderHero />
-        </section>
-
-        <section
-          id="demo"
-          className="relative z-10 scroll-mt-24"
-          style={{ marginTop: "-38vh" }}
-          aria-label="Demo"
-        >
-          <DemoStage />
-        </section>
-
-        {/* Bottom seam — fades the shared gold gradient into the dark
-            PoweredBy band so home → demo → marquee reads as one
-            continuous backdrop instead of cutting at the demo edge. */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-[28vh] z-0"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(10,10,12,0) 0%, rgba(10,10,12,0.55) 55%, rgba(10,10,12,1) 100%)",
-          }}
-        />
-      </div>
+      <section
+        id="demo"
+        className="relative scroll-mt-24"
+        style={{ marginTop: "-38vh" }}
+        aria-label="Demo"
+      >
+        <DemoStage />
+      </section>
 
       {/* Powered-by marquee — narrow dark band acting as a transition
           between the gold hero/demo block and the sandbox below. */}
