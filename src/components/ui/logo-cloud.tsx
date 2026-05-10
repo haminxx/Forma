@@ -34,7 +34,7 @@ type Platform = {
 
 const PLATFORMS: Platform[] = [
   { name: "Vercel v0", src: "/logos/v0.png", href: "https://v0.app", invert: true },
-  { name: "Replit", src: "/logos/replit.png", href: "https://replit.com" },
+  { name: "Replit", src: "/logos/replit.svg", href: "https://replit.com" },
   { name: "Bolt", src: "/logos/bolt.png", href: "https://bolt.new", invert: true },
   { name: "Lovable", src: "/logos/lovable.png", href: "https://lovable.dev" },
   { name: "Manus", src: "/logos/manus.png", href: "https://manus.im", invert: true },
