@@ -1,4 +1,7 @@
 import { useReducedMotion } from "framer-motion";
+import { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { scrollDocumentToSection } from "../lib/scroll-section";
 import { DemoStage } from "../components/DemoStage";
 import { DocsPanel } from "../components/DocsPanel";
 import { GlassTextarea } from "../components/GlassTextarea";
@@ -49,6 +52,32 @@ function postHeadingDelay(tokenCount: number) {
 
 export function HomePage() {
   const reduceMotion = useReducedMotion();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  /** After SPA navigation from `/detector` or `/compare`, jump to anchored sections (`#demo`, `#sandbox`, etc.). */
+  useEffect(() => {
+    const st = (
+      typeof location.state === "object" &&
+      location.state !== null &&
+      "scrollToSection" in location.state &&
+      typeof (location.state as { scrollToSection?: unknown }).scrollToSection ===
+        "string"
+        ? (location.state as { scrollToSection: string }).scrollToSection
+        : undefined
+    ) as string | undefined;
+    if (!st) return;
+
+    const behave = reduceMotion ? "instant" : "smooth";
+    scrollDocumentToSection(st, behave);
+    navigate(".", { replace: true, state: {} });
+
+    const t = window.setTimeout(() => {
+      scrollDocumentToSection(st, behave);
+    }, 140);
+
+    return () => window.clearTimeout(t);
+  }, [location.state, navigate, reduceMotion]);
 
   return (
     <div>
@@ -109,9 +138,8 @@ export function HomePage() {
         id="sandbox"
         className="relative flex min-h-screen scroll-mt-24 flex-col items-center justify-center overflow-hidden px-6"
         style={{
-          paddingTop: "clamp(3rem,8vh,6rem)",
+          paddingTop: "clamp(2rem,5.75vh,4.75rem)",
           paddingBottom: "clamp(3rem,8vh,6rem)",
-          gap: "clamp(1rem,2.5vh,2rem)",
         }}
       >
         <div
@@ -119,40 +147,36 @@ export function HomePage() {
           className="pointer-events-none absolute inset-0 -z-10 [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#d4b87a_100%)]"
         />
 
-        <Reveal duration={0.7}>
-          <div className="flex flex-col items-center text-center">
-            <BlurText
-              as="h2"
-              align="center"
-              baseDelay={HEADING_BASE_DELAY}
-              duration={HEADING_DURATION}
-              underline
-              underlineWidth="min(10rem, 50%)"
-              className="text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl"
-              content="Define the form."
-            />
-            <BlurText
-              as="p"
-              align="center"
-              startDelay={postHeadingDelay(3)}
-              baseDelay={0.04}
-              duration={0.65}
-              blur={8}
-              y={10}
-              className="mt-3 text-base text-white/65 sm:text-lg"
-              content="Test it on every web vibe-coding platform."
-            />
-          </div>
-        </Reveal>
-
         <div
-          className="relative z-10 flex w-full flex-col items-center"
+          className="-translate-y-[clamp(0.65rem,1.75vh,2rem)] relative z-10 flex w-full flex-col items-center"
           style={{ gap: "clamp(1rem,2.5vh,2rem)" }}
         >
-          {/* Faster Reveal stagger — delays compressed from
-              0.15/0.25/0.35 → 0.05/0.10/0.15 and durations from 0.6
-              → 0.4 so the install grid + prompt + brand grid land
-              quickly when the section enters the viewport. */}
+          <Reveal duration={0.7}>
+            <div className="flex flex-col items-center text-center">
+              <BlurText
+                as="h2"
+                align="center"
+                baseDelay={HEADING_BASE_DELAY}
+                duration={HEADING_DURATION}
+                underline
+                underlineWidth="min(10rem, 50%)"
+                className="text-balance text-3xl font-semibold tracking-tight text-white sm:text-4xl md:text-5xl"
+                content="Define the form."
+              />
+              <BlurText
+                as="p"
+                align="center"
+                startDelay={postHeadingDelay(3)}
+                baseDelay={0.04}
+                duration={0.65}
+                blur={8}
+                y={10}
+                className="mt-3 text-base text-white/65 sm:text-lg"
+                content="Test it on every web vibe-coding platform."
+              />
+            </div>
+          </Reveal>
+
           <Reveal delay={0.05} duration={0.4}>
             <InstallSteps />
           </Reveal>
