@@ -32,8 +32,8 @@ import { EdgeGlow } from "../components/ui/section-fade";
  *   - Sandbox / Problem / Solution / About / Docs: each section has
  *     its own backdrop as usual.
  *
- * Every section uses `scroll-mt-24` so PillNav clicks land the
- * section's TOP cleanly below the floating navbar.
+ * Every anchored section defaults to `scroll-mt-24`; `#demo` and `#sandbox`
+ * use deeper scroll margins so header pill navigation clears more of each block.
  */
 
 /** Dark filler for the demo **scroll track only** — bottom-anchored mirror of the hero radial (see `cssInvertedHeroTrackBackdrop`). */
@@ -107,7 +107,7 @@ export function HomePage() {
 
         <section
           id="demo"
-          className="relative z-10 scroll-mt-24"
+          className="relative z-10 scroll-mt-32 lg:scroll-mt-36"
           style={{ marginTop: `-${DEMO_OVERLAP_CLEAR}` }}
           aria-label="Demo"
         >
@@ -142,7 +142,7 @@ export function HomePage() {
           per direction). */}
       <section
         id="sandbox"
-        className="relative flex min-h-screen scroll-mt-24 flex-col items-center justify-center overflow-hidden px-6"
+        className="relative flex min-h-screen scroll-mt-32 flex-col items-center justify-center overflow-hidden px-6 lg:scroll-mt-36"
         style={{
           paddingTop: "clamp(2rem,5.75vh,4.75rem)",
           paddingBottom: "clamp(3rem,8vh,6rem)",
@@ -187,7 +187,9 @@ export function HomePage() {
             <InstallSteps />
           </Reveal>
           <Reveal delay={0.1} duration={0.4}>
-            <GlassTextarea />
+            <div className="-mt-1 sm:-mt-2">
+              <GlassTextarea />
+            </div>
           </Reveal>
           <Reveal delay={0.15} duration={0.4}>
             <LogoCloud />

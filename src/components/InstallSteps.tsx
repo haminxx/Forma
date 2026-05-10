@@ -47,7 +47,7 @@ const STEPS: Step[] = [
     icon: ExternalLink,
     ariaLabel:
       "Copy chrome://extensions/ to clipboard and try to open Extensions",
-    previewPlaceholder: true,
+    previewImage: "/preview/sandbox-step-2.png",
     onAction: () => {
       const url = "chrome://extensions/";
       try {
@@ -60,11 +60,11 @@ const STEPS: Step[] = [
   },
   {
     label: "Enable Developer Mode",
-    previewPlaceholder: true,
+    previewImage: "/preview/sandbox-step-3.png",
   },
   {
-    label: "Load unpacked Forma",
-    previewPlaceholder: true,
+    label: "Test Forma",
+    previewImage: "/preview/sandbox-step-4.png",
   },
 ];
 
@@ -212,8 +212,8 @@ export function InstallSteps() {
                   preventPreviewNavigation
                   enableLensEffect
                   enableMouseFollow={false}
-                  peekWidth={260}
-                  peekHeight={160}
+                  peekWidth={300}
+                  peekHeight={208}
                 >
                   {trigger}
                 </HoverPeek>

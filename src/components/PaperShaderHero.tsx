@@ -1,13 +1,31 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { cn } from "@/lib/utils";
+import { scrollDocumentToSectionWithRetries } from "@/lib/scroll-section";
 
 /**
  * Forma home hero — centred title stack + readability scrim. The animated
  * gold field is provided by `HomePage` behind both home and demo.
  */
 export function PaperShaderHero() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const reduceMotion = useReducedMotion();
+
+  const goSandbox = () => {
+    const behavior = reduceMotion ? ("instant" as const) : ("smooth" as const);
+    if (location.pathname !== "/") {
+      navigate("/", {
+        state: { scrollToSection: "sandbox" },
+        preventScrollReset: true,
+      });
+      return;
+    }
+    scrollDocumentToSectionWithRetries("sandbox", behavior);
+  };
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -71,19 +89,18 @@ export function PaperShaderHero() {
           >
             Forma flags vague UI words as you type and rewrites them into
             canonical components with concrete motion and accessibility
-            specs — built on a single AMD MI300X.
           </motion.p>
 
-          <motion.a
-            href="https://forma-production-c800.up.railway.app/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full border border-[#d4b87a]/40 bg-black/30 px-5 py-2 text-sm font-bold tracking-[0.22em] text-[#f3e0a8] backdrop-blur-md transition-all hover:border-[#d4b87a]/70 hover:bg-black/40 hover:text-[#fff3cf]"
+          <motion.button
+            type="button"
+            onClick={goSandbox}
+            aria-label="Download Forma — go to Sandbox install steps"
+            className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-[#d4b87a]/40 bg-black/30 px-5 py-2 text-sm font-bold tracking-[0.22em] text-[#f3e0a8] backdrop-blur-md transition-all hover:border-[#d4b87a]/70 hover:bg-black/40 hover:text-[#fff3cf]"
             variants={itemVariants}
           >
-            OPEN THE LIVE DEMO
+            Download Forma
             <ArrowRight size={16} strokeWidth={2.4} />
-          </motion.a>
+          </motion.button>
         </motion.div>
       </div>
     </motion.section>
