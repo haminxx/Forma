@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import {
   CheckCircle2,
@@ -28,21 +28,31 @@ import { cn } from "../lib/cn";
  *   4. ready    — everything visible, transcript scrollable, etc.
  *
  * The same flow re-runs whenever the user toggles between Vibe Coder
- * and Forma User. The Vibe prompt also gets a yellow Grammarly-style
- * wavy underline on the vague phrase to advertise what Forma is about
- * to fix; switching to Forma triggers an inline "expand with details"
- * morph from the short vague sentence into the precise rewrite.
+ * and Forma User. Vibe mode types a short prompt with **no** underline.
+ * Forma mode types the same short line first, flashes an underline on
+ * the vague phrase, then rewrites in-place into a long spec-rich
+ * prompt before push → preview.
  */
 
 type Mode = "vibe" | "forma";
-type Phase = "idle" | "typing" | "pushing" | "thinking" | "ready";
+type Phase =
+  | "idle"
+  | "typing"
+  | "formaUnderline"
+  | "formaRewrite"
+  | "pushing"
+  | "thinking"
+  | "ready";
 
 const VIBE_PROMPT = "Build a popup that slides in from the side";
-const FORMA_PROMPT =
-  "Build an Off-Canvas Drawer (slides from right edge, 320px width, 250ms ease-in-out, semi-transparent backdrop, focus-trap on open, ESC to dismiss)";
+/** Detailed rewrite after Forma highlights underline (size, structure, motion, tokens, files). */
+const FORMA_LONG =
+  "Off-Canvas Drawer — files: components/OffCanvasDrawer.tsx, hooks/useFocusTrap.ts; layout: fixed inset-y-0 right-0 w-[320px] max-w-[85vw] z-50 flex flex-col; motion: translateX(100%)→0 over 250ms cubic-bezier(0.22,1,0.36,1); structure: header (title + close), scroll body, footer CTAs; UI: Radix Dialog + shadcn Sheet patterns; colors: surface bg-zinc-950 #09090b, border border-white/10, text-zinc-50; backdrop bg-black/40; a11y: aria-modal role=dialog, focus-trap, initialFocus refs, ESC + overlay-dismiss.";
 
-/** Word range inside VIBE_PROMPT that gets the squiggly underline. */
+/** Phrase in `VIBE_PROMPT` that gets the temporary underline (Forma path only). */
 const VIBE_UNDERLINE_PHRASE = "popup that slides in from the side";
+
+const FORMA_UNDERLINE_DWELL_MS = 950;
 
 type TaskState = "running" | "ready";
 
@@ -83,7 +93,7 @@ const SIDEBAR_TASKS_BY_MODE: Record<Mode, SidebarTask[]> = {
       id: "detector",
       title: "Detector agent",
       state: "ready",
-      meta: "Found 1 vague phrase · slides in from the side",
+      meta: "Found 1 vague phrase · popup / side",
       ageLabel: "now",
     },
     {
@@ -158,7 +168,7 @@ const AGENT_STEPS_BY_MODE: Record<Mode, AgentStep[]> = {
       id: "f-done",
       kind: "done",
       label:
-        "Done. Off-Canvas Drawer with 250ms slide, focus-trap, ESC, semi-transparent backdrop. Score 95 / 100.",
+        "Done. Off-Canvas Drawer: 320px rail, 250ms slide, focus-trap, ESC, backdrop. Score 95 / 100.",
     },
   ],
 };
@@ -218,18 +228,25 @@ export function DemoSplit() {
   // Auto-advance the phases on timers.
   useEffect(() => {
     if (phase === "idle") return;
-    const prompt = mode === "vibe" ? VIBE_PROMPT : FORMA_PROMPT;
     const steps = AGENT_STEPS_BY_MODE[mode];
     let timer: number | undefined;
     if (phase === "typing") {
+      const dur = getTypingDuration(VIBE_PROMPT);
+      timer = window.setTimeout(() => {
+        if (mode === "forma") setPhase("formaUnderline");
+        else setPhase("pushing");
+      }, dur + 250);
+    } else if (phase === "formaUnderline") {
       timer = window.setTimeout(
-        () => setPhase("pushing"),
-        getTypingDuration(prompt) + 250,
+        () => setPhase("formaRewrite"),
+        FORMA_UNDERLINE_DWELL_MS,
       );
+    } else if (phase === "formaRewrite") {
+      const dur = getTypingDuration(FORMA_LONG);
+      timer = window.setTimeout(() => setPhase("pushing"), dur + 250);
     } else if (phase === "pushing") {
       timer = window.setTimeout(() => setPhase("thinking"), PUSH_MS);
     } else if (phase === "thinking") {
-      // Each step entry uses delay = i * 0.07 + 0.32s motion duration.
       const stepsTime = steps.length * 70 + 320;
       timer = window.setTimeout(
         () => setPhase("ready"),
@@ -262,7 +279,7 @@ export function DemoSplit() {
         <WindowChrome mode={mode} />
 
         {/* Body — 3 columns at lg+, stacks below */}
-        <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+        <div className="flex min-h-0 flex-1 flex-col bg-[#0d0e12] lg:flex-row">
           <Sidebar mode={mode} phase={phase} runId={runId} />
           <PreviewPane mode={mode} phase={phase} runId={runId} />
           <AgentPanel mode={mode} phase={phase} runId={runId} />
@@ -332,7 +349,7 @@ function WindowChrome({ mode }: { mode: Mode }) {
   return (
     <div
       className={cn(
-        "relative flex h-8 flex-shrink-0 items-center justify-between border-b px-3",
+        "relative flex h-8 flex-shrink-0 items-center justify-between border-b bg-[#0d0e12] px-3",
         mode === "vibe" ? "border-white/[0.08]" : "border-[#d4b87a]/15",
       )}
     >
@@ -553,8 +570,8 @@ function PreviewPane({
           className={cn(
             "ml-1 flex min-w-0 flex-1 items-center gap-2 rounded-md border px-2.5 py-1 text-[11px] font-mono transition-colors duration-300",
             mode === "vibe"
-              ? "border-white/[0.08] bg-black/40 text-white/55"
-              : "border-[#d4b87a]/20 bg-[#d4b87a]/[0.05] text-[#d4b87a]/85",
+              ? "border-white/[0.08] bg-[#0a0b0e] text-white/55"
+              : "border-[#d4b87a]/20 bg-[#0a0b0e] text-[#d4b87a]/85",
           )}
         >
           <Lock size={10} className="shrink-0 opacity-70" />
@@ -877,19 +894,39 @@ function AgentPanel({
   phase: Phase;
   runId: number;
 }) {
-  const userPrompt = mode === "vibe" ? VIBE_PROMPT : FORMA_PROMPT;
+  const finalPrompt = mode === "vibe" ? VIBE_PROMPT : FORMA_LONG;
   const steps = AGENT_STEPS_BY_MODE[mode];
   const [draft, setDraft] = useState("");
 
-  // Char count revealed during the typing phase. Drives both the
-  // bottom prompt input (the "user is typing" stage) and the head
-  // bubble's expand-with-details morph on toggle.
-  const typedText = useTypewriter(userPrompt, phase === "typing", runId);
+  const twVibe = useTypewriter(
+    VIBE_PROMPT,
+    phase === "typing" && mode === "vibe",
+    runId,
+  );
+  const twFormaShort = useTypewriter(
+    VIBE_PROMPT,
+    phase === "typing" && mode === "forma",
+    runId,
+  );
+  const twFormaLong = useTypewriter(FORMA_LONG, phase === "formaRewrite", runId);
 
   const userBubbleVisible =
     phase === "pushing" || phase === "thinking" || phase === "ready";
   const stepsVisible = phase === "thinking" || phase === "ready";
-  const promptInputContent = phase === "typing" ? typedText : "";
+
+  const underlineIdx = VIBE_PROMPT.indexOf(VIBE_UNDERLINE_PHRASE);
+  const formaUnderlineBlock =
+    underlineIdx >= 0 ? (
+      <span className="text-white/85">
+        {VIBE_PROMPT.slice(0, underlineIdx)}
+        <span className="forma-vague-underline">
+          {VIBE_UNDERLINE_PHRASE}
+        </span>
+        {VIBE_PROMPT.slice(underlineIdx + VIBE_UNDERLINE_PHRASE.length)}
+      </span>
+    ) : (
+      <span className="text-white/85">{VIBE_PROMPT}</span>
+    );
 
   return (
     <div
@@ -899,16 +936,16 @@ function AgentPanel({
       )}
     >
       {/* Panel title */}
-      <div className="flex h-9 flex-shrink-0 items-center gap-2 border-b border-white/[0.06] px-3 text-[11px] font-medium text-white/70">
+      <div className="flex h-9 flex-shrink-0 items-center gap-2 border-b border-white/[0.06] bg-[#0b0c10] px-3 text-[11px] font-medium text-white/70">
         <Sparkles size={12} className="text-[#d4b87a]" />
         Forma Agent · Composer
       </div>
 
       {/* Transcript */}
-      <div className="flex-1 overflow-y-auto px-3 py-3 text-[12px]">
+      <div className="flex-1 overflow-y-auto bg-[#0b0c10] px-3 py-3 text-[12px]">
         {/* User prompt bubble — sticky at top of scroll. Hidden until
             the prompt has been "sent" in the pushing phase. */}
-        <div className="sticky top-0 z-10 -mt-3 bg-gradient-to-b from-black/80 to-transparent pb-2 pt-3">
+        <div className="sticky top-0 z-10 -mt-3 bg-[#0b0c10] pb-2 pt-3">
           <AnimatePresence>
             {userBubbleVisible ? (
               <motion.div
@@ -924,11 +961,11 @@ function AgentPanel({
                 className={cn(
                   "rounded-lg border px-3 py-2 text-[12px] leading-relaxed transition-colors duration-300",
                   mode === "vibe"
-                    ? "border-white/[0.08] bg-white/[0.04] text-white/85"
-                    : "border-[#d4b87a]/30 bg-[#d4b87a]/[0.06] text-white",
+                    ? "border-white/[0.08] bg-[#14151c] text-white/85"
+                    : "border-[#d4b87a]/30 bg-[#1a1814] text-white",
                 )}
               >
-                <PromptText mode={mode} runId={runId} />
+                <PromptText mode={mode} />
               </motion.div>
             ) : null}
           </AnimatePresence>
@@ -944,25 +981,32 @@ function AgentPanel({
         </ul>
       </div>
 
-      {/* Prompt input — pinned bottom. Plays the typewriter while phase
-          is `typing`, then briefly flashes a "sending" state during
-          `pushing`, then becomes a normal follow-up input. */}
-      <div className="flex-shrink-0 border-t border-white/[0.06] p-2">
+      {/* Prompt input — pinned bottom */}
+      <div className="flex-shrink-0 border-t border-white/[0.06] bg-[#0b0c10] p-2">
         <form
           onSubmit={(e) => {
             e.preventDefault();
             setDraft("");
           }}
           className={cn(
-            "flex flex-col gap-1.5 rounded-lg border bg-white/[0.03] transition-colors",
+            "flex flex-col gap-1.5 rounded-lg border bg-[#12141a] transition-colors",
             phase === "pushing"
-              ? "border-[#d4b87a]/60 bg-[#d4b87a]/[0.08] shadow-[0_0_0_3px_rgba(212,184,122,0.15)]"
-              : "border-white/[0.06] focus-within:border-[#d4b87a]/40 focus-within:bg-white/[0.05]",
+              ? "border-[#d4b87a]/60 bg-[#1a1c24] shadow-[0_0_0_3px_rgba(212,184,122,0.15)]"
+              : "border-white/[0.08] focus-within:border-[#d4b87a]/40 focus-within:bg-[#151720]",
           )}
         >
           {phase === "typing" ? (
             <div className="px-3 pt-2 pb-1 text-[12px] text-white/85">
-              {promptInputContent}
+              {mode === "vibe" ? twVibe : twFormaShort}
+              <span className="ml-0.5 inline-block h-3 w-[1px] animate-pulse bg-[#d4b87a] align-middle" />
+            </div>
+          ) : phase === "formaUnderline" ? (
+            <div className="px-3 pt-2 pb-1 text-[12px] leading-relaxed">
+              {formaUnderlineBlock}
+            </div>
+          ) : phase === "formaRewrite" ? (
+            <div className="px-3 pt-2 pb-1 text-[12px] leading-relaxed text-white/90">
+              {twFormaLong}
               <span className="ml-0.5 inline-block h-3 w-[1px] animate-pulse bg-[#d4b87a] align-middle" />
             </div>
           ) : phase === "pushing" ? (
@@ -976,7 +1020,7 @@ function AgentPanel({
                 mode === "vibe" ? "text-white/85" : "text-white",
               )}
             >
-              {userPrompt}
+              {finalPrompt}
             </motion.div>
           ) : (
             <textarea
@@ -990,7 +1034,7 @@ function AgentPanel({
           )}
           <div className="flex items-center justify-between gap-2 px-2 pb-2">
             <div className="flex items-center gap-1.5">
-              <span className="rounded-full bg-white/[0.05] px-2 py-0.5 text-[10px] font-medium text-white/60">
+              <span className="rounded-full bg-[#1e2026] px-2 py-0.5 text-[10px] font-medium text-white/60">
                 Agent
               </span>
               <span className="text-[10px] text-white/35">
@@ -1006,7 +1050,7 @@ function AgentPanel({
                 phase === "pushing"
                   ? "bg-[#d4b87a] text-black"
                   : draft.trim().length === 0 || phase !== "ready"
-                    ? "bg-white/[0.05] text-white/35"
+                    ? "bg-[#1e2026] text-white/35"
                     : "bg-[#d4b87a] text-black hover:bg-[#e2c890]",
               )}
             >
@@ -1022,79 +1066,11 @@ function AgentPanel({
   );
 }
 
-/** Renders the user-prompt text inside the transcript header bubble.
- *  In Vibe mode it draws a yellow Grammarly-style wavy underline
- *  beneath the vague phrase. In Forma mode the vague phrase is
- *  replaced by the precise rewrite, and the parenthetical detail
- *  block animates open word-by-word so the user feels the prompt
- *  "expanding with details". */
-function PromptText({ mode, runId }: { mode: Mode; runId: number }) {
-  if (mode === "vibe") {
-    const idx = VIBE_PROMPT.indexOf(VIBE_UNDERLINE_PHRASE);
-    const before = VIBE_PROMPT.slice(0, idx);
-    const phrase = VIBE_PROMPT.slice(idx, idx + VIBE_UNDERLINE_PHRASE.length);
-    const after = VIBE_PROMPT.slice(idx + VIBE_UNDERLINE_PHRASE.length);
-    return (
-      <span>
-        {before}
-        <span className="forma-vague-underline">{phrase}</span>
-        {after}
-      </span>
-    );
-  }
-  return <FormaPromptExpand key={`exp-${runId}`} />;
-}
-
-/** Forma prompt with an "expand with details" reveal. Splits the
- *  precise prompt at the first " (" so the noun ("Off-Canvas Drawer")
- *  appears immediately, then the parenthetical specs stream word-by-
- *  word inside an unrolling container. */
-function FormaPromptExpand() {
-  const splitIdx = FORMA_PROMPT.indexOf(" (");
-  const head = splitIdx >= 0 ? FORMA_PROMPT.slice(0, splitIdx) : FORMA_PROMPT;
-  const detail = splitIdx >= 0 ? FORMA_PROMPT.slice(splitIdx) : "";
-  const detailWords = useMemo(
-    () => (detail ? detail.split(/(\s+)/) : []),
-    [detail],
-  );
-
+/** Final prompt shown in the transcript bubble after send. */
+function PromptText({ mode }: { mode: Mode }) {
   return (
-    <span className="inline">
-      <motion.span
-        initial={{ opacity: 0, y: 2 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        {head}
-      </motion.span>
-      {detail ? (
-        <motion.span
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.2, delay: 0.25 }}
-          className="text-[#d4b87a]"
-        >
-          {detailWords.map((word, i) =>
-            word.match(/^\s+$/) ? (
-              <span key={i}>{word}</span>
-            ) : (
-              <motion.span
-                key={i}
-                initial={{ opacity: 0, filter: "blur(6px)", x: -4 }}
-                animate={{ opacity: 1, filter: "blur(0px)", x: 0 }}
-                transition={{
-                  duration: 0.3,
-                  delay: 0.35 + i * 0.045,
-                  ease: [0.22, 0.68, 0, 1],
-                }}
-                className="inline-block"
-              >
-                {word}
-              </motion.span>
-            ),
-          )}
-        </motion.span>
-      ) : null}
+    <span className="block">
+      {mode === "vibe" ? VIBE_PROMPT : FORMA_LONG}
     </span>
   );
 }

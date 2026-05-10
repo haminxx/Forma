@@ -7,14 +7,14 @@ import {
 } from "framer-motion";
 
 import { DemoSplit } from "./DemoSplit";
+import { HOME_HERO_DEMO_SOLID_BG } from "@/components/ui/animated-gradient-background";
 import { cn } from "@/lib/utils";
 
 /**
  * DemoStage — peek-then-expand scroll wrapper around `DemoSplit`.
  *
- * Backdrop: none — the home page mounts one continuous gold gradient
- * behind home + demo; this stage is transparent aside from the floating
- * window chrome.
+ * Backdrop: flat `HOME_HERO_DEMO_SOLID_BG` from the page — no extra
+ * layers here (only the floating window is content).
  *
  * Mechanic:
  *   - 170vh outer section. The user scrolls *through* the demo while
@@ -53,7 +53,10 @@ export function DemoStage({ className }: { className?: string }) {
     >
       {/* Sticky panel — pinned to viewport at top: 6rem so it sits
           below the floating navbar. */}
-      <div className="sticky top-24 h-[calc(100vh-6rem)] overflow-hidden bg-transparent px-3 sm:px-6">
+      <div
+        className="sticky top-24 h-[calc(100vh-6rem)] overflow-hidden px-3 sm:px-6"
+        style={{ backgroundColor: HOME_HERO_DEMO_SOLID_BG }}
+      >
         <div className="relative flex h-full w-full items-center justify-center">
           {/* Outer wrapper: one-time slide-up entrance that fires after
               the hero's stagger has finished. Hero entrance is ~1.1s
@@ -84,20 +87,9 @@ export function DemoStage({ className }: { className?: string }) {
               }
               className="relative w-full"
             >
-              {/* Soft gold glow ring underneath the floating window. */}
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -inset-12 -z-10"
-                style={{
-                  background:
-                    "radial-gradient(60% 50% at 50% 60%, rgba(212,184,122,0.22) 0%, rgba(212,184,122,0) 70%)",
-                }}
-              />
-
-              {/* macOS-style window frame around the demo content. Fully
-                  opaque card — the gold backdrop only shows AROUND the
-                  card, never through it. */}
-              <div className="relative overflow-hidden rounded-[1.25rem] border border-white/10 bg-[#0d0e12] shadow-[0_40px_120px_-30px_rgba(0,0,0,0.75)] sm:rounded-[1.5rem]">
+              {/* macOS-style window — opaque shell so the demo backdrop
+                  never shows through. */}
+              <div className="relative isolate overflow-hidden rounded-[1.25rem] border border-white/10 bg-[#0d0e12] shadow-[0_40px_120px_-30px_rgba(0,0,0,0.75)] sm:rounded-[1.5rem]">
                 <DemoSplit />
               </div>
             </motion.div>

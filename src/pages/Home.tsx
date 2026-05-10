@@ -7,7 +7,9 @@ import { PaperShaderHero } from "../components/PaperShaderHero";
 import { PoweredBy } from "../components/PoweredBy";
 import { ProblemTestimonial } from "../components/ProblemTestimonial";
 import { SolutionSection } from "../components/SolutionSection";
-import AnimatedGradientBackground from "../components/ui/animated-gradient-background";
+import AnimatedGradientBackground, {
+  HOME_HERO_DEMO_SOLID_BG,
+} from "../components/ui/animated-gradient-background";
 import { BlurText } from "../components/ui/blur-text";
 import { FeatureShowcase } from "../components/ui/feature-showcase";
 import { LogoCloud } from "../components/ui/logo-cloud";
@@ -19,9 +21,11 @@ import { EdgeGlow } from "../components/ui/section-fade";
  *
  * Background architecture:
  *
- *   - Home + Demo: ONE shared `AnimatedGradientBackground` (sticky,
- *     viewport-height) behind both sections. Hero + demo stage paint no
- *     extra backdrop; demo is only the floating window.
+ *   - Home: animated gold radial (`AnimatedGradientBackground`) in a
+ *     sticky viewport layer behind `#home` only.
+ *   - Demo: flat `HOME_HERO_DEMO_SOLID_BG` (#1a1612) — same warm near-
+ *     black as the hero gradient’s second stop — full-bleed under the
+ *     floating window only.
  *   - Sandbox / Problem / Solution / About / Docs: each section has
  *     its own backdrop as usual.
  *
@@ -44,9 +48,6 @@ export function HomePage() {
   return (
     <div>
       <div className="relative">
-        {/* Single gold field for home + demo: viewport-sized, not stretched
-            to the combined section height — sticky keeps it pinned while
-            scrolling this block. */}
         <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
           <div className="sticky top-0 h-screen w-full">
             <AnimatedGradientBackground
@@ -64,16 +65,7 @@ export function HomePage() {
           <PaperShaderHero />
         </section>
 
-        <section
-          id="demo"
-          className="relative z-10 scroll-mt-24"
-          style={{ marginTop: "-38vh" }}
-          aria-label="Demo"
-        >
-          <DemoStage />
-        </section>
-
-        {/* Ease into the PoweredBy band below — no hard cut at demo end. */}
+        {/* Fade hero gold into PoweredBy — anchored to home block only. */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-[28vh]"
@@ -83,6 +75,18 @@ export function HomePage() {
           }}
         />
       </div>
+
+      <section
+        id="demo"
+        className="relative z-10 scroll-mt-24"
+        style={{
+          marginTop: "-38vh",
+          backgroundColor: HOME_HERO_DEMO_SOLID_BG,
+        }}
+        aria-label="Demo"
+      >
+        <DemoStage />
+      </section>
 
       {/* Powered-by marquee — narrow dark band acting as a transition
           between the gold hero/demo block and the sandbox below. */}
