@@ -1,11 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import {
-  motion,
-  AnimatePresence,
-  useInView,
-  type MotionValue,
-  useTransform,
-} from "framer-motion";
+import { motion, AnimatePresence, useInView } from "framer-motion";
 import {
   CheckCircle2,
   ChevronLeft,
@@ -33,6 +27,7 @@ import { cn } from "../lib/cn";
  *                 the preview pane progressively materialises
  *   4. ready    — everything visible, transcript scrollable, etc.
  *
+ * The Vibe / Forma switch sits in `WindowChrome` (centred title-bar slot).
  * The same flow re-runs whenever the user toggles between Vibe Coder
  * and Forma User. Vibe mode types a short prompt with **no** underline.
  * Forma mode types the same short line first, flashes an underline on
@@ -204,26 +199,10 @@ function getTypingDuration(text: string) {
 const PUSH_MS = 700;
 const THINK_TAIL_MS = 600; // grace after agent steps before "ready"
 
-export function DemoSplit({
-  scrollYProgress,
-  reducedMotion,
-}: {
-  scrollYProgress: MotionValue<number>;
-  reducedMotion?: boolean | null;
-}) {
+export function DemoSplit() {
   const [mode, setMode] = useState<Mode>("vibe");
   const rootRef = useRef<HTMLDivElement>(null);
   const inView = useInView(rootRef, { amount: 0.3, once: true });
-
-  /** Peek: toggle sits partly under overlapping window z-stack. Expanded: slides up & above. */
-  const toggleStackY = useTransform(scrollYProgress, [0, 1], [20, -40]);
-  const toggleStackZ = useTransform(
-    scrollYProgress,
-    [0, 0.34, 0.5, 1],
-    [6, 6, 48, 48],
-  );
-
-  const stackToggle = !reducedMotion;
 
   // Phase state machine: drives the entrance animation. Resets and
   // re-runs on mode toggle so each switch replays prompt → push →
@@ -282,36 +261,16 @@ export function DemoSplit({
 
   return (
     <div ref={rootRef} className="w-full max-w-[min(98vw,92rem)]">
-      <div className="relative isolate w-full">
-        {/* Pill overlaps window stack: tucked under overlapping chrome while peeking;
-            scroll-linked z + y lifts it cleanly above once the card expands. */}
-        <motion.div
-          className="relative flex w-full justify-center pb-4 pt-2 sm:pb-5 sm:pt-3"
-          style={
-            stackToggle
-              ? {
-                  zIndex: toggleStackZ,
-                  y: toggleStackY,
-                }
-              : undefined
-          }
-        >
-          <ModeToggle mode={mode} setMode={setMode} />
-        </motion.div>
-
-        {/* Window: macOS chrome + 3-pane body. Negative margin overlaps toggle row
-            (toggle reads as “behind” until scroll promotes it via z/y). */}
-        <div
-          className={cn(
-            "relative z-[12] flex h-[min(72vh,720px)] w-full flex-col overflow-hidden rounded-[14px] border bg-[#0d0e12] shadow-[0_40px_120px_-32px_rgba(0,0,0,0.72)] transition-colors duration-300 sm:rounded-[15px] sm:shadow-[0_44px_120px_-34px_rgba(0,0,0,0.78)]",
-            stackToggle ? "-mt-12 sm:-mt-14 lg:-mt-16" : "mt-5 lg:mt-6",
+      <div
+        className={cn(
+          "relative flex h-[min(calc(100vh-7.25rem),960px)] w-full flex-col overflow-hidden rounded-[14px] border bg-[#0d0e12] shadow-[0_40px_120px_-32px_rgba(0,0,0,0.72)] transition-colors duration-300 sm:rounded-[15px] sm:shadow-[0_44px_120px_-34px_rgba(0,0,0,0.78)]",
           mode === "vibe"
             ? "border-white/[0.09]"
             : "border-[#d4b87a]/25",
         )}
       >
-        {/* Window chrome */}
-        <WindowChrome mode={mode} />
+        {/* Window chrome: traffic dots + centred mode toggle ··· */}
+        <WindowChrome mode={mode} setMode={setMode} />
 
         {/* Body — 3 columns at lg+, stacks below */}
         <div className="flex min-h-0 flex-1 flex-col bg-[#0d0e12] lg:flex-row">
@@ -321,7 +280,6 @@ export function DemoSplit({
         </div>
       </div>
     </div>
-  </div>
   );
 }
 
@@ -332,16 +290,25 @@ export function DemoSplit({
 function ModeToggle({
   mode,
   setMode,
+  variant = "default",
 }: {
   mode: Mode;
   setMode: (m: Mode) => void;
+  variant?: "default" | "titleBar";
 }) {
+  const dense = variant === "titleBar";
   return (
-    <div className="relative inline-flex w-fit items-center rounded-full border border-white/15 bg-[#181a22] p-1">
+    <div
+      className={cn(
+        "relative inline-flex max-w-[min(100%,18rem)] items-center rounded-full border border-white/15 bg-[#181a22] p-1 sm:max-w-none",
+        dense && "pointer-events-auto max-w-[min(94vw,20rem)] p-[3px]",
+      )}
+    >
       <motion.span
         aria-hidden
         className={cn(
           "absolute bottom-1 left-1 top-1 rounded-full transition-colors duration-300",
+          dense ? "bottom-[3px] left-[3px] top-[3px]" : undefined,
           mode === "vibe"
             ? "bg-[#2e313c] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]"
             : "bg-gradient-to-r from-[#d4b87a] to-[#e5c98f] shadow-[0_4px_20px_-6px_rgba(212,184,122,0.55)]",
@@ -357,6 +324,7 @@ function ModeToggle({
         aria-pressed={mode === "vibe"}
         className={cn(
           "relative z-10 px-5 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] transition-colors",
+          dense && "px-3 py-1 text-[9px] tracking-[0.14em]",
           mode === "vibe" ? "text-white" : "text-white/45 hover:text-white/70",
         )}
       >
@@ -368,6 +336,7 @@ function ModeToggle({
         aria-pressed={mode === "forma"}
         className={cn(
           "relative z-10 px-5 py-1.5 text-[11px] font-medium uppercase tracking-[0.18em] transition-colors",
+          dense && "px-3 py-1 text-[9px] tracking-[0.14em]",
           mode === "forma" ? "text-black" : "text-white/45 hover:text-white/70",
         )}
       >
@@ -378,26 +347,33 @@ function ModeToggle({
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// Window chrome (traffic lights + centre title + ··· menu)
+// Window chrome (traffic lights + centred toggle + ··· menu)
 // ─────────────────────────────────────────────────────────────────────
 
-function WindowChrome({ mode }: { mode: Mode }) {
+function WindowChrome({
+  mode,
+  setMode,
+}: {
+  mode: Mode;
+  setMode: (m: Mode) => void;
+}) {
   return (
     <div
       className={cn(
-        "relative flex h-8 flex-shrink-0 items-center justify-between border-b bg-[#0d0e12] px-3",
+        "relative flex min-h-9 flex-shrink-0 items-center border-b bg-[#0d0e12] px-2 py-1 sm:px-3",
         mode === "vibe" ? "border-white/[0.08]" : "border-[#d4b87a]/15",
       )}
     >
-      <div className="flex items-center gap-1.5">
+      {/* Three columns keeps the centred toggle optically centred under traffic dots + menu */}
+      <div className="flex w-[72px] flex-shrink-0 items-center gap-1 sm:w-[76px] sm:gap-1.5">
         <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]/85" />
         <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]/85" />
         <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]/85" />
       </div>
-      <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 truncate text-center text-[12px] font-medium text-white/65">
-        Forma Sandbox
+      <div className="flex min-w-0 flex-1 justify-center px-1">
+        <ModeToggle mode={mode} setMode={setMode} variant="titleBar" />
       </div>
-      <div className="flex items-center gap-0.5 text-white/55">
+      <div className="flex w-[72px] flex-shrink-0 items-center justify-end gap-0.5 text-white/55 sm:w-[76px]">
         <button
           type="button"
           aria-label="Settings"
