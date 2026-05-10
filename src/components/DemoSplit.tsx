@@ -260,9 +260,8 @@ export function DemoSplit() {
 
   return (
     <div ref={rootRef} className="w-full max-w-[min(98vw,92rem)]">
-      {/* Top-center toggle — extra top inset so there is air under the navbar;
-          spacing before the macOS chrome is deliberately larger below. */}
-      <div className="flex w-full justify-center pt-6 sm:pt-10 md:pt-12">
+      {/* Pill toggle sits *outside* the macOS-frame box — shallow band only. */}
+      <div className="flex w-full justify-center pt-2 pb-1 sm:pt-3 sm:pb-2">
         <ModeToggle mode={mode} setMode={setMode} />
       </div>
 
@@ -270,7 +269,7 @@ export function DemoSplit() {
           mode so the user sees a confident "this is Forma now" cue. */}
       <div
         className={cn(
-          "mt-8 flex h-[min(72vh,720px)] w-full flex-col overflow-hidden rounded-[14px] border bg-[#0d0e12] shadow-[0_28px_70px_rgba(0,0,0,0.45),0_14px_32px_rgba(0,0,0,0.30)] transition-colors duration-300 lg:mt-11",
+          "mt-5 flex h-[min(72vh,720px)] w-full flex-col overflow-hidden rounded-[14px] border bg-[#0d0e12] shadow-[0_40px_120px_-32px_rgba(0,0,0,0.72)] transition-colors duration-300 sm:rounded-[15px] sm:shadow-[0_44px_120px_-34px_rgba(0,0,0,0.78)] lg:mt-6",
           mode === "vibe"
             ? "border-white/[0.09]"
             : "border-[#d4b87a]/25",
