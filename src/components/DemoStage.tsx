@@ -12,8 +12,9 @@ import { cn } from "@/lib/utils";
 /**
  * DemoStage — peek-then-expand scroll wrapper around `DemoSplit`.
  *
- * Backdrop: none in the sticky strip — `#demo` paints `DEMO_SECTION_BACKDROP`
- * on `HomePage`; shared animated gradient still sits under `#home`.
+ * Backdrop: none in the sticky strip — `HomePage` paints `DEMO_TRACK_BACKDROP`
+ * only **below** the hero overlap; shared animated gradient stays visible
+ * behind the card until you scroll into the lower track.
  *
  * Mechanic:
  *   - 170vh outer section. The user scrolls *through* the demo while

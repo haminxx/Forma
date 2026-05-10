@@ -19,10 +19,10 @@ import { EdgeGlow } from "../components/ui/section-fade";
  *
  * Background architecture:
  *
- *   - Home + Demo: shared sticky `AnimatedGradientBackground` under `#home`;
- *     `#demo` adds a full-bleed static gold radial on the section so the
- *     long scroll track (and hero overlap) always paints. Bottom seam
- *     eases into PoweredBy.
+ *   - `#demo` does **not** paint over the hero: a backdrop layer starts
+ *     below the overlap band (~38vh) so the shared gold gradient reads
+ *     continuously behind the floating card; the darker demo fill only
+ *     covers the long scroll track beneath.
  *   - Sandbox / Problem / Solution / About / Docs: each section has
  *     its own backdrop as usual.
  *
@@ -30,9 +30,12 @@ import { EdgeGlow } from "../components/ui/section-fade";
  * section's TOP cleanly below the floating navbar.
  */
 
-/** Fills `#demo` + full `DemoStage` scroll track so overlap with hero always paints (not “empty” until scroll). */
-const DEMO_SECTION_BACKDROP =
+/** Dark filler for the demo **scroll track only** — not over the hero overlap. */
+const DEMO_TRACK_BACKDROP =
   "radial-gradient(125% 110% at 50% 0%, #5c4830 0%, #3a2c20 18%, #241c14 38%, #1a1612 58%, #121110 100%)";
+
+/** Match `marginTop` on `#demo` — backdrop must not cover the pulled-up overlap. */
+const DEMO_OVERLAP_CLEAR = "38vh";
 
 const HEADING_BASE_DELAY = 0.07;
 const HEADING_DURATION = 0.85;
@@ -69,12 +72,19 @@ export function HomePage() {
         <section
           id="demo"
           className="relative z-10 scroll-mt-24"
-          style={{
-            marginTop: "-38vh",
-            background: DEMO_SECTION_BACKDROP,
-          }}
+          style={{ marginTop: `-${DEMO_OVERLAP_CLEAR}` }}
           aria-label="Demo"
         >
+          {/* Backdrop begins *below* the hero overlap so it never cuts the
+              animated gradient; top band stays visually continuous with home. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 -z-10"
+            style={{
+              top: DEMO_OVERLAP_CLEAR,
+              background: DEMO_TRACK_BACKDROP,
+            }}
+          />
           <DemoStage />
         </section>
 
