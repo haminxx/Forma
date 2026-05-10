@@ -5,26 +5,18 @@ import TextareaAutosize from "react-textarea-autosize";
 /**
  * Sandbox-section prompt input — liquid-glass style.
  *
- * Sized per the latest direction at a roughly 3:1 width-to-height
- * ratio so the prompt reads as a chunky "pad" instead of a thin
- * search bar:
- *   max-w-xl  ≈ 576 px wide
- *   min-h-48  ≈ 192 px tall
- *   ratio     ≈ 3 : 1
- *
- * Layered glass:
- *   - heavy backdrop-blur + saturate for the frosted base
- *   - hairline border + inner highlight ring for the rim
- *   - faint top gradient ridge for the "light caught on glass" feel
+ * Layout: wide prompt pad at **3:1** width:height via `aspect-[3/1]` and
+ * `max-w-[72rem]` so it matches the install / logo row better than the
+ * old `max-w-xl` square-ish box.
  */
 export function GlassTextarea() {
   const [message, setMessage] = useState("");
   const canSend = message.trim().length > 0;
 
   return (
-    <div className="relative w-full max-w-xl px-2 sm:px-4">
+    <div className="relative mx-auto w-full max-w-[min(100%,72rem)] px-2 sm:px-4">
       <div
-        className="group relative flex min-h-48 flex-col overflow-hidden rounded-2xl border border-white/15 transition-colors duration-200 focus-within:border-white/30 sm:rounded-[1.25rem]"
+        className="group relative flex w-full flex-col overflow-hidden rounded-2xl border border-white/15 transition-colors duration-200 focus-within:border-white/30 sm:rounded-[1.25rem] aspect-[3/1] min-h-[11rem] max-h-[min(26rem,42vh)]"
         style={{
           background:
             "linear-gradient(180deg, rgba(28, 30, 38, 0.55) 0%, rgba(18, 19, 24, 0.65) 100%)",
@@ -41,18 +33,15 @@ export function GlassTextarea() {
           className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent"
         />
 
-        {/* The input itself — given more vertical breathing room
-            (minRows 4) so the prompt-pad fills the 3:1 frame
-            instead of leaving a wide blank patch under the cursor.
-            Scrollbar defensively hidden across all browsers. */}
+        {/* Input: flex-1 fills the wide 3:1 frame above the footer. */}
         <TextareaAutosize
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          minRows={4}
-          maxRows={8}
+          minRows={3}
+          maxRows={6}
           placeholder="Describe the UI component and animation you want…"
           aria-label="Forma sandbox prompt"
-          className="relative block w-full flex-1 resize-none border-0 bg-transparent px-5 pt-5 text-base leading-relaxed text-white placeholder:text-white/40 focus:outline-none focus:ring-0 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:px-6 sm:text-[1.05rem]"
+          className="relative min-h-0 w-full flex-1 resize-none border-0 bg-transparent px-5 pt-4 text-base leading-relaxed text-white placeholder:text-white/40 focus:outline-none focus:ring-0 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:px-6 sm:text-[1.05rem]"
           style={{ scrollbarWidth: "none" }}
         />
 

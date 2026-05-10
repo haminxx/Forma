@@ -7,7 +7,9 @@ import { PaperShaderHero } from "../components/PaperShaderHero";
 import { PoweredBy } from "../components/PoweredBy";
 import { ProblemTestimonial } from "../components/ProblemTestimonial";
 import { SolutionSection } from "../components/SolutionSection";
-import AnimatedGradientBackground from "../components/ui/animated-gradient-background";
+import AnimatedGradientBackground, {
+  cssInvertedHeroTrackBackdrop,
+} from "../components/ui/animated-gradient-background";
 import { BlurText } from "../components/ui/blur-text";
 import { FeatureShowcase } from "../components/ui/feature-showcase";
 import { LogoCloud } from "../components/ui/logo-cloud";
@@ -30,9 +32,7 @@ import { EdgeGlow } from "../components/ui/section-fade";
  * section's TOP cleanly below the floating navbar.
  */
 
-/** Dark filler for the demo **scroll track only** — not over the hero overlap. */
-const DEMO_TRACK_BACKDROP =
-  "radial-gradient(125% 110% at 50% 0%, #5c4830 0%, #3a2c20 18%, #241c14 38%, #1a1612 58%, #121110 100%)";
+/** Dark filler for the demo **scroll track only** — inverted home radial (see `cssInvertedHeroTrackBackdrop`). */
 
 /** Match `marginTop` on `#demo` — backdrop must not cover the pulled-up overlap. */
 const DEMO_OVERLAP_CLEAR = "38vh";
@@ -82,7 +82,7 @@ export function HomePage() {
             className="pointer-events-none absolute inset-x-0 bottom-0 -z-10"
             style={{
               top: DEMO_OVERLAP_CLEAR,
-              background: DEMO_TRACK_BACKDROP,
+              background: cssInvertedHeroTrackBackdrop(),
             }}
           />
           <DemoStage />

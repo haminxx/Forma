@@ -12,8 +12,9 @@ import { cn } from "@/lib/utils";
 /**
  * DemoStage — peek-then-expand scroll wrapper around `DemoSplit`.
  *
- * Backdrop: none in the sticky strip — `HomePage` paints `DEMO_TRACK_BACKDROP`
- * only **below** the hero overlap; shared animated gradient stays visible
+ * Backdrop: none in the sticky strip — `HomePage` paints the inverted
+ * hero track (`cssInvertedHeroTrackBackdrop`) only **below** the hero overlap;
+ * shared animated gradient stays visible
  * behind the card until you scroll into the lower track.
  *
  * Mechanic:

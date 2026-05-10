@@ -37,19 +37,39 @@ interface AnimatedGradientBackgroundProps {
  * single yellow/gold radial that bleeds straight into Forma's gold
  * marketing accent.
  */
+
+/** Static “inverted” hero field: same palette + stop positions as the home radial, colours reversed, anchor flipped to the bottom (`82%` vs `20%`). */
+export function cssInvertedHeroTrackBackdrop(
+  widthPct = 125,
+  heightPct = 115,
+): string {
+  const colors = [...DEFAULT_HERO_GRADIENT_COLORS];
+  const stops = [...DEFAULT_HERO_GRADIENT_STOPS];
+  const n = colors.length;
+  const pairs = stops
+    .map((stop, i) => `${colors[n - 1 - i]!} ${stop}%`)
+    .join(", ");
+  return `radial-gradient(${widthPct}% ${heightPct}% at 50% 82%, ${pairs})`;
+}
+
+/** Shared with `AnimatedGradientBackground` defaults — single source of truth. */
+const DEFAULT_HERO_GRADIENT_COLORS = [
+  "#0A0A0A",
+  "#1a1612",
+  "#3a2a18",
+  "#7a5a2a",
+  "#c89a4a",
+  "#d4b87a",
+  "#f3e0a8",
+] as const;
+
+const DEFAULT_HERO_GRADIENT_STOPS = [35, 50, 60, 70, 80, 90, 100] as const;
+
 const AnimatedGradientBackground: FC<AnimatedGradientBackgroundProps> = ({
   startingGap = 125,
   breathing = true,
-  gradientColors = [
-    "#0A0A0A", // canvas
-    "#1a1612", // near-black warm
-    "#3a2a18", // deep bronze
-    "#7a5a2a", // burnt umber
-    "#c89a4a", // amber
-    "#d4b87a", // Forma gold
-    "#f3e0a8", // soft cream highlight
-  ],
-  gradientStops = [35, 50, 60, 70, 80, 90, 100],
+  gradientColors = [...DEFAULT_HERO_GRADIENT_COLORS],
+  gradientStops = [...DEFAULT_HERO_GRADIENT_STOPS],
   animationSpeed = 0.02,
   breathingRange = 5,
   containerStyle = {},
