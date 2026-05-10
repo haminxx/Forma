@@ -8,20 +8,16 @@ import { GlassTextarea } from "../components/GlassTextarea";
 import { InstallSteps } from "../components/InstallSteps";
 import { PaperShaderHero } from "../components/PaperShaderHero";
 import { PoweredBy } from "../components/PoweredBy";
-import { ProblemTestimonial } from "../components/ProblemTestimonial";
-import { SolutionSection } from "../components/SolutionSection";
 import AnimatedGradientBackground, {
   cssInvertedHeroTrackBackdrop,
   HERO_RADIAL_DEFAULT_TOP_OFFSET,
 } from "../components/ui/animated-gradient-background";
 import { BlurText } from "../components/ui/blur-text";
-import { FeatureShowcase } from "../components/ui/feature-showcase";
 import { LogoCloud } from "../components/ui/logo-cloud";
 import { Reveal } from "../components/ui/reveal";
-import { EdgeGlow } from "../components/ui/section-fade";
 
 /**
- * Section order:  home → demo → sandbox → problem → solution → about → docs
+ * Section order:  home → demo → sandbox → docs
  *
  * Background architecture:
  *
@@ -29,11 +25,16 @@ import { EdgeGlow } from "../components/ui/section-fade";
  *     below the overlap band (~38vh) so the shared gold gradient reads
  *     continuously behind the floating card; the darker demo fill only
  *     covers the long scroll track beneath.
- *   - `#sandbox`: gold radial backdrop behind frosted prompts / logo grid.
- *   - `#problem` → `#docs`: gradients per section implementations below.
+ *   - `#sandbox`: gold radial backdrop behind frosted prompts / LogoCloud.
+ *   - `#docs`: same radial shape as sandbox, flipped vertically (anchor at
+ *     bottom center) using the Forma accent blue `#5eb1bf` instead of gold.
  * Every anchored section defaults to `scroll-mt-24`; `#demo` and `#sandbox`
  * use larger scroll margins so pill navigation clears more of each block.
  */
+
+/** Accent blue — mirrors sandbox gold radial, inverted (see `#docs`). */
+const DOCS_RADIAL_FLIPPED_BLUE =
+  "radial-gradient(125% 125% at 50% 90%, #000000 40%, #5eb1bf 100%)";
 
 /** Dark filler for the demo **scroll track only** — bottom-anchored mirror of the hero radial (see `cssInvertedHeroTrackBackdrop`). */
 
@@ -195,153 +196,29 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Problem — gold bridge with smooth handoff to solution (#121318). */}
+      {/* Docs — same radial treatment as sandbox, flipped (bottom anchor) + accent blue. */}
       <section
-        id="problem"
-        className="relative flex min-h-screen scroll-mt-24 items-center justify-center overflow-hidden px-6"
-        style={{
-          paddingTop: "clamp(3rem,8vh,6rem)",
-          paddingBottom: "clamp(3rem,8vh,6rem)",
-        }}
+        id="docs"
+        className="relative z-10 scroll-mt-24"
+        style={{ height: "200vh" }}
       >
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 -z-10"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(212,184,122,0.9) 0%, rgba(168,138,78,0.72) 22%, rgba(98,78,48,0.78) 52%, rgba(40,36,32,0.92) 78%, #121318 100%)",
-          }}
+          style={{ background: DOCS_RADIAL_FLIPPED_BLUE }}
         />
-        <Reveal duration={0.7}>
-          <ProblemTestimonial />
-        </Reveal>
-      </section>
-
-      {/* Solution — radial gold keyed to problem’s lower base; exits cool-neutral. */}
-      <section
-        id="solution"
-        className="relative flex min-h-screen scroll-mt-24 flex-col items-center justify-center overflow-hidden px-6 py-16"
-        aria-label="Solution"
-      >
         <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10"
-          style={{
-            background:
-              "linear-gradient(180deg, #121318 0%, rgba(55,48,36,0.85) 18%, rgba(212,184,122,0.58) 42%, rgba(175,145,90,0.45) 62%, rgba(38,36,34,0.95) 88%, #14151c 100%)",
-          }}
-        />
-        <Reveal duration={0.7}>
-          <SolutionSection />
-        </Reveal>
-      </section>
-
-      {/* About + Docs — single shared “teal corridor” so the seam between
-          sections stays one continuous field (no opposing radials). */}
-      <div className="relative">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10"
-          style={{
-            background:
-              "linear-gradient(180deg, #14151c 0%, rgba(40,44,52,1) 8%, rgba(94,177,191,0.16) 16%, rgba(94,177,191,0.07) 26%, rgba(22,24,30,1) 38%, #15171e 48%, #12141a 56%, #101218 65%, rgba(94,177,191,0.09) 78%, rgba(94,177,191,0.14) 90%, #0c0e12 100%)",
-          }}
-        />
-        <EdgeGlow
-          position="top"
-          tone="accent"
-          intensity={0.055}
-          height="clamp(5rem, 12vh, 10rem)"
-        />
-
-        <section
-          id="about"
-          className="relative z-10 flex min-h-screen scroll-mt-24 flex-col items-center justify-center overflow-hidden px-6"
+          className="sticky top-24 z-10 flex h-[calc(100vh-6rem)] items-center justify-center overflow-hidden px-6"
           style={{
             paddingTop: "clamp(3rem,8vh,6rem)",
             paddingBottom: "clamp(3rem,8vh,6rem)",
           }}
         >
           <Reveal duration={0.7}>
-            <FeatureShowcase
-              title="One GPU. Two model tiers. One product flow."
-              description="Forma's freemium experience requires both inference paths to be live at the same time on the same backend. Llama 3.1 8B handles per-keystroke scoring for free users; Llama 3.1 70B AWQ powers the 7-agent deep analysis for Pro users. Both fit in 89 GiB of MI300X — H100 80GB cannot host both with usable concurrency."
-              stats={[
-                "192 GiB HBM3",
-                "89 GiB used · 102 GiB headroom",
-                "vLLM · ROCm 7.0",
-              ]}
-              steps={[
-                {
-                  id: "free",
-                  title: "Free tier — Llama 3.1 8B Instruct",
-                  text:
-                    "15.1 GiB weights, 11.2 GiB KV cache. Drives the inline score badge, /detect-vague offsets, and the Grammarly-style underline on every keystroke. 44× concurrent users at 2048-token max.",
-                },
-                {
-                  id: "pro",
-                  title: "Pro tier — Llama 3.1 70B AWQ-INT4",
-                  text:
-                    "37.3 GiB weights (4-bit quantized), 26.3 GiB KV cache. Runs the 7-agent consensus pipeline (Detector → Critic → Reformulator → Style → Memory → Coach → Consensus) and rewrites prompts with motion + a11y specs.",
-                },
-                {
-                  id: "memory",
-                  title: "Memory Engine — your style follows you",
-                  text:
-                    "Each accept teaches Forma your aesthetic. After 100 prompts, Forma knows you reach for Off-Canvas Drawer over Modal Overlay. That profile lives one level above any specific builder — switch from v0 to Cursor and your defaults come with you.",
-                },
-              ]}
-              tabs={[
-                {
-                  value: "free",
-                  label: "Free · 8B",
-                  src: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1280&q=80",
-                  alt: "Real-time inline scoring on a developer workstation",
-                },
-                {
-                  value: "pro",
-                  label: "Pro · 70B",
-                  src: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1280&q=80",
-                  alt: "Multi-agent server stack",
-                },
-                {
-                  value: "memory",
-                  label: "Memory",
-                  src: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1280&q=80",
-                  alt: "Personalized analytics dashboard",
-                },
-              ]}
-              defaultTab="free"
-              panelMinHeight={480}
-            />
+            <DocsPanel />
           </Reveal>
-        </section>
-
-        <section
-          id="docs"
-          className="relative z-10 scroll-mt-24"
-          style={{ height: "200vh" }}
-        >
-          <div
-            className="sticky top-24 z-10 flex h-[calc(100vh-6rem)] items-center justify-center overflow-hidden px-6"
-            style={{
-              paddingTop: "clamp(3rem,8vh,6rem)",
-              paddingBottom: "clamp(3rem,8vh,6rem)",
-            }}
-          >
-            <Reveal duration={0.7}>
-              <DocsPanel />
-            </Reveal>
-          </div>
-        </section>
-
-        <EdgeGlow
-          position="bottom"
-          tone="accent"
-          intensity={0.045}
-          height="clamp(4rem, 10vh, 8rem)"
-        />
-      </div>
+        </div>
+      </section>
     </div>
   );
 }

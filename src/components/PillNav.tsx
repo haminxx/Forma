@@ -13,16 +13,13 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Home", id: "home" },
   { label: "Demo", id: "demo" },
   { label: "Sandbox", id: "sandbox" },
-  { label: "Problem", id: "problem" },
-  { label: "Solution", id: "solution" },
-  { label: "About", id: "about" },
   { label: "Docs", id: "docs" },
 ];
 
 /**
  * 3D Adaptive Navigation Pill (PillBase) — adopted verbatim style-wise.
  * Modifications:
- *   - 6 sections, click → smooth-scroll to anchor.
+ *   - 4 sections, click → smooth-scroll to anchor.
  *   - Active section tracked from scroll via IntersectionObserver.
  *   - Collapsed label animates per-character on change.
  */
