@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FORMA — AMD AI Hackathon 2026 (final)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-0: #0a0a09;
+    --bg-1: #1a1917;
+    --bg-2: #1c1a17;
+    --bg-3: #2a2825;
+    --amber: #c8b89a;
+    --amber-bright: #e8d8b8;
+    --amber-dim: rgba(200, 184, 154, 0.6);
+    --amber-faint: rgba(200, 184, 154, 0.12);
+    --amd-red: #ed1c24;
+    --text-bright: #f0ece4;
+    --text-mid: #a0998c;
+    --text-dim: #6b6560;
+    --red: #ef4444;
+    --green: #4ade80;
+    --orange: #f59e0b;
+    --blue: #60a5fa;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg-0);
+    color: var(--text-bright);
+    font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  .slide {
+    width: 1280px; height: 720px;
+    position: relative; background: var(--bg-0); overflow: hidden;
+    margin: 24px auto; border: 1px solid var(--amber-faint);
+    page-break-after: always; break-after: page;
+  }
+  .slide:last-of-type { page-break-after: auto; }
+  .slide::before {
+    content: ''; position: absolute; inset: 0;
+    background-image:
+      radial-gradient(ellipse at 0% 0%, rgba(200,184,154,0.06), transparent 50%),
+      radial-gradient(ellipse at 100% 100%, rgba(200,184,154,0.04), transparent 50%);
+    pointer-events: none; z-index: 0;
+  }
+  .slide-num {
+    position: absolute; bottom: 24px; right: 32px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--text-dim); letter-spacing: 0.1em; z-index: 10;
+  }
+  .slide-label {
+    position: absolute; top: 28px; left: 32px;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: 0.25em; color: var(--amber-dim);
+    text-transform: uppercase; z-index: 10;
+  }
+  .slide-label::before {
+    content: ''; display: inline-block; width: 24px; height: 1px;
+    background: var(--amber); vertical-align: middle; margin-right: 10px;
+  }
+  .slide-body {
+    position: absolute; top: 80px; left: 80px; right: 80px; bottom: 80px; z-index: 1;
+  }
+  .slide-title {
+    font-family: 'DM Serif Display', serif; font-size: 50px;
+    line-height: 1.05; letter-spacing: -0.02em; color: var(--text-bright);
+    margin-bottom: 12px;
+  }
+  .slide-title em { font-style: normal; color: var(--amber); }
+  .slide-kicker {
+    font-size: 16px; color: var(--text-mid); line-height: 1.55;
+    max-width: 920px; font-weight: 300; margin-bottom: 28px;
+  }
+  .slide-kicker.tight { margin-bottom: 18px; }
+  .slide-kicker strong { color: var(--text-bright); font-weight: 400; }
+
+  /* ============ SLIDE 1: COVER ============ */
+  .cover {
+    display: flex; flex-direction: column; justify-content: center; padding: 80px;
+    background: radial-gradient(ellipse 800px 400px at 70% 30%, rgba(200,184,154,0.10), transparent 60%), var(--bg-0);
+  }
+  .cover-mark {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: 0.3em; color: var(--amber); margin-bottom: 32px;
+  }
+  .cover h1 {
+    font-family: 'DM Serif Display', serif; font-size: 140px;
+    line-height: 0.95; letter-spacing: -0.04em; color: var(--text-bright); margin-bottom: 8px;
+  }
+  .cover-dashes { display: flex; gap: 8px; margin: 28px 0 40px; }
+  .cover-dashes span { width: 28px; height: 3px; background: var(--amber); border-radius: 2px; }
+  .cover-headline {
+    font-family: 'DM Serif Display', serif; font-size: 44px;
+    line-height: 1.15; color: var(--text-bright); margin-bottom: 24px; max-width: 920px;
+  }
+  .cover-headline em { font-style: normal; color: var(--amber); }
+  .cover-sub {
+    font-size: 17px; line-height: 1.55; color: var(--text-mid);
+    max-width: 860px; font-weight: 300;
+  }
+  .cover-sub strong { color: var(--text-bright); font-weight: 400; }
+  .cover-meta {
+    position: absolute; bottom: 80px; left: 80px; right: 80px;
+    display: flex; justify-content: space-between; align-items: flex-end;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: var(--text-dim); letter-spacing: 0.05em;
+  }
+  .cover-meta strong { color: var(--amber); font-weight: 500; }
+
+  /* ============ SLIDE 2: BOTTLENECK ============ */
+  .bottleneck-grid {
+    display: grid; grid-template-columns: 1fr 1.1fr; gap: 32px; height: 460px;
+  }
+  .bottleneck-hero {
+    background: var(--bg-1); border: 1px solid var(--amber-faint);
+    border-radius: 12px; padding: 40px 36px;
+    display: flex; flex-direction: column; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  .bottleneck-hero::after {
+    content: ''; position: absolute;
+    top: -50%; right: -30%; width: 80%; height: 200%;
+    background: radial-gradient(ellipse, rgba(200,184,154,0.06), transparent 60%);
+    pointer-events: none;
+  }
+  .bottleneck-hero-tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: 0.25em; text-transform: uppercase; color: var(--amber);
+    margin-bottom: 24px; position: relative;
+  }
+  .bottleneck-hero-quote {
+    font-family: 'DM Serif Display', serif; font-size: 42px;
+    line-height: 1.15; color: var(--text-bright); margin-bottom: 24px;
+    letter-spacing: -0.02em; position: relative;
+  }
+  .bottleneck-hero-quote em { font-style: normal; color: var(--amber); }
+  .bottleneck-hero-stats {
+    display: flex; gap: 28px; padding-top: 24px;
+    border-top: 1px dashed var(--amber-faint); position: relative;
+  }
+  .bottleneck-hero-stat { display: flex; flex-direction: column; gap: 4px; }
+  .bottleneck-hero-stat-num {
+    font-family: 'DM Serif Display', serif; font-size: 28px;
+    color: var(--text-bright); line-height: 1; letter-spacing: -0.02em;
+  }
+  .bottleneck-hero-stat-num .accent { color: var(--amber); }
+  .bottleneck-hero-stat-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .bottleneck-thesis {
+    background: linear-gradient(180deg, rgba(200,184,154,0.06), var(--bg-1));
+    border: 1px solid var(--amber); border-radius: 12px; padding: 36px 32px;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .bottleneck-thesis-tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--amber); margin-bottom: 16px;
+  }
+  .bottleneck-thesis-text {
+    font-family: 'DM Serif Display', serif; font-size: 26px;
+    line-height: 1.3; color: var(--text-bright); margin-bottom: 22px;
+  }
+  .bottleneck-thesis-text em { font-style: normal; color: var(--amber); }
+  .bottleneck-thesis-body {
+    font-size: 14px; line-height: 1.6; color: var(--text-mid); font-weight: 300;
+  }
+  .bottleneck-thesis-body strong { color: var(--amber); font-weight: 400; }
+  .bottleneck-prompt-demo {
+    background: var(--bg-2); border: 1px dashed var(--amber-faint);
+    border-radius: 8px; padding: 16px 18px;
+    font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    line-height: 1.7; color: var(--text-bright);
+  }
+  .bottleneck-prompt-demo .vague {
+    color: var(--red); text-decoration: underline;
+    text-decoration-style: wavy; text-decoration-color: var(--red);
+    text-underline-offset: 3px;
+  }
+  .bottleneck-prompt-demo .precise {
+    color: var(--green); background: rgba(74,222,128,0.08);
+    padding: 1px 4px; border-radius: 3px;
+  }
+  .bottleneck-prompt-demo .arrow {
+    display: block; text-align: center; color: var(--amber);
+    font-family: 'DM Serif Display', serif; font-size: 18px; margin: 6px 0;
+  }
+
+  /* ============ SLIDE 3: WITH/WITHOUT FORMA — REAL SCREENSHOTS ============ */
+  .compare-grid {
+    display: grid; grid-template-columns: 1fr 100px 1fr; gap: 0; height: 390px;
+  }
+  .compare-card {
+    background: var(--bg-1); border: 1px solid var(--amber-faint);
+    border-radius: 12px; padding: 16px;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .compare-card.bad { border-color: rgba(239,68,68,0.30); }
+  .compare-card.good {
+    border-color: rgba(74,222,128,0.30);
+    background: linear-gradient(180deg, rgba(74,222,128,0.04), var(--bg-1));
+  }
+  .compare-tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: 0.25em; text-transform: uppercase; margin-bottom: 10px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .compare-card.bad .compare-tag { color: var(--red); }
+  .compare-card.good .compare-tag { color: var(--green); }
+  .compare-score-badge {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    padding: 3px 10px; border-radius: 999px; letter-spacing: 0.1em;
+  }
+  .compare-card.bad .compare-score-badge {
+    background: rgba(239,68,68,0.12); color: var(--red);
+    border: 1px solid rgba(239,68,68,0.25);
+  }
+  .compare-card.good .compare-score-badge {
+    background: rgba(74,222,128,0.12); color: var(--green);
+    border: 1px solid rgba(74,222,128,0.25);
+  }
+  .compare-prompt {
+    background: var(--bg-2); border-radius: 6px; padding: 8px 12px;
+    margin-bottom: 10px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    line-height: 1.5; color: var(--text-bright);
+    border: 1px dashed var(--amber-faint);
+    max-height: 60px; overflow: hidden;
+  }
+  .compare-prompt .vague {
+    color: var(--text-bright);
+    text-decoration: underline; text-decoration-style: wavy;
+    text-decoration-color: var(--amber); text-underline-offset: 3px;
+  }
+  .compare-prompt .precise {
+    color: var(--green); background: rgba(74,222,128,0.10);
+    padding: 1px 3px; border-radius: 2px;
+  }
+  .compare-screenshot {
+    flex: 1; background: var(--bg-2);
+    border-radius: 6px; overflow: hidden; position: relative;
+    border: 1px solid var(--amber-faint);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .compare-screenshot img {
+    width: 100%; height: 100%; object-fit: cover; object-position: center top;
+  }
+  .compare-arrow {
+    display: flex; align-items: center; justify-content: center;
+    color: var(--amber);
+    font-family: 'DM Serif Display', serif; font-size: 28px;
+  }
+  .score-jump {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 6px; padding: 0 4px;
+    border-left: 1px dashed var(--amber-faint);
+    border-right: 1px dashed var(--amber-faint);
+  }
+  .score-jump-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 8px;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim);
+    margin-bottom: 2px;
+  }
+  .score-jump-from {
+    font-family: 'DM Serif Display', serif; font-size: 32px;
+    color: var(--red); line-height: 1; opacity: 0.7;
+  }
+  .score-jump-arrow {
+    font-family: 'DM Serif Display', serif; font-size: 22px;
+    color: var(--amber); line-height: 1; margin: 2px 0;
+  }
+  .score-jump-to {
+    font-family: 'DM Serif Display', serif; font-size: 56px;
+    color: var(--green); line-height: 1; letter-spacing: -0.02em;
+  }
+  .score-jump-lift {
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--green); letter-spacing: 0.05em;
+    background: rgba(74, 222, 128, 0.12);
+    border: 1px solid rgba(74, 222, 128, 0.30);
+    border-radius: 999px; padding: 3px 10px;
+    font-weight: 600;
+  }
+  .compare-footer {
+    margin-top: 36px;
+    text-align: center; font-family: 'DM Serif Display', serif; font-size: 16px;
+    color: var(--text-bright); line-height: 1.4; font-style: italic;
+  }
+  .compare-footer strong { color: var(--amber); font-weight: 400; font-style: normal; }
+
+  /* ============ SLIDES 4A & 4B: HOVER FLOW (TWO-COLUMN BIG CARDS) ============ */
+  .flow-pair {
+    height: 480px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 32px;
+  }
+  .flow-card-big {
+    background: var(--bg-1); border: 1px solid var(--amber-faint);
+    border-radius: 14px; padding: 22px;
+    display: flex; flex-direction: column; position: relative;
+    /* No overflow:hidden — number badges hang outside the top */
+  }
+  .flow-card-big.active {
+    border-color: var(--amber);
+    background: linear-gradient(180deg, rgba(200,184,154,0.06), var(--bg-1));
+  }
+  .flow-card-big-num {
+    position: absolute; top: -14px; left: 22px;
+    background: var(--amber); color: var(--bg-0);
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Serif Display', serif; font-size: 16px;
+    font-weight: 600; z-index: 5;
+    box-shadow: 0 0 0 4px var(--bg-0);
+  }
+  .flow-card-big-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: 0.22em; text-transform: uppercase; color: var(--amber);
+    margin-top: 8px; margin-bottom: 10px;
+  }
+  .flow-card-big-title {
+    font-family: 'DM Serif Display', serif; font-size: 26px;
+    color: var(--text-bright); line-height: 1.2; margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+  .flow-card-big-title em { font-style: normal; color: var(--amber); }
+  .flow-card-big-desc {
+    font-size: 13px; color: var(--text-mid); font-weight: 300; line-height: 1.5;
+    margin-bottom: 16px;
+  }
+  .flow-card-big-desc strong { color: var(--text-bright); font-weight: 400; }
+  .flow-card-big-img {
+    flex: 1; background: var(--bg-2);
+    border: 1px solid var(--amber-faint);
+    border-radius: 8px; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; min-height: 240px;
+  }
+  .flow-card-big-img img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover; object-position: center top;
+    z-index: 2;
+  }
+
+  /* ============ SLIDE 7 (NEW): TECHNICAL PROCESS FLOW ============ */
+  .tech-flow-canvas {
+    height: 480px;
+    display: grid; grid-template-rows: auto 1fr auto; gap: 18px;
+  }
+  .tech-flow-pipeline {
+    background: var(--bg-1); border: 1px solid var(--amber-faint);
+    border-radius: 12px; padding: 24px;
+    display: grid; grid-template-columns: 1fr 30px 1fr 30px 1fr 30px 1fr 30px 1fr;
+    align-items: center; gap: 0;
+  }
+  .tech-stage {
+    background: var(--bg-2); border: 1px solid var(--amber-faint);
+    border-radius: 10px; padding: 14px 12px;
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+    height: 100%; min-height: 180px; justify-content: space-between;
+  }
+  .tech-stage.entry { border-color: rgba(74,222,128,0.30); background: linear-gradient(180deg, rgba(74,222,128,0.04), var(--bg-2)); }
+  .tech-stage.compute { border-color: var(--amber); background: linear-gradient(180deg, rgba(200,184,154,0.08), var(--bg-2)); }
+  .tech-stage.exit { border-color: rgba(74,222,128,0.30); background: linear-gradient(180deg, rgba(74,222,128,0.04), var(--bg-2)); }
+  .tech-stage-icon { font-size: 28px; margin-bottom: 6px; }
+  .tech-stage-name {
+    font-family: 'DM Serif Display', serif; font-size: 15px;
+    color: var(--text-bright); line-height: 1.2; margin-bottom: 6px;
+    letter-spacing: -0.01em;
+  }
+  .tech-stage-tech {
+    font-family: 'JetBrains Mono', monospace; font-size: 9px;
+    color: var(--amber); letter-spacing: 0.05em; line-height: 1.4;
+    margin-bottom: 8px;
+  }
+  .tech-stage-detail {
+    font-family: 'JetBrains Mono', monospace; font-size: 9px;
+    color: var(--text-dim); letter-spacing: 0.03em; line-height: 1.5;
+  }
+  .tech-arrow {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: var(--amber); font-size: 18px;
+    font-family: 'DM Serif Display', serif;
+  }
+  .tech-arrow-time {
+    font-family: 'JetBrains Mono', monospace; font-size: 8px;
+    color: var(--amber-dim); letter-spacing: 0.05em;
+    margin-top: 2px; white-space: nowrap;
+  }
+  .tech-flow-stack {
+    background: var(--bg-2); border: 1px dashed var(--amber-faint);
+    border-radius: 10px; padding: 14px 22px;
+    display: flex; gap: 28px; align-items: center; justify-content: center;
+    flex-wrap: wrap;
+  }
+  .tech-flow-stack-tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--amber);
+    flex-shrink: 0;
+  }
+  .tech-flow-stack-item {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--text-bright);
+  }
+  .tech-flow-stack-item .label {
+    color: var(--text-dim); margin-right: 4px;
+  }
+  .tech-flow-summary {
+    background: linear-gradient(180deg, rgba(200,184,154,0.06), var(--bg-1));
+    border: 1px solid var(--amber); border-radius: 12px;
+    padding: 14px 22px;
+    font-family: 'DM Serif Display', serif; font-size: 17px;
+    color: var(--text-bright); line-height: 1.4;
+    text-align: center;
+  }
+  .tech-flow-summary strong { color: var(--amber); font-weight: 400; }
+  .tech-flow-summary .accent {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--bg-2); padding: 2px 8px; border-radius: 4px;
+    font-size: 14px; color: var(--green);
+  }
+
+
+  /* ============ SLIDE 5: ASYMMETRIC ARCHITECTURE ============ */
+  .arch-canvas {
+    height: 440px; display: grid;
+    grid-template-rows: 1fr auto auto; gap: 12px;
+  }
+  .arch-tier-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+  }
+  .arch-tier {
+    background: var(--bg-1); border: 1px solid var(--amber-faint);
+    border-radius: 12px; padding: 18px 22px; position: relative;
+  }
+  .arch-tier-realtime { border-color: rgba(74,222,128,0.30); }
+  .arch-tier-deep {
+    border-color: var(--amber);
+    background: linear-gradient(180deg, rgba(200,184,154,0.04), var(--bg-1));
+  }
+  .arch-tier-tier {
+    position: absolute; top: -10px; left: 20px;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    background: var(--bg-0); padding: 2px 10px; border-radius: 4px;
+  }
+  .arch-tier-realtime .arch-tier-tier { color: var(--green); border: 1px solid rgba(74,222,128,0.30); }
+  .arch-tier-deep .arch-tier-tier { color: var(--amber); border: 1px solid var(--amber); }
+  .arch-tier-name {
+    font-family: 'DM Serif Display', serif; font-size: 22px;
+    color: var(--text-bright); margin-bottom: 4px; margin-top: 6px;
+  }
+  .arch-tier-model {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--text-dim); margin-bottom: 12px; line-height: 1.5;
+  }
+  .arch-tier-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .arch-tier-stat {
+    background: var(--bg-2); border-radius: 6px; padding: 10px 12px; text-align: center;
+  }
+  .arch-tier-stat-val {
+    font-family: 'DM Serif Display', serif; font-size: 22px;
+    color: var(--text-bright); line-height: 1; margin-bottom: 4px;
+  }
+  .arch-tier-stat-val .unit { font-size: 12px; color: var(--amber); }
+  .arch-tier-stat-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 9px;
+    color: var(--text-dim); letter-spacing: 0.15em; text-transform: uppercase;
+  }
+  .arch-vram {
+    background: var(--bg-1); border: 1px solid var(--amber-faint);
+    border-radius: 12px; padding: 16px 20px;
+  }
+  .arch-vram-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: 0.15em; text-transform: uppercase; color: var(--amber); margin-bottom: 10px;
+  }
+  .arch-vram-bar {
+    display: flex; height: 32px; border-radius: 6px; overflow: hidden;
+    background: var(--bg-2); border: 1px solid var(--amber-faint);
+  }
+  .arch-vram-seg {
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    font-weight: 600; color: var(--bg-0); letter-spacing: 0.05em;
+  }
+  .arch-vram-8b { background: rgba(74,222,128,0.85); width: 7.8%; }
+  .arch-vram-70b { background: var(--amber); width: 19.4%; }
+  .arch-vram-free {
+    background: var(--bg-3); width: 72.8%; color: var(--amber); font-weight: 400;
+  }
+  .arch-econ-callout {
+    background: linear-gradient(180deg, rgba(200,184,154,0.08), var(--bg-1));
+    border: 1px solid var(--amber); border-radius: 12px;
+    padding: 10px 20px;
+    display: flex; align-items: center; gap: 14px;
+    text-align: left;
+  }
+  .arch-econ-callout-tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 9px;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--amber);
+    flex-shrink: 0; min-width: 100px; line-height: 1.4;
+  }
+  .arch-econ-callout-text {
+    font-family: 'DM Serif Display', serif; font-size: 15px;
+    color: var(--text-bright); line-height: 1.35; flex: 1;
+  }
+  .arch-econ-callout-text strong { color: var(--amber); font-weight: 400; }
+
+  /* ============ SLIDE 6: H100 vs MI300X ECONOMICS ============ */
+  .econ-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 32px; height: 480px;
+  }
+  .econ-card {
+    background: var(--bg-1); border: 1px solid var(--amber-faint);
+    border-radius: 12px; padding: 26px; display: flex; flex-direction: column;
+  }
+  .econ-card.fail { border-color: rgba(239,68,68,0.30); }
+  .econ-card.win {
+    border-color: var(--amber);
+    background: linear-gradient(180deg, rgba(200,184,154,0.06), var(--bg-1));
+  }
+  .econ-card-head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 6px;
+  }
+  .econ-card h3 {
+    font-family: 'DM Serif Display', serif; font-size: 28px;
+    color: var(--text-bright); letter-spacing: -0.02em;
+  }
+  .econ-verdict {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    padding: 6px 12px; border-radius: 6px;
+  }
+  .econ-verdict.fail { background: rgba(239,68,68,0.12); color: var(--red); }
+  .econ-verdict.win { background: rgba(74,222,128,0.12); color: var(--green); }
+  .econ-card-spec {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--text-dim); letter-spacing: 0.05em; margin-bottom: 20px;
+  }
+  .econ-bar-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--text-mid); letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .econ-bar {
+    height: 32px; border-radius: 6px; background: var(--bg-2);
+    border: 1px solid var(--amber-faint); position: relative;
+    margin-bottom: 20px; overflow: hidden;
+  }
+  .econ-bar-seg {
+    position: absolute; top: 0; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    font-weight: 600; color: var(--bg-0); letter-spacing: 0.05em;
+  }
+  .econ-bar-8b { background: rgba(74,222,128,0.85); }
+  .econ-bar-70b { background: var(--amber); }
+  .econ-bar-overflow {
+    background: repeating-linear-gradient(45deg, rgba(239,68,68,0.40), rgba(239,68,68,0.40) 6px, rgba(239,68,68,0.20) 6px, rgba(239,68,68,0.20) 12px);
+    color: var(--red); font-weight: 700;
+  }
+  .econ-bar-headroom { background: var(--bg-3); color: var(--amber); }
+  .econ-cost-row {
+    background: var(--bg-2); border: 1px solid var(--amber-faint);
+    border-radius: 8px; padding: 12px 16px; margin-bottom: 10px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .econ-cost-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--text-mid); letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .econ-cost-val {
+    font-family: 'DM Serif Display', serif; font-size: 22px;
+    color: var(--text-bright);
+  }
+  .econ-cost-val.bad { color: var(--red); }
+  .econ-cost-val.good { color: var(--green); }
+  .econ-conclusion {
+    margin-top: auto; padding-top: 14px;
+    border-top: 1px dashed var(--amber-faint);
+    font-size: 12px; line-height: 1.55; color: var(--text-mid); font-weight: 300;
+  }
+  .econ-conclusion strong { color: var(--text-bright); font-weight: 400; }
+  .econ-footnote {
+    grid-column: 1 / -1;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--text-dim); text-align: center;
+    padding-top: 8px; letter-spacing: 0.05em;
+  }
+
+  /* ============ SLIDE 7: 7-AGENT — REAL SCREENSHOT EVIDENCE ============ */
+  .agent-evidence {
+    height: 480px; display: grid;
+    grid-template-columns: 1fr 1.05fr; gap: 24px;
+  }
+  .agent-flow-box {
+    background: var(--bg-1); border: 1px solid var(--amber-faint);
+    border-radius: 12px; padding: 22px;
+    display: flex; flex-direction: column;
+  }
+  .agent-flow-box-tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--amber);
+    margin-bottom: 16px;
+  }
+  .agent-pipeline {
+    display: flex; flex-direction: column; gap: 7px; flex: 1;
+  }
+  .agent-pipeline-row {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--bg-2); border: 1px solid var(--amber-faint);
+    border-radius: 8px; padding: 9px 13px;
+  }
+  .agent-pipeline-row.detect { border-color: rgba(74,222,128,0.30); }
+  .agent-pipeline-row.resolve {
+    border-color: var(--amber);
+    background: linear-gradient(180deg, rgba(200,184,154,0.10), var(--bg-2));
+  }
+  .agent-pipeline-icon { font-size: 16px; flex-shrink: 0; width: 22px; text-align: center; }
+  .agent-pipeline-name {
+    font-family: 'DM Serif Display', serif; font-size: 14px;
+    color: var(--text-bright); flex-shrink: 0; min-width: 80px;
+  }
+  .agent-pipeline-arrow { color: var(--amber-dim); flex-shrink: 0; font-size: 11px; }
+  .agent-pipeline-output {
+    font-family: 'JetBrains Mono', monospace; font-size: 9.5px;
+    color: var(--text-mid); line-height: 1.45; flex: 1;
+  }
+  .agent-pipeline-output strong { color: var(--amber); font-weight: 600; }
+
+  .agent-screenshot-box {
+    background: var(--bg-1); border: 1px solid var(--amber);
+    border-radius: 12px; padding: 22px;
+    display: flex; flex-direction: column;
+  }
+  .agent-screenshot-box-tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--amber);
+    margin-bottom: 14px;
+  }
+  .agent-screenshot-frame {
+    flex: 1; background: var(--bg-2);
+    border: 1px solid var(--amber-faint);
+    border-radius: 8px; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .agent-screenshot-frame img {
+    width: 100%; height: 100%; object-fit: cover; object-position: center top;
+  }
+  .agent-screenshot-caption {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--text-dim); text-align: center; margin-top: 10px;
+    letter-spacing: 0.05em; line-height: 1.5;
+  }
+  .agent-screenshot-caption strong { color: var(--green); font-weight: 600; }
+
+  .agent-honesty-strip {
+    background: var(--bg-1); border: 1px solid var(--amber-faint);
+    border-radius: 8px; padding: 12px 18px; margin-top: 14px;
+    display: flex; gap: 20px; align-items: center;
+  }
+  .agent-honesty-strip-tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--amber);
+    flex-shrink: 0;
+  }
+  .agent-honesty-strip-text {
+    font-size: 12px; color: var(--text-mid); font-weight: 300; line-height: 1.5;
+  }
+  .agent-honesty-strip-text strong { color: var(--text-bright); font-weight: 400; }
+
+  /* ============ SLIDE 8: NUMBERS — REBALANCED ============ */
+  .num-grid-v6 {
+    display: grid; grid-template-rows: 1fr auto; gap: 18px;
+    height: 470px;
+  }
+  .num-heroes {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex: 1;
+  }
+  .num-hero-card {
+    border-radius: 12px; padding: 28px 32px;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .num-hero-card.green {
+    background: linear-gradient(180deg, rgba(74,222,128,0.06), var(--bg-1));
+    border: 1px solid rgba(74,222,128,0.30);
+  }
+  .num-hero-card.amber {
+    background: linear-gradient(180deg, rgba(200,184,154,0.06), var(--bg-1));
+    border: 1px solid var(--amber);
+  }
+  .num-hero-card-tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 12px;
+  }
+  .num-hero-card.green .num-hero-card-tag { color: var(--green); }
+  .num-hero-card.amber .num-hero-card-tag { color: var(--amber); }
+  .num-hero-card-val {
+    font-family: 'DM Serif Display', serif; font-size: 110px;
+    line-height: 0.95; color: var(--text-bright); letter-spacing: -0.04em;
+  }
+  .num-hero-card-val .unit { font-size: 36px; margin-left: 8px; }
+  .num-hero-card.green .num-hero-card-val .unit { color: var(--green); }
+  .num-hero-card.amber .num-hero-card-val .unit { color: var(--amber); }
+  .num-hero-card-val .arrow {
+    color: var(--text-dim); margin: 0 14px; font-size: 80px;
+  }
+  .num-hero-card-label {
+    font-size: 16px; color: var(--text-bright); font-weight: 400; line-height: 1.4;
+    margin-top: 14px;
+  }
+  .num-hero-card-label strong { font-weight: 500; }
+  .num-hero-card.green .num-hero-card-label strong { color: var(--green); }
+  .num-hero-card.amber .num-hero-card-label strong { color: var(--amber); }
+  .num-hero-card-sub {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--text-dim); margin-top: 8px; line-height: 1.5; letter-spacing: 0.05em;
+  }
+  .num-support-strip {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+  }
+  .num-support-tile {
+    background: var(--bg-1); border: 1px solid var(--amber-faint);
+    border-radius: 10px; padding: 14px 18px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .num-support-tile.muted { border-color: rgba(160, 153, 140, 0.18); }
+  .num-support-tile-val {
+    font-family: 'DM Serif Display', serif; font-size: 28px;
+    color: var(--text-bright); line-height: 1; letter-spacing: -0.02em;
+    flex-shrink: 0;
+  }
+  .num-support-tile.muted .num-support-tile-val { color: var(--text-mid); }
+  .num-support-tile-val .unit { font-size: 14px; color: var(--amber); margin-left: 2px; }
+  .num-support-tile.muted .num-support-tile-val .unit { color: var(--text-dim); }
+  .num-support-tile-text {
+    font-size: 11px; color: var(--text-mid); font-weight: 300; line-height: 1.45;
+  }
+  .num-support-tile-text strong { color: var(--text-bright); font-weight: 400; }
+  .num-support-tile-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 9px;
+    color: var(--amber); letter-spacing: 0.15em; text-transform: uppercase;
+    margin-bottom: 2px; display: block;
+  }
+  .num-support-tile.muted .num-support-tile-label { color: var(--text-dim); }
+
+  /* ============ SLIDE 9: MEMORY EFFECT ============ */
+  .memory-timeline {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+    height: 420px;
+  }
+  .memory-stage {
+    background: var(--bg-1); border: 1px solid var(--amber-faint);
+    border-radius: 12px; padding: 26px; display: flex; flex-direction: column;
+    position: relative;
+  }
+  .memory-stage.now {
+    border-color: rgba(74,222,128,0.30);
+    background: linear-gradient(180deg, rgba(74,222,128,0.04), var(--bg-1));
+  }
+  .memory-stage.next {
+    border-color: var(--amber);
+    background: linear-gradient(180deg, rgba(200,184,154,0.06), var(--bg-1));
+  }
+  .memory-stage.future {
+    border-color: rgba(96,165,250,0.30);
+    background: linear-gradient(180deg, rgba(96,165,250,0.04), var(--bg-1));
+  }
+  .memory-stage-when {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .memory-stage-status {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace; font-size: 9px;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 999px;
+    margin-bottom: 8px;
+  }
+  .memory-stage.now .memory-stage-status {
+    background: rgba(74,222,128,0.15); color: var(--green);
+    border: 1px solid rgba(74,222,128,0.40);
+  }
+  .memory-stage.next .memory-stage-status {
+    background: rgba(245,158,11,0.12); color: var(--orange);
+    border: 1px solid rgba(245,158,11,0.40);
+  }
+  .memory-stage.future .memory-stage-status {
+    background: rgba(96,165,250,0.10); color: var(--blue);
+    border: 1px solid rgba(96,165,250,0.30);
+  }
+  .memory-stage.now .memory-stage-when { color: var(--green); }
+  .memory-stage.next .memory-stage-when { color: var(--amber); }
+  .memory-stage.future .memory-stage-when { color: var(--blue); }
+  .memory-stage-tag {
+    font-family: 'DM Serif Display', serif; font-size: 14px;
+    color: var(--text-dim); margin-bottom: 16px; font-style: italic;
+  }
+  .memory-stage h3 {
+    font-family: 'DM Serif Display', serif; font-size: 22px;
+    line-height: 1.25; color: var(--text-bright); margin-bottom: 14px;
+    letter-spacing: -0.01em;
+  }
+  .memory-stage h3 em { font-style: italic; color: var(--amber); }
+  .memory-stage p {
+    font-size: 13px; line-height: 1.6; color: var(--text-mid); font-weight: 300;
+    margin-bottom: 14px;
+  }
+  .memory-stage p strong { color: var(--text-bright); font-weight: 400; }
+  .memory-stage .signals {
+    margin-top: auto; padding-top: 14px; border-top: 1px dashed var(--amber-faint);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .memory-stage .signal {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--text-bright); display: flex; gap: 10px; align-items: baseline;
+  }
+  .memory-stage .signal-num {
+    color: var(--amber); font-weight: 600; min-width: 80px;
+  }
+  .memory-thesis {
+    grid-column: 1 / -1;
+    background: var(--bg-2); border: 1px dashed var(--amber);
+    border-radius: 8px; padding: 14px 24px; text-align: center;
+    font-family: 'DM Serif Display', serif; font-size: 18px;
+    color: var(--text-bright); line-height: 1.4;
+    margin-top: 14px;
+  }
+  .memory-thesis strong { color: var(--amber); font-weight: 400; }
+
+  /* ============ SLIDE 10: CLOSING ============ */
+  .closing-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; height: 480px; }
+  .closing-left { display: flex; flex-direction: column; }
+  .closing-section-h {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: 0.25em; color: var(--amber); margin-bottom: 16px; text-transform: uppercase;
+  }
+  .closing-impact {
+    background: linear-gradient(180deg, rgba(200,184,154,0.06), var(--bg-1));
+    border: 1px solid var(--amber); border-radius: 12px;
+    padding: 28px; margin-bottom: 24px;
+  }
+  .closing-impact-num {
+    font-family: 'DM Serif Display', serif; font-size: 64px;
+    color: var(--amber); line-height: 1; letter-spacing: -0.02em; margin-bottom: 10px;
+  }
+  .closing-impact-num .arrow { color: var(--text-dim); margin: 0 12px; }
+  .closing-impact-label {
+    font-size: 15px; color: var(--text-bright); font-weight: 400; line-height: 1.5;
+  }
+  .closing-impact-label strong { color: var(--amber); font-weight: 500; }
+  .closing-impact-sub {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--text-dim); letter-spacing: 0.05em; margin-top: 10px;
+  }
+  .team-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px; }
+  .team-member {
+    background: var(--bg-1); border: 1px solid var(--amber-faint); border-radius: 10px;
+    padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+  }
+  .team-photo {
+    width: 44px; height: 44px; border-radius: 50%; background: var(--bg-3);
+    border: 1px solid var(--amber-faint);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Serif Display', serif; font-size: 18px;
+    color: var(--amber); flex-shrink: 0;
+  }
+  .team-info { display: flex; flex-direction: column; }
+  .team-name {
+    font-family: 'DM Serif Display', serif; font-size: 16px;
+    color: var(--text-bright);
+  }
+  .team-role { font-size: 11px; color: var(--text-mid); font-weight: 300; }
+  .team-handle {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--amber); margin-top: 2px;
+  }
+  .closing-thanks-footer {
+    margin-top: auto;
+    font-family: 'Outfit', sans-serif; font-size: 13px;
+    color: var(--text-dim); font-style: italic; line-height: 1.5;
+  }
+  .closing-thanks-footer span { color: var(--amber); font-style: normal; }
+
+  .closing-right { display: flex; flex-direction: column; }
+  .link-row { display: flex; flex-direction: column; gap: 8px; }
+  .link-item {
+    background: var(--bg-1); border: 1px solid var(--amber-faint); border-radius: 8px;
+    padding: 10px 16px; display: flex; flex-direction: column; gap: 3px;
+  }
+  .link-item.primary {
+    border-color: var(--amber);
+    background: linear-gradient(135deg, rgba(200,184,154,0.08), var(--bg-1));
+  }
+  .link-item-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: 0.2em; color: var(--text-dim); text-transform: uppercase;
+  }
+  .link-item-url {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: var(--amber); word-break: break-all;
+  }
+  .closing-ask {
+    margin-top: auto; padding: 14px 20px;
+    background: linear-gradient(135deg, rgba(200,184,154,0.10), var(--bg-1));
+    border: 1px solid var(--amber);
+    border-radius: 10px;
+    font-family: 'DM Serif Display', serif; font-size: 16px;
+    color: var(--text-bright); line-height: 1.4; text-align: center;
+  }
+  .closing-ask-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 9px;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--amber);
+    margin-bottom: 6px; display: block;
+  }
+  .closing-ask strong { color: var(--amber); font-weight: 400; }
+
+  /* ============ PRINT ============ */
+  @page { size: 1280px 720px; margin: 0; }
+  @media print {
+    body { background: var(--bg-0); }
+    .slide {
+      margin: 0; border: none; width: 1280px; height: 720px;
+      page-break-after: always; break-after: page;
+    }
+    .slide:last-of-type { page-break-after: auto; }
+    .print-controls { display: none !important; }
+  }
+
+  .print-controls {
+    position: fixed; top: 16px; right: 16px; z-index: 1000;
+    display: flex; gap: 8px; align-items: flex-start;
+  }
+  .print-btn {
+    background: var(--amber); color: var(--bg-0); border: none; border-radius: 8px;
+    padding: 10px 18px; font-family: 'Outfit', sans-serif; font-size: 13px;
+    font-weight: 600; cursor: pointer;
+  }
+  .print-hint {
+    background: var(--bg-2); color: var(--text-mid);
+    border: 1px solid var(--amber-faint); border-radius: 8px;
+    padding: 10px 14px; font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; max-width: 320px; line-height: 1.4;
+  }
+
+  /* Placeholder when screenshot images are not yet present */
+  img { display: block; }
+  img[src$=".png"] {
+    background: var(--bg-2);
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    text-align: center; line-height: 1.6;
+    padding: 16px; letter-spacing: 0.05em;
+  }
+  /* When src fails to load, the alt text shows */
+  /* No additional CSS needed; the alt-text placeholder is created with attribute selector below */
+
+  /* Image placeholders — silent dashed outlines, visible only on screen for editing */
+  .compare-screenshot, .flow-step-real-img, .agent-screenshot-frame, .flow-card-big-img {
+    position: relative;
+  }
+  .compare-screenshot img, .flow-step-real-img img, .agent-screenshot-frame img, .flow-card-big-img img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%; object-fit: cover; object-position: center top;
+    z-index: 2;
+  }
+  /* Slide 3 specific: contain to show full screenshot without cropping any side */
+  .compare-screenshot img {
+    object-fit: contain;
+    object-position: center center;
+  }
+  /* Slide 9 specific: cover + right anchor + zoom so the Deep Analysis panel fills the card and is readable. The empty v0.app textarea on the left of the screenshot gets cropped off. */
+  .agent-screenshot-frame img {
+    object-fit: cover;
+    object-position: right center;
+    transform: scale(1.4);
+    transform-origin: right center;
+  }
+  /* Slide 4 & 5 specific: per-screenshot zoom because the Forma UIs vary in size within their screenshots */
+  .flow-card-big-img img {
+    object-fit: cover;
+    object-position: center center;
+    transform-origin: center center;
+  }
+  /* Image 1: badge alone — tight zoom is fine */
+  .flow-card-big-img img[src="01-badge.png"] {
+    transform: scale(1.4);
+  }
+  /* Image 2: QUICK tooltip — needs LESS zoom so the Accept button at bottom stays visible */
+  .flow-card-big-img img[src="02-quick-tooltip.png"] {
+    transform: scale(1.1);
+  }
+  /* Image 3: PRO tooltip — even taller (has PRO EXPANSION block) so least zoom */
+  .flow-card-big-img img[src="03-pro-tooltip.png"] {
+    transform: scale(1.0);
+  }
+  /* Image 6: accepted prompt — small element, tighter zoom OK */
+  .flow-card-big-img img[src="06-accepted.png"] {
+    transform: scale(1.4);
+  }
+  .img-placeholder {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 16px; gap: 6px;
+    background: var(--bg-2);
+    border: 1px dashed var(--amber-faint);
+    border-radius: inherit;
+    text-align: center;
+    z-index: 1;
+    opacity: 0.55;
+  }
+  .img-placeholder-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: 0.25em; color: var(--text-dim); margin-bottom: 2px;
+  }
+  .img-placeholder-fname {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--text-dim); padding: 2px 8px;
+  }
+  .img-placeholder-note { display: none; }
+  .img-placeholder-action { display: none; }
+  /* In print: hide placeholders entirely if image fails — slide still reads as designed */
+  @media print {
+    .img-placeholder { opacity: 0.35; }
+  }
+</style>
+</head>
+<body>
+
+<div class="print-controls">
+  <div class="print-hint">⌘P → Save as PDF → Paper: 1280×720 → Margins: None → Background graphics: ON<br>Drop screenshot PNGs next to this HTML before printing for best result</div>
+  <button class="print-btn" onclick="window.print()">Print to PDF</button>
+</div>
+
+<!-- ============ SLIDE 1: COVER ============ -->
+<section class="slide cover">
+  <div class="cover-mark">FORMA × AMD AI HACKATHON · TRACK 1 · AI AGENTS</div>
+  <h1>FORMA</h1>
+  <div class="cover-dashes"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+  <div class="cover-headline">You have the design <em>in your head</em>.<br><em>Forma writes it.</em></div>
+  <div class="cover-sub">
+    A <strong>Grammarly-style overlay</strong> for vibe coders. As you type vague UI language on v0, Cursor, and Lovable, Forma rewrites it into canonical components with animated previews — so the AI builder generates <strong>what you actually wanted</strong>.
+    <div style="margin-top: 16px; color: var(--text-dim); font-size: 16px;">
+      Powered by an asymmetric inference architecture <em style="font-style: normal; color: var(--amber);">only AMD MI300X enables</em>.
+    </div>
+  </div>
+  <div class="cover-meta">
+    <div>RYAN CHANG · CHRISTIAN HAMIN</div>
+    <div><strong>Llama 3.1 8B + 70B AWQ-INT4</strong> · vLLM · ROCm 7.0 · 7-agent consensus on one MI300X</div>
+  </div>
+  <div class="slide-num">01 / 11</div>
+</section>
+
+<!-- ============ SLIDE 2: BOTTLENECK ============ -->
+<section class="slide">
+  <div class="slide-label">The Bottleneck Has Moved</div>
+  <div class="slide-body">
+    <h2 class="slide-title">AI builders got better. <em>Prompts didn't.</em></h2>
+    <p class="slide-kicker">v0, Cursor, Lovable, Bolt, base44 — all compete on output quality. <strong>None of them fix the input.</strong> And the input is broken at a level no model can solve: <strong>vocabulary</strong>.</p>
+
+    <div class="bottleneck-grid">
+      <div class="bottleneck-hero">
+        <div class="bottleneck-hero-tag">▼ The Cause</div>
+        <div class="bottleneck-hero-quote">UI patterns are <em>visual</em>.<br>Prompts are <em>verbal</em>.</div>
+        <div class="bottleneck-hero-stats">
+          <div class="bottleneck-hero-stat">
+            <div class="bottleneck-hero-stat-num"><span class="accent">60</span></div>
+            <div class="bottleneck-hero-stat-label">canonical UI patterns<br>Forma recognizes</div>
+          </div>
+          <div class="bottleneck-hero-stat">
+            <div class="bottleneck-hero-stat-num">&lt;<span class="accent">1</span>s</div>
+            <div class="bottleneck-hero-stat-label">to surface the right one<br>as you type</div>
+          </div>
+        </div>
+        <div style="margin-top: 16px; font-size: 13px; color: var(--text-mid); font-weight: 300; line-height: 1.55;">
+          Designers and PMs see the design in their head — but the right words ("Glassmorphic Popover", "Off-Canvas Drawer") are specialized vocabulary they were never taught. <strong style="color: var(--text-bright); font-weight: 400;">You can't type a word you don't know.</strong>
+        </div>
+      </div>
+
+      <div class="bottleneck-thesis">
+        <div class="bottleneck-thesis-tag">▼ The Consequence</div>
+        <div class="bottleneck-thesis-text">You burn three regenerations getting v0 to make what was already <em>in your head</em>.</div>
+        <div class="bottleneck-thesis-body">
+          The model isn't wrong — it's working from the words you typed, not the design you meant. So you iterate. Tweak. Regenerate. Tweak again. Designers and PMs lose hours to a vocabulary problem they don't know they have.
+        </div>
+        <div style="margin-top: 18px; padding: 12px 16px; background: var(--bg-2); border-left: 2px solid var(--amber); border-radius: 4px; font-family: 'DM Serif Display', serif; font-style: italic; font-size: 17px; color: var(--amber); line-height: 1.4;">
+          Every regeneration is a vocabulary tax.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">02 / 11</div>
+</section>
+
+<!-- ============ SLIDE 3: WITH FORMA vs WITHOUT FORMA — REAL SCREENSHOTS ============ -->
+<section class="slide">
+  <div class="slide-label">The Output Difference · Same Goal · Different Prompt</div>
+  <div class="slide-body">
+    <h2 class="slide-title">Same builder. Same model. <em>Forma is the difference.</em></h2>
+    <p class="slide-kicker">Same user. Same v0.app. Same generation model. Same project. <strong>The only difference is whether they typed it — or Forma rewrote it.</strong></p>
+
+    <div class="compare-grid">
+      <div class="compare-card bad">
+        <div class="compare-tag">
+          <span>▼ WITHOUT FORMA</span>
+          <span class="compare-score-badge">SCORE 60</span>
+        </div>
+        <div class="compare-prompt">
+          "make a <span class="vague">popup that slides in from the side</span>"
+        </div>
+        <div class="compare-screenshot">
+          <div class="img-placeholder" data-label="⑦ WITHOUT FORMA"><div class="img-placeholder-label">⑦ WITHOUT FORMA</div><div class="img-placeholder-fname">07-without-forma.png</div><div class="img-placeholder-note">Image 7: v0.app output for VAGUE prompt · "Slide-in Popup Demo" test page</div><div class="img-placeholder-action">drop file next to HTML to populate</div></div><img src="07-without-forma.png" alt="v0.app output for vague prompt" onerror="this.style.display='none'" onload="this.previousElementSibling.style.display='none'" />
+        </div>
+      </div>
+
+      <div class="score-jump">
+        <div class="score-jump-label">SCORE</div>
+        <div class="score-jump-from">60</div>
+        <div class="score-jump-arrow">↓</div>
+        <div class="score-jump-to">95</div>
+        <div class="score-jump-lift">+35 LIFT</div>
+      </div>
+
+      <div class="compare-card good">
+        <div class="compare-tag">
+          <span>▲ WITH FORMA</span>
+          <span class="compare-score-badge">SCORE 95</span>
+        </div>
+        <div class="compare-prompt">
+          "Design a <span class="precise">Glassmorphic Popover</span> with a slide-in animation (300ms cubic-bezier) from right edge..."
+        </div>
+        <div class="compare-screenshot">
+          <div class="img-placeholder" data-label="⑧ WITH FORMA"><div class="img-placeholder-label">⑧ WITH FORMA</div><div class="img-placeholder-fname">08-with-forma.png</div><div class="img-placeholder-note">Image 8: v0.app output for FORMA prompt · Glassmorphic Popover with frosted glass</div><div class="img-placeholder-action">drop file next to HTML to populate</div></div><img src="08-with-forma.png" alt="v0.app output for Forma-rewritten prompt" onerror="this.style.display='none'" onload="this.previousElementSibling.style.display='none'" />
+        </div>
+      </div>
+    </div>
+
+    <div class="compare-footer">
+      Same prompt intent. Same v0.app. <strong>Different prompt quality. Different result.</strong>
+    </div>
+  </div>
+  <div class="slide-num">03 / 11</div>
+</section>
+
+<!-- ============ SLIDE 4A: TYPE -> HOVER ============ -->
+<section class="slide">
+  <div class="slide-label">How Forma Captures Intent · 1 / 2</div>
+  <div class="slide-body">
+    <h2 class="slide-title">You don't need the right word. <em>You need to point at it.</em></h2>
+    <p class="slide-kicker tight">UI patterns are visual. English is verbal. As you type, the 8B model finds vague phrases in under a second — then <strong>hovering reveals the canonical alternates</strong>.</p>
+
+    <div class="flow-pair">
+      <div class="flow-card-big">
+        <div class="flow-card-big-num">1</div>
+        <div class="flow-card-big-label">▼ Type · 8B watching every keystroke</div>
+        <div class="flow-card-big-title">Score appears in <em>under a second</em>.</div>
+        <div class="flow-card-big-desc">User types into v0.app. Forma reads the textarea, scores the prompt 0–100, and surfaces a <strong>Run Full Analysis</strong> Pro action.</div>
+        <div class="flow-card-big-img">
+          <div class="img-placeholder"><div class="img-placeholder-label">① BADGE</div><div class="img-placeholder-fname">01-badge.png</div></div><img src="01-badge.png" alt="Forma score badge on v0.app" onerror="this.style.display='none'" onload="this.previousElementSibling.style.display='none'" />
+        </div>
+      </div>
+
+      <div class="flow-card-big active">
+        <div class="flow-card-big-num">2</div>
+        <div class="flow-card-big-label">▼ Hover · The Magic Moment</div>
+        <div class="flow-card-big-title">Tooltip with <em>main term + 3 alternates</em>.</div>
+        <div class="flow-card-big-desc">Each alternate has its own animated preview. <strong>Click the one that matches the picture in your head</strong> — vocabulary is no longer a barrier.</div>
+        <div class="flow-card-big-img">
+          <div class="img-placeholder"><div class="img-placeholder-label">② QUICK TOOLTIP</div><div class="img-placeholder-fname">02-quick-tooltip.png</div></div><img src="02-quick-tooltip.png" alt="Hover tooltip with main term and 3 alternates" onerror="this.style.display='none'" onload="this.previousElementSibling.style.display='none'" />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">04 / 11</div>
+</section>
+
+<!-- ============ SLIDE 4B: PRO MODE -> ACCEPT ============ -->
+<section class="slide">
+  <div class="slide-label">How Forma Captures Intent · 2 / 2</div>
+  <div class="slide-body">
+    <h2 class="slide-title">Pro mode adds <em>motion specs</em> and <em>accessibility</em>.</h2>
+    <p class="slide-kicker tight">Toggle Pro and Forma expands the canonical term into a full prompt: width, easing curve, focus management, ARIA attributes. <strong>One click, score 60 → 95.</strong></p>
+
+    <div class="flow-pair">
+      <div class="flow-card-big">
+        <div class="flow-card-big-num">3</div>
+        <div class="flow-card-big-label">▼ Pro mode · Full canonical expansion</div>
+        <div class="flow-card-big-title">From <em>noun</em> to <em>spec</em>.</div>
+        <div class="flow-card-big-desc">"Off-Canvas Drawer" becomes <strong>"slides from right edge, 320px width, 250ms ease-in-out, semi-transparent backdrop"</strong> — the exact prompt v0.app needs.</div>
+        <div class="flow-card-big-img">
+          <div class="img-placeholder"><div class="img-placeholder-label">③ PRO TOOLTIP</div><div class="img-placeholder-fname">03-pro-tooltip.png</div></div><img src="03-pro-tooltip.png" alt="Pro mode with full canonical expansion" onerror="this.style.display='none'" onload="this.previousElementSibling.style.display='none'" />
+        </div>
+      </div>
+
+      <div class="flow-card-big active">
+        <div class="flow-card-big-num">4</div>
+        <div class="flow-card-big-label">▼ Accept · Score jumps green</div>
+        <div class="flow-card-big-title">60 <em>→</em> 95 in one click.</div>
+        <div class="flow-card-big-desc">Textarea is rewritten with the full Glassmorphic Popover spec. <strong>Score turns green · v0.app generates what you actually wanted.</strong></div>
+        <div class="flow-card-big-img">
+          <div class="img-placeholder"><div class="img-placeholder-label">⑥ ACCEPTED</div><div class="img-placeholder-fname">06-accepted.png</div></div><img src="06-accepted.png" alt="Accepted prompt score 95" onerror="this.style.display='none'" onload="this.previousElementSibling.style.display='none'" />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">05 / 11</div>
+</section>
+
+<!-- ============ SLIDE 5: ASYMMETRIC ARCHITECTURE ============ -->
+<section class="slide">
+  <div class="slide-label">The Asymmetric Architecture</div>
+  <div class="slide-body">
+    <h2 class="slide-title">8.75× parameter asymmetry. <em>One GPU.</em> Two business models.</h2>
+    <p class="slide-kicker tight">Two production-grade Llamas — one ten times the size of the other — sharing the same MI300X. Free tier on the 8B; paid tier on the 70B. <strong>The hardware choice and the freemium business model are the same decision.</strong></p>
+
+    <div class="arch-canvas">
+      <div class="arch-tier-row">
+        <div class="arch-tier arch-tier-realtime">
+          <div class="arch-tier-tier">FREE TIER · PORT 30000</div>
+          <div class="arch-tier-name">Llama 3.1 8B Instruct</div>
+          <div class="arch-tier-model">Detection + scoring on every keystroke · powers the inline tooltip</div>
+          <div class="arch-tier-stats">
+            <div class="arch-tier-stat"><div class="arch-tier-stat-val">~800<span class="unit">ms</span></div><div class="arch-tier-stat-label">latency</div></div>
+            <div class="arch-tier-stat"><div class="arch-tier-stat-val">15<span class="unit">GiB</span></div><div class="arch-tier-stat-label">VRAM</div></div>
+            <div class="arch-tier-stat"><div class="arch-tier-stat-val">44×</div><div class="arch-tier-stat-label">concurrency</div></div>
+          </div>
+        </div>
+
+        <div class="arch-tier arch-tier-deep">
+          <div class="arch-tier-tier">PRO TIER · PORT 8000</div>
+          <div class="arch-tier-name">Llama 3.1 70B AWQ-INT4</div>
+          <div class="arch-tier-model">7-agent consensus on Run Full Analysis · the moat for paying users</div>
+          <div class="arch-tier-stats">
+            <div class="arch-tier-stat"><div class="arch-tier-stat-val">~40<span class="unit">s</span></div><div class="arch-tier-stat-label">deep latency</div></div>
+            <div class="arch-tier-stat"><div class="arch-tier-stat-val">37<span class="unit">GiB</span></div><div class="arch-tier-stat-label">VRAM</div></div>
+            <div class="arch-tier-stat"><div class="arch-tier-stat-val">21×</div><div class="arch-tier-stat-label">concurrency</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arch-vram">
+        <div class="arch-vram-label">SINGLE MI300X · 192 GiB SHARED HBM3 · 5.3 TB/s</div>
+        <div class="arch-vram-bar">
+          <div class="arch-vram-seg arch-vram-8b">8B</div>
+          <div class="arch-vram-seg arch-vram-70b">70B</div>
+          <div class="arch-vram-seg arch-vram-free">~140 GiB FREE · KV CACHE + PARALLEL USERS</div>
+        </div>
+      </div>
+
+      <div class="arch-econ-callout">
+        <div class="arch-econ-callout-tag">▼ The<br>differentiator</div>
+        <div class="arch-econ-callout-text">Symmetric dual-model is a tech demo. <strong>Asymmetric dual-tier is a freemium SaaS</strong> — and the only GPU it runs on is MI300X.</div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">06 / 11</div>
+</section>
+
+<!-- ============ SLIDE 6: H100 vs MI300X — UNIT ECONOMICS ============ -->
+<section class="slide">
+  <div class="slide-label">Why MI300X · Unit Economics</div>
+  <div class="slide-body">
+    <h2 class="slide-title">On H100, freemium <em>doesn't pencil</em>.</h2>
+    <p class="slide-kicker">This isn't an architecture preference. It's the only configuration where the free-to-paid economics work. <strong>H100 forces two GPUs. Two GPUs kill freemium.</strong></p>
+
+    <div class="econ-grid">
+      <div class="econ-card fail">
+        <div class="econ-card-head">
+          <h3>NVIDIA H100</h3>
+          <div class="econ-verdict fail">⊘ FORCES 2-GPU SPLIT</div>
+        </div>
+        <div class="econ-card-spec">80 GiB HBM3 · 3.35 TB/s</div>
+
+        <div class="econ-bar-label">VRAM allocation attempt — single GPU</div>
+        <div class="econ-bar">
+          <div class="econ-bar-seg econ-bar-8b" style="width: 18.75%; left: 0;">8B · 15</div>
+          <div class="econ-bar-seg econ-bar-70b" style="width: 46.25%; left: 18.75%;">70B · 37</div>
+          <div class="econ-bar-seg econ-bar-overflow" style="width: 35%; left: 65%;">KV STARVED</div>
+        </div>
+
+        <div class="econ-cost-row">
+          <div class="econ-cost-label">GPU instances needed</div>
+          <div class="econ-cost-val bad">2×</div>
+        </div>
+        <div class="econ-cost-row">
+          <div class="econ-cost-label">Cost per free request</div>
+          <div class="econ-cost-val bad">~2× higher</div>
+        </div>
+
+        <div class="econ-conclusion">
+          Both models technically fit. <strong>~28 GiB headroom is not enough KV cache for usable concurrency.</strong> Forces a two-GPU topology — one model per GPU — doubling infra cost and adding cross-device latency to every paid request.
+        </div>
+      </div>
+
+      <div class="econ-card win">
+        <div class="econ-card-head">
+          <h3>AMD MI300X</h3>
+          <div class="econ-verdict win">✓ ONE GPU · BOTH TIERS</div>
+        </div>
+        <div class="econ-card-spec">192 GiB HBM3 · 5.3 TB/s</div>
+
+        <div class="econ-bar-label">Actual deployed allocation — production</div>
+        <div class="econ-bar">
+          <div class="econ-bar-seg econ-bar-8b" style="width: 7.8%; left: 0;">8B</div>
+          <div class="econ-bar-seg econ-bar-70b" style="width: 19.4%; left: 7.8%;">70B</div>
+          <div class="econ-bar-seg econ-bar-headroom" style="width: 72.8%; left: 27.2%;">~140 GiB · KV + PARALLEL</div>
+        </div>
+
+        <div class="econ-cost-row">
+          <div class="econ-cost-label">GPU instances needed</div>
+          <div class="econ-cost-val good">1×</div>
+        </div>
+        <div class="econ-cost-row">
+          <div class="econ-cost-label">Cost per free request</div>
+          <div class="econ-cost-val good">~$0.01<span style="font-size: 14px; color: var(--text-mid);"> /1K reqs</span></div>
+        </div>
+
+        <div class="econ-conclusion">
+          Both tiers in same VRAM. <strong>140 GiB headroom absorbs 11.2 GiB realtime KV + 26.25 GiB deep KV plus parallel users.</strong> Freemium isn't a marketing decision — it's the architecture this hardware uniquely enables.
+        </div>
+      </div>
+
+      <div class="econ-footnote">
+        Cost derivation: $1.99/hr droplet ÷ 3600s ÷ (44 concurrent × ~800ms per req) ≈ $0.00001/req for the 8B free tier
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">07 / 11</div>
+</section>
+
+<!-- ============ NEW SLIDE: TECHNICAL PROCESS FLOW ============ -->
+<section class="slide">
+  <div class="slide-label">Technical Process · Keystroke To Response</div>
+  <div class="slide-body">
+    <h2 class="slide-title">From <em>typed character</em> to <em>scored prompt</em> in 800ms.</h2>
+    <p class="slide-kicker tight">Five layers, two networks, one MI300X. <strong>Every layer is real and deployed</strong> — judges can verify each by hitting the URLs on the closing slide.</p>
+
+    <div class="tech-flow-canvas">
+      <div class="tech-flow-pipeline">
+        <div class="tech-stage entry">
+          <div class="tech-stage-icon">⌨️</div>
+          <div>
+            <div class="tech-stage-name">User keystroke</div>
+            <div class="tech-stage-tech">v0.app textarea</div>
+          </div>
+          <div class="tech-stage-detail">DOM input event<br>fires on every char</div>
+        </div>
+        <div class="tech-arrow">→<div class="tech-arrow-time">debounce</div></div>
+
+        <div class="tech-stage">
+          <div class="tech-stage-icon">🧩</div>
+          <div>
+            <div class="tech-stage-name">Chrome extension</div>
+            <div class="tech-stage-tech">content.js · MV3</div>
+          </div>
+          <div class="tech-stage-detail">Reads textarea<br>POST /analyze</div>
+        </div>
+        <div class="tech-arrow">→<div class="tech-arrow-time">HTTPS</div></div>
+
+        <div class="tech-stage">
+          <div class="tech-stage-icon">⚡</div>
+          <div>
+            <div class="tech-stage-name">FastAPI backend</div>
+            <div class="tech-stage-tech">Railway · Python 3.12</div>
+          </div>
+          <div class="tech-stage-detail">Routes prompt<br>to vLLM endpoint</div>
+        </div>
+        <div class="tech-arrow">→<div class="tech-arrow-time">JSON</div></div>
+
+        <div class="tech-stage compute">
+          <div class="tech-stage-icon">🔥</div>
+          <div>
+            <div class="tech-stage-name">vLLM on MI300X</div>
+            <div class="tech-stage-tech">Llama 3.1 8B · ROCm 7.0</div>
+          </div>
+          <div class="tech-stage-detail">8B inference<br>~600–800ms · port 30000</div>
+        </div>
+        <div class="tech-arrow">→<div class="tech-arrow-time">return</div></div>
+
+        <div class="tech-stage exit">
+          <div class="tech-stage-icon">✓</div>
+          <div>
+            <div class="tech-stage-name">Score + tooltip</div>
+            <div class="tech-stage-tech">rendered inline</div>
+          </div>
+          <div class="tech-stage-detail">Badge updates<br>underline appears</div>
+        </div>
+      </div>
+
+      <div class="tech-flow-stack">
+        <div class="tech-flow-stack-tag">▼ Real production stack</div>
+        <div class="tech-flow-stack-item"><span class="label">Inference:</span>vLLM 0.17.1</div>
+        <div class="tech-flow-stack-item"><span class="label">Compute:</span>ROCm 7.0</div>
+        <div class="tech-flow-stack-item"><span class="label">Quant:</span>AWQ-INT4 (70B)</div>
+        <div class="tech-flow-stack-item"><span class="label">Backend:</span>FastAPI on Railway</div>
+        <div class="tech-flow-stack-item"><span class="label">GPU:</span>MI300X · 192 GiB · 5.3 TB/s</div>
+      </div>
+
+      <div class="tech-flow-summary">
+        Five layers · two networks · one MI300X · <span class="accent">~800ms end-to-end</span> · <strong>this is what runs on every keystroke</strong>.
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">08 / 11</div>
+</section>
+
+<!-- ============ SLIDE 7: 7-AGENT — REAL CONSENSUS SCREENSHOT ============ -->
+<section class="slide">
+  <div class="slide-label">The 7-Agent Pipeline · Live On Production</div>
+  <div class="slide-body">
+    <h2 class="slide-title">Why this <em>can't be a single LLM call</em>.</h2>
+    <p class="slide-kicker">Each agent owns distinct context, prompt, output schema. <strong>5 of 6 agents aligned</strong> on the right answer in the screenshot below — that's not a single 70B inference, that's six independent votes feeding an arbitrator. Completed in 39.9s on production MI300X.</p>
+
+    <div class="agent-evidence">
+      <div class="agent-flow-box">
+        <div class="agent-flow-box-tag">▼ The pipeline · 7 agents on MI300X</div>
+        <div class="agent-pipeline">
+          <div class="agent-pipeline-row detect">
+            <div class="agent-pipeline-icon">🧭</div>
+            <div class="agent-pipeline-name">Detector</div>
+            <div class="agent-pipeline-arrow">→</div>
+            <div class="agent-pipeline-output">finds <strong>"popup that slides in"</strong> · 1.2s on 8B</div>
+          </div>
+          <div class="agent-pipeline-row">
+            <div class="agent-pipeline-icon">🧪</div>
+            <div class="agent-pipeline-name">Critic</div>
+            <div class="agent-pipeline-arrow">→</div>
+            <div class="agent-pipeline-output">scores prompt · weakness: ambiguous motion</div>
+          </div>
+          <div class="agent-pipeline-row">
+            <div class="agent-pipeline-icon">✍️</div>
+            <div class="agent-pipeline-name">Reformulator</div>
+            <div class="agent-pipeline-arrow">→</div>
+            <div class="agent-pipeline-output">primary: <strong>Glassmorphic Popover</strong>; alts: 3 candidates</div>
+          </div>
+          <div class="agent-pipeline-row">
+            <div class="agent-pipeline-icon">🎨</div>
+            <div class="agent-pipeline-name">Style</div>
+            <div class="agent-pipeline-arrow">→</div>
+            <div class="agent-pipeline-output">user prefers modern, sleek components</div>
+          </div>
+          <div class="agent-pipeline-row">
+            <div class="agent-pipeline-icon">🧠</div>
+            <div class="agent-pipeline-name">Memory</div>
+            <div class="agent-pipeline-arrow">→</div>
+            <div class="agent-pipeline-output">user history: tends toward <strong>Glassmorphic</strong></div>
+          </div>
+          <div class="agent-pipeline-row">
+            <div class="agent-pipeline-icon">🛠️</div>
+            <div class="agent-pipeline-name">Coach</div>
+            <div class="agent-pipeline-arrow">→</div>
+            <div class="agent-pipeline-output">adds aria-label + focus management</div>
+          </div>
+          <div class="agent-pipeline-row resolve">
+            <div class="agent-pipeline-icon">⚖️</div>
+            <div class="agent-pipeline-name">Consensus</div>
+            <div class="agent-pipeline-arrow">→</div>
+            <div class="agent-pipeline-output"><strong>arbitrates 6 outputs · score 90 · 5/6 aligned</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="agent-screenshot-box">
+        <div class="agent-screenshot-box-tag">▲ Live consensus output · production MI300X</div>
+        <div class="agent-screenshot-frame">
+          <div class="img-placeholder" data-label="⑤ CONSENSUS"><div class="img-placeholder-label">⑤ CONSENSUS</div><div class="img-placeholder-fname">05-deep-complete.png</div><div class="img-placeholder-note">Image 5: 7-agent Deep Analysis · score 90 · 5/6 aligned · 39.9s</div><div class="img-placeholder-action">drop file next to HTML to populate</div></div><img src="05-deep-complete.png" alt="Deep Analysis 7-agent consensus output" onerror="this.style.display='none'" onload="this.previousElementSibling.style.display='none'" />
+        </div>
+        <div class="agent-screenshot-caption">
+          70B AWQ · 192 GiB HBM3 · vLLM 0.17.1 · ROCm 7.0 · <strong>completed in 39.9s</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="agent-honesty-strip">
+      <div class="agent-honesty-strip-tag">▼ What's real today</div>
+      <div class="agent-honesty-strip-text">
+        <strong>All seven agents run real 70B inference on production MI300X.</strong> Style and Memory agents currently operate on illustrative input data — the inference pipeline is real, the cross-builder data capture pipeline is the v2 priority.
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">09 / 11</div>
+</section>
+
+<!-- ============ SLIDE 9: MEMORY EFFECT ============ -->
+<section class="slide">
+  <div class="slide-label">The Memory Effect · How Forma Compounds</div>
+  <div class="slide-body">
+    <h2 class="slide-title">Translation is the wedge. <em>Memory is the platform.</em></h2>
+    <p class="slide-kicker">Every prompt teaches Forma. Every accept narrows the user's style. <strong>Switching costs grow with usage</strong> — Forma sits one layer above any single AI builder, owning the relationship between human design intent and machine output.</p>
+
+    <div class="memory-timeline">
+      <div class="memory-stage now">
+        <div class="memory-stage-when">▲ TODAY · WORKING</div>
+        <div class="memory-stage-status">● LIVE IN PRODUCTION</div>
+        <div class="memory-stage-tag">The wedge</div>
+        <h3>One Chrome extension. Five AI builders. Sub-second prompt rewrites.</h3>
+        <p>v0, Cursor, Replit, Bolt, base44 — all share the same textarea problem. Forma reads, scores, rewrites. <strong>The 8B inference path is live in production right now.</strong></p>
+        <div class="signals">
+          <div class="signal"><span class="signal-num">800ms</span><span>8B per keystroke</span></div>
+          <div class="signal"><span class="signal-num">60 terms</span><span>canonical UI vocabulary</span></div>
+          <div class="signal"><span class="signal-num">5 sites</span><span>builders supported</span></div>
+        </div>
+      </div>
+
+      <div class="memory-stage next">
+        <div class="memory-stage-when">▲ NEXT QUARTER · v2</div>
+        <div class="memory-stage-status">◐ IN DEVELOPMENT</div>
+        <div class="memory-stage-tag">Real cross-builder data</div>
+        <h3>Forma starts learning <em>your</em> style — not the average user's.</h3>
+        <p>Cross-builder activity capture replaces the illustrative data driving Style and Memory today. Real personalization from <strong>your</strong> accept history, not seeded mocks.</p>
+        <div class="signals">
+          <div class="signal"><span class="signal-num">30 prompts</span><span>preferred patterns emerge</span></div>
+          <div class="signal"><span class="signal-num">100 prompts</span><span>brand palette inferred</span></div>
+          <div class="signal"><span class="signal-num">ongoing</span><span>evolving design memory</span></div>
+        </div>
+      </div>
+
+      <div class="memory-stage future">
+        <div class="memory-stage-when">▲ NEXT YEAR · v3</div>
+        <div class="memory-stage-status">○ ROADMAP</div>
+        <div class="memory-stage-tag">Platform</div>
+        <h3>Forma Memory API — the design layer every builder reads from.</h3>
+        <p>Builders compete on output. <strong>Forma owns the input.</strong> Memory API lets v0, Cursor, Lovable, Bolt read user style profiles and ship better defaults out of the gate.</p>
+        <div class="signals">
+          <div class="signal"><span class="signal-num">API</span><span>builders integrate at SDK level</span></div>
+          <div class="signal"><span class="signal-num">Workspace</span><span>Notion · Linear · Figma</span></div>
+          <div class="signal"><span class="signal-num">Enterprise</span><span>self-hosted, custom canon</span></div>
+        </div>
+      </div>
+
+      <div class="memory-thesis">
+        Builders compete on output quality. <strong>The prompt-quality layer captures more value than any single builder below it.</strong>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">10 / 11</div>
+</section>
+
+<!-- ============ SLIDE 10: TEAM · IMPACT · ASK ============ -->
+<section class="slide">
+  <div class="slide-label">Team · Impact · Ask</div>
+  <div class="slide-body">
+    <h2 class="slide-title">Built on <em>one MI300X</em> over <em>one weekend</em>.</h2>
+    <p class="slide-kicker">Working extension. Deployed backend. Real models. Live demo URL is one click away — <strong>the judge can verify everything in this deck right now.</strong></p>
+
+    <div class="closing-grid">
+      <div class="closing-left">
+        <div class="closing-section-h">Measured Impact · On The Live Extension</div>
+        <div class="closing-impact">
+          <div class="closing-impact-num">60 <span class="arrow">→</span> 95</div>
+          <div class="closing-impact-label"><strong>Vague description → production-ready spec, in under a second.</strong> Forma Score (0–100) measures prompt specificity; vague phrases drop the score, canonical components raise it.</div>
+          <div class="closing-impact-sub">free tier · 8B · ~800ms per keystroke · canonical-60 vocabulary</div>
+        </div>
+
+        <div class="closing-section-h">Team</div>
+        <div class="team-row">
+          <div class="team-member">
+            <div class="team-photo">R</div>
+            <div class="team-info">
+              <div class="team-name">Ryan Chang</div>
+              <div class="team-role">Backend · Agents · Architecture</div>
+              <div class="team-handle">@ryz002-rz</div>
+            </div>
+          </div>
+          <div class="team-member">
+            <div class="team-photo">C</div>
+            <div class="team-info">
+              <div class="team-name">Christian Hamin</div>
+              <div class="team-role">Frontend · Demo · Design</div>
+              <div class="team-handle">@haminxx</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="closing-thanks-footer">
+          <span>Thank you, AMD.</span> The MI300X didn't just enable Forma — it's the only chip our business model fits on.
+        </div>
+      </div>
+
+      <div class="closing-right">
+        <div class="closing-section-h">Try It Now · 30 Seconds</div>
+        <div class="link-row">
+          <div class="link-item primary">
+            <div class="link-item-label">▼ AMD Architecture Deep-Dive</div>
+            <div class="link-item-url">forma-production-c800.up.railway.app/amd</div>
+          </div>
+          <div class="link-item">
+            <div class="link-item-label">Live Backend · Try the Extension</div>
+            <div class="link-item-url">forma-production-c800.up.railway.app</div>
+          </div>
+          <div class="link-item">
+            <div class="link-item-label">Repo · MIT License</div>
+            <div class="link-item-url">github.com/haminxx/Forma</div>
+          </div>
+          <div class="link-item">
+            <div class="link-item-label">Marketing Site</div>
+            <div class="link-item-url">forma-ten-bay.vercel.app</div>
+          </div>
+          <div class="link-item">
+            <div class="link-item-label">Devpost Submission</div>
+            <div class="link-item-url">devpost.com/software/forma</div>
+          </div>
+        </div>
+
+        <div class="closing-ask">
+          <span class="closing-ask-label">▼ Our submission</span>
+          Forma is what a real freemium AI product on <strong>AMD infra</strong> looks like.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">11 / 11</div>
+</section>
+
+</body>
+</html>
