@@ -55,7 +55,9 @@ export function DemoStage({ className }: { className?: string }) {
     >
       {/* Sticky panel — pinned to viewport at top: 6rem so it sits
           below the floating navbar. */}
-      <div className="sticky top-24 h-[calc(100vh-6rem)] overflow-hidden bg-transparent px-3 sm:px-6">
+      {/* Pass clicks through empty sticky band so hero CTAs stay clickable where
+          this section overlaps `#home` (negative margin on HomePage). */}
+      <div className="pointer-events-none sticky top-24 h-[calc(100vh-6rem)] overflow-hidden bg-transparent px-3 sm:px-6">
         <div className="relative flex h-full w-full items-start justify-center pt-[clamp(1.35rem,4.25vh,3.65rem)] sm:pt-[clamp(1.65rem,4.85vh,4.05rem)]">
           {/* Outer wrapper: one-time slide-up entrance that fires after
               the hero's stagger has finished. Hero entrance is ~1.1s
@@ -73,7 +75,7 @@ export function DemoStage({ className }: { className?: string }) {
               delay: 1.4,
               ease: [0.22, 0.68, 0, 1],
             }}
-            className="relative w-full max-w-[min(98vw,92rem)]"
+            className="pointer-events-auto relative w-full max-w-[min(98vw,92rem)]"
           >
             {/* Inner wrapper: scroll-driven peek-then-expand transforms.
                 Kept on a separate motion node so the entrance and the
