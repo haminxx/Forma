@@ -33,17 +33,27 @@ type Platform = {
    * when SVG viewBoxes differ. `1` = default; nudge toward v0.png size.
    */
   scale?: number;
+  /**
+   * Arbitrary CSS `filter` for marks that are too dark on near-black
+   * (use when `invert` would harm multi-colour artwork).
+   */
+  filter?: string;
 };
 
 const PLATFORMS: Platform[] = [
   { name: "Vercel v0", src: "/logos/v0.png", href: "https://v0.app", invert: true },
-  { name: "Replit", src: "/logos/replit.svg", href: "https://replit.com" },
+  { name: "Replit", src: "/logos/replit.svg", href: "https://replit.com", scale: 1.22 },
   { name: "Bolt", src: "/logos/bolt.svg", href: "https://bolt.new", invert: true },
   { name: "Lovable", src: "/logos/lovable.svg", href: "https://lovable.dev", invert: true },
-  { name: "Manus", src: "/logos/manus.svg", href: "https://manus.im" },
+  { name: "Manus", src: "/logos/manus.svg", href: "https://manus.im", invert: true },
   { name: "Figma Make", src: "/logos/figma-make.svg", href: "https://www.figma.com/make/" },
   { name: "Base 44", src: "/logos/Base44.svg", href: "https://base44.com" },
-  { name: "Tempo", src: "/logos/tempo.png", href: "https://www.tempo.new/" },
+  {
+    name: "Tempo",
+    src: "/logos/tempo.png",
+    href: "https://www.tempo.new/",
+    filter: "brightness(1.5) contrast(1.15)",
+  },
 ];
 
 type LogoCloudProps = ComponentProps<"div">;
@@ -84,14 +94,12 @@ export function LogoCloud({ className, ...props }: LogoCloudProps) {
           isMdLastRow ? "md:border-b-0" : "md:border-b",
         );
 
-        // Frosted-glass tiles: heavy backdrop-blur over a thin tint so the
-        // gold sandbox bloom is visible *through* each cell but blurred
-        // enough that wordmarks still read. Alternating tint depth keeps
-        // a subtle checker rhythm without going opaque.
+        // Frosted tiles: slightly stronger tint on the solid-black sandbox so
+        // dark wordmarks still separate from the backdrop; blur keeps edges soft.
         const checker = (i + Math.floor(i / 4)) % 2 === 0;
         const cellBg = checker
-          ? "bg-white/[0.05] backdrop-blur-2xl backdrop-saturate-150"
-          : "bg-white/[0.025] backdrop-blur-2xl backdrop-saturate-150";
+          ? "bg-white/[0.09] backdrop-blur-2xl backdrop-saturate-150"
+          : "bg-white/[0.045] backdrop-blur-2xl backdrop-saturate-150";
 
         // PlusIcon at the centre horizontal line ONLY — the bottom-right
         // of top-row cells (i = 0, 2) sits on the divider between rows.
@@ -106,6 +114,7 @@ export function LogoCloud({ className, ...props }: LogoCloudProps) {
             src={p.src}
             alt={`${p.name} logo`}
             invert={p.invert}
+            filter={p.filter}
             scale={p.scale ?? 1}
             className={cn(cellBorder, cellBg)}
           >
@@ -134,11 +143,13 @@ type LogoCardProps = {
   children?: ReactNode;
   /** Apply CSS `filter: invert(1)` for black-on-anything source PNGs. */
   invert?: boolean;
+  /** Custom `filter` when invert is not appropriate (e.g. raster wordmark lift). */
+  filter?: string;
   /** Visual size nudge vs the shared frame (v0 reference). */
   scale: number;
 };
 
-function LogoCard({ href, src, alt, className, children, invert, scale }: LogoCardProps) {
+function LogoCard({ href, src, alt, className, children, invert, filter, scale }: LogoCardProps) {
   return (
     <HoverPeek url={href}>
       <a
@@ -169,7 +180,13 @@ function LogoCard({ href, src, alt, className, children, invert, scale }: LogoCa
               src={src}
               alt={alt}
               loading="lazy"
-              style={invert ? { filter: "invert(1) brightness(1.05)" } : undefined}
+              style={
+                invert
+                  ? { filter: "invert(1) brightness(1.05)" }
+                  : filter
+                    ? { filter }
+                    : undefined
+              }
               // Default: full colour. When the *grid* is hovered, dim
               // every cell with grayscale + low opacity. The cell that
               // is *itself* hovered overrides back to full colour with
