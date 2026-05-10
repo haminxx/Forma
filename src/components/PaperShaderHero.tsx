@@ -1,16 +1,13 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import AnimatedGradientBackground from "@/components/ui/animated-gradient-background";
 
 /**
- * Forma home hero — full-bleed animated gold gradient plus centred title
- * stack. The gradient mounts here (not at page level) so sizing stays
- * correct and seams match `DemoStage`'s own gradient layer.
+ * Forma home hero — centred title stack + readability scrim. The animated
+ * gold field is provided by `HomePage` behind both home and demo.
  */
 export function PaperShaderHero() {
-  const reduceMotion = useReducedMotion();
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -34,13 +31,6 @@ export function PaperShaderHero() {
       animate="visible"
       variants={containerVariants}
     >
-      <div className="pointer-events-none absolute inset-0 z-0">
-        <AnimatedGradientBackground
-          breathing={!reduceMotion}
-          topOffset={-20}
-        />
-      </div>
-
       {/* Vertical scrim — keeps the navbar and centred copy legible. */}
       <div
         aria-hidden

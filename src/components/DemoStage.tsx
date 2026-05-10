@@ -7,17 +7,14 @@ import {
 } from "framer-motion";
 
 import { DemoSplit } from "./DemoSplit";
-import AnimatedGradientBackground from "@/components/ui/animated-gradient-background";
 import { cn } from "@/lib/utils";
 
 /**
  * DemoStage — peek-then-expand scroll wrapper around `DemoSplit`.
  *
- * Backdrop:
- *   - The sticky panel uses the same `AnimatedGradientBackground` as
- *     the hero (warm gold palette), bound to the panel — no page-level
- *     sticky stack and no extra radial overlay (those caused incorrect
- *     seams / double painting).
+ * Backdrop: none — the home page mounts one continuous gold gradient
+ * behind home + demo; this stage is transparent aside from the floating
+ * window chrome.
  *
  * Mechanic:
  *   - 170vh outer section. The user scrolls *through* the demo while
@@ -56,20 +53,7 @@ export function DemoStage({ className }: { className?: string }) {
     >
       {/* Sticky panel — pinned to viewport at top: 6rem so it sits
           below the floating navbar. */}
-      <div className="sticky top-24 h-[calc(100vh-6rem)] overflow-hidden px-3 sm:px-6">
-        {/* Demo screen area's own gold-radial backdrop. Concentrated
-            at the top-centre and fading to near-black at the sides +
-            bottom so the demo "screen" continues the warm gold tone
-            from the hero into a solid black floor for the floating
-            card to sit on. Bound to the sticky panel (not the full
-            170vh section) so it never paints into the hero overlap. */}
-        <div className="pointer-events-none absolute inset-0 -z-10">
-          <AnimatedGradientBackground
-            breathing={!reduced}
-            topOffset={-20}
-          />
-        </div>
-
+      <div className="sticky top-24 h-[calc(100vh-6rem)] overflow-hidden bg-transparent px-3 sm:px-6">
         <div className="relative flex h-full w-full items-center justify-center">
           {/* Outer wrapper: one-time slide-up entrance that fires after
               the hero's stagger has finished. Hero entrance is ~1.1s

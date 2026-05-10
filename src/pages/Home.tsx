@@ -1,3 +1,4 @@
+import { useReducedMotion } from "framer-motion";
 import { DemoStage } from "../components/DemoStage";
 import { DocsPanel } from "../components/DocsPanel";
 import { GlassTextarea } from "../components/GlassTextarea";
@@ -6,6 +7,7 @@ import { PaperShaderHero } from "../components/PaperShaderHero";
 import { PoweredBy } from "../components/PoweredBy";
 import { ProblemTestimonial } from "../components/ProblemTestimonial";
 import { SolutionSection } from "../components/SolutionSection";
+import AnimatedGradientBackground from "../components/ui/animated-gradient-background";
 import { BlurText } from "../components/ui/blur-text";
 import { FeatureShowcase } from "../components/ui/feature-showcase";
 import { LogoCloud } from "../components/ui/logo-cloud";
@@ -17,11 +19,9 @@ import { EdgeGlow } from "../components/ui/section-fade";
  *
  * Background architecture:
  *
- *   - Home: `AnimatedGradientBackground` fills the hero inside
- *     `PaperShaderHero` (full-bleed, breathing).
- *   - Demo: matching gradient fills the sticky demo panel inside
- *     `DemoStage` only — no page-level sticky/absolute stack (that
- *     layout caused broken seams and incorrect sizing).
+ *   - Home + Demo: ONE shared `AnimatedGradientBackground` (sticky,
+ *     viewport-height) behind both sections. Hero + demo stage paint no
+ *     extra backdrop; demo is only the floating window.
  *   - Sandbox / Problem / Solution / About / Docs: each section has
  *     its own backdrop as usual.
  *
@@ -39,24 +39,50 @@ function postHeadingDelay(tokenCount: number) {
 }
 
 export function HomePage() {
+  const reduceMotion = useReducedMotion();
+
   return (
     <div>
-      <section
-        id="home"
-        className="relative scroll-mt-24"
-        aria-label="Forma — Grammarly for AI builder prompts"
-      >
-        <PaperShaderHero />
-      </section>
+      <div className="relative">
+        {/* Single gold field for home + demo: viewport-sized, not stretched
+            to the combined section height — sticky keeps it pinned while
+            scrolling this block. */}
+        <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+          <div className="sticky top-0 h-screen w-full">
+            <AnimatedGradientBackground
+              breathing={!reduceMotion}
+              topOffset={-20}
+            />
+          </div>
+        </div>
 
-      <section
-        id="demo"
-        className="relative scroll-mt-24"
-        style={{ marginTop: "-38vh" }}
-        aria-label="Demo"
-      >
-        <DemoStage />
-      </section>
+        <section
+          id="home"
+          className="relative z-10 scroll-mt-24"
+          aria-label="Forma — Grammarly for AI builder prompts"
+        >
+          <PaperShaderHero />
+        </section>
+
+        <section
+          id="demo"
+          className="relative z-10 scroll-mt-24"
+          style={{ marginTop: "-38vh" }}
+          aria-label="Demo"
+        >
+          <DemoStage />
+        </section>
+
+        {/* Ease into the PoweredBy band below — no hard cut at demo end. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-[28vh]"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(10,10,12,0) 0%, rgba(10,10,12,0.55) 55%, rgba(10,10,12,1) 100%)",
+          }}
+        />
+      </div>
 
       {/* Powered-by marquee — narrow dark band acting as a transition
           between the gold hero/demo block and the sandbox below. */}
