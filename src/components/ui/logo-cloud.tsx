@@ -38,12 +38,12 @@ type Platform = {
 const PLATFORMS: Platform[] = [
   { name: "Vercel v0", src: "/logos/v0.png", href: "https://v0.app", invert: true },
   { name: "Replit", src: "/logos/replit.svg", href: "https://replit.com" },
-  { name: "Bolt", src: "/logos/bolt.svg", href: "https://bolt.new" },
-  { name: "Lovable", src: "/logos/lovable.svg", href: "https://lovable.dev" },
+  { name: "Bolt", src: "/logos/bolt.svg", href: "https://bolt.new", invert: true },
+  { name: "Lovable", src: "/logos/lovable.svg", href: "https://lovable.dev", invert: true },
   { name: "Manus", src: "/logos/manus.svg", href: "https://manus.im" },
   { name: "Figma Make", src: "/logos/figma-make.svg", href: "https://www.figma.com/make/" },
   { name: "Base 44", src: "/logos/Base44.svg", href: "https://base44.com" },
-  { name: "Tempo", src: "/logos/tempo.svg", href: "https://www.tempo.new/" },
+  { name: "Tempo", src: "/logos/tempo.png", href: "https://www.tempo.new/" },
 ];
 
 type LogoCloudProps = ComponentProps<"div">;
