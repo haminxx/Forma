@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion, useSpring } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
 import { scrollDocumentToSectionWithRetries } from "../lib/scroll-section";
+import { cn } from "../lib/cn";
 
 interface NavItem {
   label: string;
@@ -53,7 +54,6 @@ export const PillNav: React.FC = () => {
   const [expanded, setExpanded] = useState(false);
   const [hovering, setHovering] = useState(false);
   const [atTop, setAtTop] = useState(true);
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const [vw, setVw] = useState<number>(() =>
     typeof window === "undefined" ? 1280 : window.innerWidth,
   );
@@ -128,8 +128,6 @@ export const PillNav: React.FC = () => {
   };
 
   const handleSectionClick = (sectionId: string) => {
-    // Trigger transition state
-    setIsTransitioning(true);
     prevSectionRef.current = sectionId;
     setActiveSection(sectionId);
 
@@ -149,16 +147,10 @@ export const PillNav: React.FC = () => {
         state: { scrollToSection: sectionId },
         preventScrollReset: true,
       });
-      setTimeout(() => setIsTransitioning(false), 400);
       return;
     }
 
     scrollDocumentToSectionWithRetries(sectionId, behavior);
-
-    // Reset transition state after animation completes
-    setTimeout(() => {
-      setIsTransitioning(false);
-    }, 400);
   };
 
   const activeItem = navItems.find((item) => item.id === activeSection);
@@ -205,83 +197,21 @@ export const PillNav: React.FC = () => {
 
   return (
     <motion.nav
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        className="relative rounded-full"
-        style={{
-          width: pillWidth,
-          height: "44px",
-          // Dark charcoal glass — Forma's #191a1f bg with a subtle tonal
-          // shift so the pill reads as raised against the page rather
-          // than the previous silver/light look that fought the theme.
-          background: `
-          linear-gradient(135deg,
-            #2c2e35 0%,
-            #25272d 30%,
-            #1d1f24 65%,
-            #2a2c33 100%
-          )
-        `,
-          boxShadow: expanded
-            ? `
-            0 2px 4px rgba(0, 0, 0, 0.45),
-            0 8px 18px rgba(0, 0, 0, 0.40),
-            0 18px 36px rgba(0, 0, 0, 0.30),
-            inset 0 1px 0 rgba(255, 255, 255, 0.08),
-            inset 0 -1px 0 rgba(0, 0, 0, 0.45),
-            inset 0 0 0 0.5px rgba(255, 255, 255, 0.10)
-          `
-            : isTransitioning
-              ? `
-            0 3px 8px rgba(0, 0, 0, 0.45),
-            0 8px 18px rgba(0, 0, 0, 0.32),
-            inset 0 1px 0 rgba(255, 255, 255, 0.07),
-            inset 0 -1px 0 rgba(0, 0, 0, 0.4),
-            inset 0 0 0 0.5px rgba(212, 184, 122, 0.18)
-          `
-              : `
-            0 3px 8px rgba(0, 0, 0, 0.40),
-            0 8px 18px rgba(0, 0, 0, 0.28),
-            inset 0 1px 0 rgba(255, 255, 255, 0.06),
-            inset 0 -1px 0 rgba(0, 0, 0, 0.4),
-            inset 0 0 0 0.5px rgba(255, 255, 255, 0.08)
-          `,
-          x: pillShift,
-          overflow: "hidden",
-          transition: "box-shadow 0.3s ease-out",
-        }}
-      >
-        {/* Top edge highlight — narrow gold-tinted ridge so the pill
-            reads as part of Forma's accent palette without screaming. */}
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 rounded-t-full"
-          style={{
-            height: "1px",
-            background:
-              "linear-gradient(90deg, rgba(212,184,122,0) 0%, rgba(212,184,122,0.18) 18%, rgba(255,255,255,0.20) 50%, rgba(212,184,122,0.18) 82%, rgba(212,184,122,0) 100%)",
-          }}
-        />
-
-        {/* Subtle top-hemisphere light catch */}
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 rounded-full"
-          style={{
-            height: "55%",
-            background:
-              "linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 60%, rgba(255, 255, 255, 0) 100%)",
-          }}
-        />
-
-        {/* Bottom inner shadow for depth */}
-        <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 rounded-b-full"
-          style={{
-            height: "55%",
-            background:
-              "linear-gradient(0deg, rgba(0, 0, 0, 0.32) 0%, rgba(0, 0, 0, 0.16) 35%, rgba(0, 0, 0, 0) 100%)",
-          }}
-        />
-
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className={cn(
+        "relative isolate overflow-hidden rounded-full",
+        "border border-white/[0.08]",
+        "bg-[rgba(255,255,255,0.05)]",
+        "shadow-[inset_0_1px_0_rgba(255,255,255,0.06),inset_0_-1px_0_rgba(0,0,0,0.35),0_8px_32px_rgba(0,0,0,0.4)]",
+        "backdrop-blur-[28px] backdrop-saturate-150 [-webkit-backdrop-filter:blur(28px)_saturate(150%)]",
+      )}
+      style={{
+        width: pillWidth,
+        height: "44px",
+        x: pillShift,
+      }}
+    >
         {/* Navigation items container */}
         <div
           ref={containerRef}
@@ -343,6 +273,7 @@ export const PillNav: React.FC = () => {
                 return (
                   <motion.button
                     key={item.id}
+                    type="button"
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
@@ -352,37 +283,16 @@ export const PillNav: React.FC = () => {
                       ease: "easeOut",
                     }}
                     onClick={() => handleSectionClick(item.id)}
-                    className="relative cursor-pointer transition-all duration-200"
+                    className={cn(
+                      "relative cursor-pointer whitespace-nowrap rounded-full border-none px-[18px] py-2.5 outline-none transition-all duration-200 ease-out antialiased",
+                      "tracking-[0.4px]",
+                      isActive
+                        ? "bg-[rgba(200,184,154,0.12)] text-[12.5px] font-semibold text-[#d4b87a] shadow-[inset_0_1px_0_rgba(200,184,154,0.22)]"
+                        : "text-[12px] font-medium text-white/70 hover:bg-white/[0.08] hover:text-white/95 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]",
+                    )}
                     style={{
-                      fontSize: isActive ? "12.5px" : "12px",
-                      fontWeight: isActive ? 600 : 500,
-                      color: isActive ? "#d4b87a" : "rgba(255,255,255,0.55)",
-                      textDecoration: "none",
-                      letterSpacing: "0.4px",
-                      background: "transparent",
-                      border: "none",
-                      padding: "8px 12px",
-                      outline: "none",
-                      whiteSpace: "nowrap",
                       fontFamily:
                         'Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", Poppins, sans-serif',
-                      WebkitFontSmoothing: "antialiased",
-                      MozOsxFontSmoothing: "grayscale",
-                      transform: isActive
-                        ? "translateY(-1px)"
-                        : "translateY(0)",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isActive) {
-                        e.currentTarget.style.color = "rgba(255,255,255,0.92)";
-                        e.currentTarget.style.transform = "translateY(-0.5px)";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isActive) {
-                        e.currentTarget.style.color = "rgba(255,255,255,0.55)";
-                        e.currentTarget.style.transform = "translateY(0)";
-                      }
                     }}
                   >
                     {item.label}
