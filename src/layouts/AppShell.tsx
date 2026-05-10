@@ -71,7 +71,7 @@ function BrandMark({
     <motion.a
       href="/"
       aria-label="Forma — home"
-      className="pointer-events-auto group inline-flex h-11 shrink-0 items-center rounded-full px-1.5 text-white transition-opacity hover:opacity-90"
+      className="pointer-events-auto group inline-flex min-h-[52px] shrink-0 items-center rounded-full py-1 pl-1 pr-1 text-white transition-opacity hover:opacity-90 sm:min-h-[56px]"
       initial={reduceMotion ? false : { opacity: 0, x: 44 }}
       animate={{ opacity: 1, x: 0 }}
       transition={transition}
@@ -80,7 +80,7 @@ function BrandMark({
         src="/logos/forma-wordmark.png"
         alt=""
         draggable={false}
-        className="h-[22px] w-auto max-w-[118px] object-contain opacity-[0.98] sm:h-[26px] sm:max-w-[138px]"
+        className="h-10 w-auto max-w-[min(52vw,220px)] object-contain opacity-[0.98] sm:h-12 sm:max-w-none md:h-[52px]"
       />
     </motion.a>
   );

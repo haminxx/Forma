@@ -1,9 +1,9 @@
-/** Matches `scroll-mt-24` on section anchors (~6rem below viewport top). */
-export const SECTION_SCROLL_TOP_RESERVE_PX = 96;
 
-export type SectionScrollBehavior = ScrollBehavior | "instant";
-
-/** Scroll offset under the floating header; sections use matching `scroll-mt-24`. */
+/**
+ * Sections use Tailwind `scroll-mt-24` so their tops clear the fixed navbar.
+ * `scrollIntoView({ block: "start" })` respects that scroll margin (manual
+ * subtraction from getBoundingClientRect does not mirror it exactly).
+ */
 export function scrollDocumentToSection(
   sectionId: string,
   behavior: SectionScrollBehavior = "smooth",
@@ -11,14 +11,27 @@ export function scrollDocumentToSection(
   const node = document.getElementById(sectionId);
   if (!node) return false;
 
-  const y =
-    node.getBoundingClientRect().top +
-    window.scrollY -
-    SECTION_SCROLL_TOP_RESERVE_PX;
-  window.scrollTo({
-    top: Math.max(0, y),
-    behavior:
-      behavior === "instant" ? "auto" : behavior,
+  node.scrollIntoView({
+    behavior: behavior === "instant" ? "auto" : behavior,
+    block: "start",
+    inline: "nearest",
   });
   return true;
+}
+export type SectionScrollBehavior = ScrollBehavior | "instant";
+
+/** Re-run briefly so layout (e.g. after route change) isn't missed on first paint. */
+export function scrollDocumentToSectionWithRetries(
+  sectionId: string,
+  behavior: SectionScrollBehavior = "smooth",
+) {
+  const run = () => scrollDocumentToSection(sectionId, behavior);
+  run();
+  requestAnimationFrame(run);
+  const t = window.setTimeout(run, 100);
+  const t2 = window.setTimeout(run, 280);
+  return () => {
+    window.clearTimeout(t);
+    window.clearTimeout(t2);
+  };
 }

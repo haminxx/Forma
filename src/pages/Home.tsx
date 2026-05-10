@@ -1,7 +1,7 @@
 import { useReducedMotion } from "framer-motion";
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { scrollDocumentToSection } from "../lib/scroll-section";
+import { scrollDocumentToSectionWithRetries } from "../lib/scroll-section";
 import { DemoStage } from "../components/DemoStage";
 import { DocsPanel } from "../components/DocsPanel";
 import { GlassTextarea } from "../components/GlassTextarea";
@@ -69,14 +69,20 @@ export function HomePage() {
     if (!st) return;
 
     const behave = reduceMotion ? "instant" : "smooth";
-    scrollDocumentToSection(st, behave);
-    navigate(".", { replace: true, state: {} });
+    const cancelRetries = scrollDocumentToSectionWithRetries(st, behave);
 
-    const t = window.setTimeout(() => {
-      scrollDocumentToSection(st, behave);
-    }, 140);
+    const navTimer = window.setTimeout(() => {
+      navigate(".", {
+        replace: true,
+        state: {},
+        preventScrollReset: true,
+      });
+    }, 40);
 
-    return () => window.clearTimeout(t);
+    return () => {
+      cancelRetries();
+      window.clearTimeout(navTimer);
+    };
   }, [location.state, navigate, reduceMotion]);
 
   return (

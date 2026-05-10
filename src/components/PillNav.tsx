@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion, useSpring } from "framer-motion";
 import { useLocation, useNavigate } from "react-router-dom";
-import { scrollDocumentToSection } from "../lib/scroll-section";
+import { scrollDocumentToSectionWithRetries } from "../lib/scroll-section";
 
 interface NavItem {
   label: string;
@@ -31,7 +31,7 @@ export const NAV_ITEMS: NavItem[] = [
 // flanks at the smallest viewport we care about (~360 px).
 const COLLAPSED_W = 116;
 const EXPANDED_MAX = 560;
-const EXPANDED_FLANK_RESERVE = 320;
+const EXPANDED_FLANK_RESERVE = 360;
 
 function clampExpandedWidth(viewport: number): number {
   if (!Number.isFinite(viewport) || viewport <= 0) return EXPANDED_MAX;
@@ -140,16 +140,20 @@ export const PillNav: React.FC = () => {
 
     // Lock IO-driven active updates while smooth-scroll is mid-flight,
     // otherwise mid-scroll sections would temporarily flip the label.
-    userScrollLockUntil.current = Date.now() + 800;
+    userScrollLockUntil.current = Date.now() + 1200;
 
     const behavior = reduceMotion ? "instant" : "smooth";
 
     if (location.pathname !== "/") {
-      navigate("/", { state: { scrollToSection: sectionId } });
+      navigate("/", {
+        state: { scrollToSection: sectionId },
+        preventScrollReset: true,
+      });
+      setTimeout(() => setIsTransitioning(false), 400);
       return;
     }
 
-    scrollDocumentToSection(sectionId, behavior);
+    scrollDocumentToSectionWithRetries(sectionId, behavior);
 
     // Reset transition state after animation completes
     setTimeout(() => {
