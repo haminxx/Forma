@@ -7,9 +7,9 @@ import { cn } from "@/lib/utils";
  * brand marks (Llama, FastAPI, DigitalOcean, Railway, AMD).
  *
  * Per latest direction the previous text-label marquee was replaced
- * with PNG logo files dropped in /public/logos. Each entry carries an
- * optional `invert` flag for source PNGs that ship as black-on-light
- * (Llama, AMD) — CSS `filter: invert(1) brightness(1.05)` flips them
+ * with logo files in /public/logos (PNG or SVG). Each entry carries an
+ * optional `invert` flag for marks that ship dark-on-light (Llama, AMD,
+ * Railway wordmark) — CSS `filter: invert(1) brightness(1.05)` flips them
  * to light so they read against the dark page bg.
  *
  * Direction is bound to page scroll:
@@ -24,13 +24,15 @@ type StackLogo = {
   invert?: boolean;
   /** Optional max height override for visually heavy / light marks. */
   heightClass?: string;
+  /** Nudge visual weight to align with siblings (wide wordmarks). */
+  scale?: number;
 };
 
 const STACK: StackLogo[] = [
   { name: "Llama", src: "/logos/llama.png", invert: true },
   { name: "FastAPI", src: "/logos/fastapi.png" },
-  { name: "DigitalOcean", src: "/logos/digitalocean.png" },
-  { name: "Railway", src: "/logos/railway.png" },
+  { name: "DigitalOcean", src: "/logos/digitalocean.svg", scale: 1.06 },
+  { name: "Railway", src: "/logos/railway.svg", invert: true, scale: 1.06 },
   { name: "AMD", src: "/logos/amd.png", invert: true },
 ];
 
@@ -88,20 +90,32 @@ export function PoweredBy({ className }: { className?: string }) {
               key={`${logo.name}-${i}`}
               className="flex h-14 shrink-0 items-center justify-center"
             >
-              <img
-                src={logo.src}
-                alt={logo.name}
-                loading="lazy"
+              <span
+                className="flex items-center justify-center overflow-visible"
                 style={
-                  logo.invert
-                    ? { filter: "invert(1) brightness(1.05)" }
+                  logo.scale != null && logo.scale !== 1
+                    ? {
+                        transform: `scale(${logo.scale})`,
+                        transformOrigin: "center center",
+                      }
                     : undefined
                 }
-                className={cn(
-                  "pointer-events-none w-auto select-none object-contain opacity-80 transition-opacity duration-200 hover:opacity-100",
-                  logo.heightClass ?? "h-9 sm:h-11",
-                )}
-              />
+              >
+                <img
+                  src={logo.src}
+                  alt={logo.name}
+                  loading="lazy"
+                  style={
+                    logo.invert
+                      ? { filter: "invert(1) brightness(1.05)" }
+                      : undefined
+                  }
+                  className={cn(
+                    "pointer-events-none w-auto select-none object-contain opacity-80 transition-opacity duration-200 hover:opacity-100",
+                    logo.heightClass ?? "h-9 sm:h-11",
+                  )}
+                />
+              </span>
             </li>
           ))}
         </motion.ul>
